@@ -65,17 +65,12 @@ app.use(bodyParser.json({ limit: '2500mb' }));
 app.use(bodyParser.urlencoded({ limit: '2500mb', extended: true }));
 
 const connection = mysql.createConnection({
-//   host: 'localhost',
-//   user: 'root',
-//   password: 'yyPL@123456',
-//   database: 'yymahindra',
-//  authPlugin: 'mysql_native_password',
-  host: process.env.DB_HOST || '192.168.31.150',
-  user: process.env.DB_USER || 'developer',
-  password: process.env.DB_PASSWORD || 'Developer@123',
-  database: process.env.DB_NAME || 'yyscheafller_aaplication',
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: Number(process.env.DB_PORT || 3306)
 });
-
 function calculateRefreshalDate(courseDate, refreshalMonths) {
   if (!courseDate || !refreshalMonths) {
     return null;
