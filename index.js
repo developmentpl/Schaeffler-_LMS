@@ -64,13 +64,20 @@ app.get('/addUser', (req, res) => {
 app.use(bodyParser.json({ limit: '2500mb' }));
 app.use(bodyParser.urlencoded({ limit: '2500mb', extended: true }));
 
-const connection = mysql.createConnection({
+const connection = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: Number(process.env.DB_PORT || 3306)
+  port: Number(process.env.DB_PORT || 3306),
+
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
+
 function calculateRefreshalDate(courseDate, refreshalMonths) {
   if (!courseDate || !refreshalMonths) {
     return null;
