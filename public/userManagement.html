@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.12), transparent 45%),
+        radial-gradient(circle at 90% 25%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 85%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 88% 90%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 980px; width: 100%; margin: 0 auto; padding: 48px 20px; box-sizing: border-box; }
+    h1 { text-align: center; margin-bottom: 32px; color: #101828; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(240px, 1fr)); gap: 20px; }
+    .card {
+      background: linear-gradient(135deg, #0b3320, #08954c);
+      border-radius: 10px;
+      padding: 24px;
+      min-height: 140px;
+      text-decoration: none;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 8px 20px rgba(8, 149, 76, 0.18);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(8, 149, 76, 0.3); }
+    .card-icon { flex-shrink: 0; width: 52px; height: 52px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; }
+    .card-icon svg { width: 26px; height: 26px; }
+    .card h2 { margin: 0 0 6px; font-size: 20px; color: #ffffff; }
+    .card p { margin: 0; line-height: 1.4; color: rgba(255, 255, 255, 0.85); font-size: 14px; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+    @media (max-width: 720px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+    </div>
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>User Management</h1>
+    <div class="grid">
+      <a class="card" href="/learnersManagement.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>
+        </span>
+        <span>
+          <h2>Learners Management</h2>
+          <p>Bulk upload, manual learner creation, and learner list.</p>
+        </span>
+      </a>
+      <a class="card" href="/adminManagement.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg>
+        </span>
+        <span>
+          <h2>Admin Management</h2>
+          <p>Create and maintain LMS administrator login accounts.</p>
+        </span>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+</body>
+
+</html>

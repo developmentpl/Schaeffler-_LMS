@@ -1,0 +1,238 @@
+body {
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(135deg, #ebeef0,#d0d9df); */
+    background: linear-gradient(rgba(15, 15, 15, 0.55), rgba(15, 15, 15, 0.55)), url("/Images/userlogin/image.png");
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+    background-attachment: fixed;
+
+    color: #000000
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    height: 1.50cm;
+    box-sizing: border-box;
+}
+
+.navbar {
+    display: flex;
+    gap: 28px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #08954c;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+
+.container {
+    margin: 100px auto 0 auto;
+    /* Adjusted margin-top to position text medium below navbar */
+    width: 80%;
+    max-width: 900px;
+    background-color: #ffffff;
+    border: 1px solid #e4e7ec;
+    border-radius: 14px;
+    padding: 28px;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.1);
+    box-sizing: border-box;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #101828;
+}
+
+.downloadClass {
+    background-image: linear-gradient(135deg, #0b3320, #08954c);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 10px 20px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(8, 149, 76, 0.25);
+    transition: all 0.2s ease;
+}
+
+.downloadClass:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(8, 149, 76, 0.35);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff;
+    border: 1px solid #e4e7ec;
+    color: #172033;
+}
+
+th,
+td {
+    border-bottom: 1px solid #e6edf5;
+    padding: 10px;
+    text-align: left;
+}
+
+tr:hover {
+    background-color: #f7faf8;
+}
+
+th {
+    background-color: #f7f9fc;
+    color: #101828;
+}
+
+.level-header-row td {
+    background-color: #e6f5ec;
+    color: #08954c;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+}
+
+.btnclass {
+    background-image: linear-gradient(135deg, #0b3320, #08954c);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(8, 149, 76, 0.25);
+    float: right;
+    transition: all 0.2s ease;
+}
+
+.btnclass:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(8, 149, 76, 0.35);
+}
+
+footer {
+    background-color: #ffffff;
+    color: #000000;
+    text-align: center;
+     padding: 10px 0;
+     width: 100%;
+     bottom: 0;
+     position: fixed;
+     box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+ }
+
+#logout-container {
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+#logout-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    text-align: center;
+    background-color: #cccccc;
+    cursor: pointer;
+}
+
+#logout-btn:hover {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+/* footer {
+    background-color: #18191d;
+    color: #9AA0A5;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+} */
+
+/* Adjust radar chart colors */
+.radar-chart-container {
+    background-color: white;
+    border-radius: 20px;
+    text-align: center;
+    margin-top: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    display: block;
+}
+
+.h2-radar-chart {
+    color: #101828;
+}
+
+
+.radar-chart-container .chartjs-radar-chart canvas {
+    font-size: 16px;
+    
+    /* Adjust the font size here */
+}
+
+/* Add custom styles for radar chart canvas */
+.radar-chart {
+    /*background-color: rgba(255, 255, 255, 0.1); /* Change radar chart background color to transparent white */
+    /*border: 2px solid #f2f2f2; /* Change radar chart border color to light grey */
+    /*border-radius: 10px; /* Add border-radius for a rounded look */
+    box-shadow: 0 4px 6px rgba(99, 98, 98, 0.1);
+    border: 1px solid #939393;
+    /* Add box-shadow for depth */
+}
+
+/* Add hover effect on course name */
+.course-name {
+    color: white !important;
+    /* Change course name color to white */
+}
+
+#userDetails p {
+    font-family: Arial, sans-serif;
+    font-weight: 500;
+    color: #172033;
+}
+.goback {
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border:none;
+    border: none;
+    border-radius: 2px;
+    color: #dadada;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    box-shadow: 0 2px 3px rgba(209, 205, 205, 0.897);
+}
+

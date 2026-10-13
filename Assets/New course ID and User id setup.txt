@@ -1,0 +1,4 @@
+// First delete the exsisting data
+
+USE yytetrapakr2;
+ALTER TABLE users AUTO_INCREMENT = 1;

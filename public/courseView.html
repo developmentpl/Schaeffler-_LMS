@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Course View</title>
+  <style>
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 95%, rgba(8, 149, 76, 0.08), transparent 45%);
+      background-attachment: fixed;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .header img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; width: 100%; max-width: 1100px; margin: 28px auto; padding: 0 20px 112px; box-sizing: border-box; }
+    h1 { margin: 0 0 6px; font-size: 26px; }
+    h2 { font-size: 17px; margin: 0 0 14px; }
+    .breadcrumb { color: #6b7a90; font-size: 13px; margin-bottom: 18px; }
+    .breadcrumb a { color: #08954c; text-decoration: none; font-weight: 600; }
+    .status { min-height: 20px; margin-bottom: 14px; font-weight: 700; color: #08954c; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 20px 22px; margin-bottom: 20px; }
+    .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .field label { display: block; font-size: 12px; font-weight: 700; color: #6b7a90; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .02em; }
+    .field input, .field textarea, .field select { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 9px 10px; font: inherit; }
+    .field textarea { resize: vertical; min-height: 60px; }
+    .field.readonly input { background: #f4f7fb; color: #6b7a90; }
+    .rolesCheckboxGroup {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 6px 18px;
+      background: #f4f9f6;
+      border: 1px solid #d9e1ec;
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .rolesCheckboxGroup label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; text-transform: none; letter-spacing: normal; margin: 0; padding: 4px 0; color: #172033; cursor: pointer; white-space: nowrap; }
+    .rolesCheckboxGroup input[type="checkbox"] { width: 16px; height: 16px; accent-color: #08954c; cursor: pointer; flex-shrink: 0; margin: 0; }
+    .row-actions { margin-top: 16px; display: flex; gap: 10px; align-items: center; }
+    button, .btn { border: 0; border-radius: 6px; padding: 10px 16px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; }
+    button.secondary, .btn.secondary { background: #e8eef6; color: #172033; }
+    button.danger { background: #fde8e6; color: #b42318; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .file-current { font-size: 13px; color: #44526b; margin-bottom: 10px; word-break: break-all; }
+    .file-current a { color: #08954c; }
+    .file-blocked { font-size: 13px; color: #a15c00; background: #fff1d6; border-radius: 6px; padding: 10px 12px; }
+    .question-card { border: 1px solid #d9e1ec; border-radius: 8px; padding: 16px; margin-bottom: 14px; background: #fbfcfe; }
+    .question-card .qhead { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .question-card .qhead span { font-weight: 700; color: #6b7a90; font-size: 12px; }
+    .option-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+    .option-row input[type="text"] { flex: 1 1 auto; border: 1px solid #b9c7d8; border-radius: 6px; padding: 8px 10px; font: inherit; }
+    .option-row label.answer-pick { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; color: #6b7a90; white-space: nowrap; }
+    .option-row .img-btn { font-size: 11px; padding: 6px 10px; }
+    .option-row img.preview { height: 32px; border-radius: 4px; }
+    .empty { color: #6b7a90; font-style: italic; padding: 20px 0; text-align: center; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04); }
+    footer p { margin: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseMasterSetup.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="breadcrumb"><a href="/courseMasterSetup.html">Course Management</a> &rsaquo; Course View</div>
+    <h1 id="pageTitle">Course View</h1>
+    <div class="status" id="status"></div>
+
+    <div class="panel" id="detailsPanel" style="display:none;">
+      <h2>Course Details</h2>
+      <div class="field-grid">
+        <div class="field readonly"><label>Course ID</label><input id="f_subCourseID" disabled></div>
+        <div class="field readonly"><label>Course Type</label><input id="f_courseType" disabled></div>
+        <div class="field readonly"><label>Content Type</label><input id="f_contentType" disabled></div>
+        <div class="field readonly"><label>Level</label><input id="f_subCourseLevel_display" disabled></div>
+        <div class="field"><label>Name</label><input id="f_subCourseName"></div>
+        <div class="field"><label>Teacher Name</label><input id="f_subCourseTeacher"></div>
+        <div class="field"><label>Created Date</label><input id="f_subCourseDate" type="date"></div>
+        <div class="field"><label>Refresh Date</label><input id="f_subCourseRefreshDate" type="date"></div>
+        <div class="field"><label>Passing %</label><input id="f_subCoursePassing" type="number" min="0" max="100"></div>
+        <div class="field"><label>Level (free text)</label><input id="f_subCourseLevel"></div>
+        <div class="field" id="rolesField" style="display:none;">
+          <label>Visible to Role (leave all unchecked for Common - all roles)</label>
+          <div class="rolesCheckboxGroup">
+            <label><input type="checkbox" class="roleCheckbox" value="Material Handling"> Material Handling</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Inspector"> Inspector</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Inspector(Contractual)"> Inspector(Contractual)</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator"> Trainee Operator</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator(Contractual)"> Trainee Operator(Contractual)</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Employee"> Employee</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Other"> Other</label>
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-top:14px;"><label>Description</label><textarea id="f_subCourseDescription"></textarea></div>
+      <div class="row-actions">
+        <button id="saveDetailsBtn">Save Details</button>
+        <span id="detailsSaveStatus" style="font-size:13px; color:#0b5cab;"></span>
+      </div>
+    </div>
+
+    <div class="panel" id="filePanel" style="display:none;">
+      <h2>Main Course File</h2>
+      <div id="fileCurrent" class="file-current"></div>
+      <div id="fileControls"></div>
+    </div>
+
+    <div class="panel" id="questionsPanel" style="display:none;">
+      <h2>Question Bank</h2>
+      <div id="questionList"></div>
+      <div class="row-actions">
+        <button class="secondary" id="addQuestionBtn">+ Add Question</button>
+        <button id="saveAndRegenerateBtn">Save Updates</button>
+        <span id="questionsSaveStatus" style="font-size:13px; color:#0b5cab;"></span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const courseID = params.get('id') || params.get('courseID');
+    // Refresher courses live in a separate refresher_subcourses table with
+    // its own ID space (see refresherCourses.html) - the backend needs this
+    // flag on every request to know which table to query/update, rather
+    // than guessing from the ID alone.
+    const source = params.get('source');
+    function withSource(url) {
+      if (!source) return url;
+      return url + (url.includes('?') ? '&' : '?') + 'source=' + encodeURIComponent(source);
+    }
+    const statusEl = document.getElementById('status');
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#0b5cab';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    let course = null;
+    let questions = [];
+
+    function fillDetailsForm() {
+      document.getElementById('f_subCourseID').value = course.subCourseID;
+      document.getElementById('f_courseType').value = course.courseType || '';
+      document.getElementById('f_contentType').value = course.contentType || '';
+      document.getElementById('f_subCourseLevel_display').value = course.subCourseLevel || '';
+      document.getElementById('f_subCourseName').value = course.subCourseName || '';
+      document.getElementById('f_subCourseTeacher').value = course.subCourseTeacher || '';
+      document.getElementById('f_subCourseDate').value = (course.subCourseDate || '').slice(0, 10);
+      document.getElementById('f_subCourseRefreshDate').value = (course.subCourseRefreshDate || '').slice(0, 10);
+      document.getElementById('f_subCoursePassing').value = course.subCoursePassing || '';
+      document.getElementById('f_subCourseLevel').value = course.subCourseLevel || '';
+      document.getElementById('f_subCourseDescription').value = course.subCourseDescription || '';
+      // Roles only apply to Level 1 courses (see /getViewscormCourseList) -
+      // hidden for Level 2+/Refresher, where the field doesn't do anything.
+      const rolesField = document.getElementById('rolesField');
+      if (course.subCourseLevel === 'Level 1' && source !== 'refresher') {
+        rolesField.style.display = '';
+        const existingRoles = String(course.subCourseRoles || '').split(',').map(r => r.trim()).filter(Boolean);
+        document.querySelectorAll('.roleCheckbox').forEach(cb => {
+          cb.checked = existingRoles.includes(cb.value);
+        });
+      } else {
+        rolesField.style.display = 'none';
+      }
+      document.getElementById('pageTitle').textContent = `Course View - ${course.subCourseName || ('#' + course.subCourseID)}`;
+      document.getElementById('detailsPanel').style.display = '';
+    }
+
+    async function saveDetails() {
+      const saveStatusEl = document.getElementById('detailsSaveStatus');
+      saveStatusEl.textContent = 'Saving...';
+      try {
+        await requestJson(withSource(`/api/admin/courseDetails/${courseID}`), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subCourseName: document.getElementById('f_subCourseName').value,
+            subCourseDescription: document.getElementById('f_subCourseDescription').value,
+            subCourseTeacher: document.getElementById('f_subCourseTeacher').value,
+            subCourseLevel: document.getElementById('f_subCourseLevel').value,
+            subCourseDate: document.getElementById('f_subCourseDate').value || null,
+            subCourseRefreshDate: document.getElementById('f_subCourseRefreshDate').value || null,
+            subCoursePassing: document.getElementById('f_subCoursePassing').value || null,
+            subCourseRoles: document.getElementById('rolesField').style.display === 'none'
+              ? undefined
+              : Array.from(document.querySelectorAll('.roleCheckbox:checked')).map(cb => cb.value).join(','),
+          }),
+        });
+        saveStatusEl.textContent = 'Saved.';
+      } catch (error) {
+        saveStatusEl.textContent = '';
+        setStatus(error.message, true);
+      }
+    }
+
+    function renderFilePanel() {
+      const filePanel = document.getElementById('filePanel');
+      const currentEl = document.getElementById('fileCurrent');
+      const controlsEl = document.getElementById('fileControls');
+      filePanel.style.display = '';
+
+      currentEl.innerHTML = course.filePath
+        ? `Current file: <a href="/${course.filePath}" target="_blank">${course.filePath}</a>`
+        : 'No file on record for this course.';
+
+      if (course.contentType === 'scorm_zip') {
+        controlsEl.innerHTML = `<div class="file-blocked">This is a SCORM package. SCORM content cannot be replaced from this page.</div>`;
+        return;
+      }
+      if (course.courseType === 'assessment' && course.contentType === 'excel') {
+        controlsEl.innerHTML = `<div class="file-blocked">This assessment has no replaceable media file. Edit its questions in the Question Bank below.</div>`;
+        return;
+      }
+
+      controlsEl.innerHTML = `
+        <input type="file" id="courseFileInput">
+        <button id="replaceFileBtn">Replace Main File</button>
+        <span id="fileSaveStatus" style="font-size:13px; margin-left:8px;"></span>
+      `;
+      document.getElementById('replaceFileBtn').addEventListener('click', async () => {
+        const input = document.getElementById('courseFileInput');
+        const saveStatusEl = document.getElementById('fileSaveStatus');
+        if (!input.files.length) {
+          saveStatusEl.style.color = '#b42318';
+          saveStatusEl.textContent = 'Choose a file first.';
+          return;
+        }
+        const formData = new FormData();
+        formData.append('courseFile', input.files[0]);
+        saveStatusEl.style.color = '#0b5cab';
+        saveStatusEl.textContent = 'Uploading...';
+        try {
+          const data = await requestJson(withSource(`/api/admin/courseFile/${courseID}`), { method: 'POST', body: formData });
+          saveStatusEl.textContent = 'Replaced.';
+          course.filePath = data.filePath;
+          renderFilePanel();
+        } catch (error) {
+          saveStatusEl.style.color = '#b42318';
+          saveStatusEl.textContent = error.message;
+        }
+      });
+    }
+
+    function optionRow(qid, optionKey, optionLabel, question) {
+      const textValue = question[`${optionKey}Text`] || '';
+      const imagePath = question[`${optionKey}Image`];
+      const answerLetter = { option1: 'A', option2: 'B', option3: 'C', option4: 'D' }[optionKey];
+      const isCorrect = String(question.answerText || '').trim().toUpperCase() === answerLetter;
+      return `
+        <div class="option-row">
+          <label class="answer-pick"><input type="radio" name="answer_${qid}" value="${answerLetter}" ${isCorrect ? 'checked' : ''} onchange="setAnswer(${qid}, '${answerLetter}')"> ${answerLetter}</label>
+          <input type="text" value="${textValue.replace(/"/g, '&quot;')}" placeholder="${optionLabel} text" onblur="saveQuestionField(${qid}, '${optionKey}Text', this.value)">
+          ${imagePath ? `<img class="preview" src="/${imagePath}">` : ''}
+          <button type="button" class="secondary img-btn" onclick="document.getElementById('img_${qid}_${optionKey}').click()">Upload Image</button>
+          <input type="file" id="img_${qid}_${optionKey}" style="display:none" onchange="uploadQuestionImage(${qid}, '${optionKey}', this)">
+        </div>
+      `;
+    }
+
+    function renderQuestions() {
+      const panel = document.getElementById('questionsPanel');
+      const listEl = document.getElementById('questionList');
+      if (course.courseType !== 'assessment') {
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = '';
+
+      if (!questions.length) {
+        listEl.innerHTML = '<div class="empty">No questions yet. Use "+ Add Question" to start the question bank.</div>';
+        return;
+      }
+
+      listEl.innerHTML = questions.map((q, idx) => `
+        <div class="question-card">
+          <div class="qhead">
+            <span>Question ${idx + 1}</span>
+            <button type="button" class="danger" onclick="deleteQuestion(${q.questionID})">Delete</button>
+          </div>
+          <div class="option-row">
+            <input type="text" value="${(q.questionText || '').replace(/"/g, '&quot;')}" placeholder="Question text" onblur="saveQuestionField(${q.questionID}, 'questionText', this.value)">
+            ${q.questionImage ? `<img class="preview" src="/${q.questionImage}">` : ''}
+            <button type="button" class="secondary img-btn" onclick="document.getElementById('img_${q.questionID}_question').click()">Upload Image</button>
+            <input type="file" id="img_${q.questionID}_question" style="display:none" onchange="uploadQuestionImage(${q.questionID}, 'question', this)">
+          </div>
+          ${optionRow(q.questionID, 'option1', 'Option 1', q)}
+          ${optionRow(q.questionID, 'option2', 'Option 2', q)}
+          ${optionRow(q.questionID, 'option3', 'Option 3', q)}
+          ${optionRow(q.questionID, 'option4', 'Option 4', q)}
+        </div>
+      `).join('');
+    }
+
+    window.saveQuestionField = async function (questionID, field, value) {
+      try {
+        await requestJson(`/api/admin/courseQuestions/${courseID}/${questionID}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ [field]: value }),
+        });
+        const q = questions.find(item => item.questionID === questionID);
+        if (q) q[field] = value;
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    window.setAnswer = async function (questionID, letter) {
+      window.saveQuestionField(questionID, 'answerText', letter);
+    };
+
+    window.uploadQuestionImage = async function (questionID, target, inputEl) {
+      if (!inputEl.files.length) return;
+      const formData = new FormData();
+      formData.append('image', inputEl.files[0]);
+      formData.append('target', target);
+      try {
+        const data = await requestJson(`/api/admin/courseQuestionImage/${courseID}/${questionID}`, { method: 'POST', body: formData });
+        const q = questions.find(item => item.questionID === questionID);
+        const column = target === 'question' ? 'questionImage' : `${target}Image`;
+        if (q) q[column] = data.imagePath;
+        renderQuestions();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    window.deleteQuestion = async function (questionID) {
+      if (!confirm('Delete this question?')) return;
+      try {
+        await requestJson(`/api/admin/courseQuestions/${courseID}/${questionID}`, { method: 'DELETE' });
+        questions = questions.filter(q => q.questionID !== questionID);
+        renderQuestions();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    };
+
+    document.getElementById('addQuestionBtn').addEventListener('click', async () => {
+      try {
+        const data = await requestJson(`/api/admin/courseQuestions/${courseID}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ questionText: '', option1Text: '', option2Text: '', option3Text: '', option4Text: '', answerText: '' }),
+        });
+        questions.push({
+          questionID: data.questionID, questionOrder: data.questionOrder, questionText: '',
+          option1Text: '', option2Text: '', option3Text: '', option4Text: '', answerText: '',
+        });
+        renderQuestions();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    document.getElementById('saveAndRegenerateBtn').addEventListener('click', async () => {
+      const saveStatusEl = document.getElementById('questionsSaveStatus');
+      saveStatusEl.textContent = 'Regenerating quiz file...';
+      try {
+        await requestJson(withSource(`/api/admin/courseQuestions/${courseID}/regenerate`), { method: 'POST' });
+        saveStatusEl.textContent = 'Saved and quiz file updated.';
+      } catch (error) {
+        saveStatusEl.textContent = '';
+        setStatus(error.message, true);
+      }
+    });
+
+    document.getElementById('saveDetailsBtn').addEventListener('click', saveDetails);
+
+    async function load() {
+      if (!courseID) {
+        setStatus('No course ID provided.', true);
+        return;
+      }
+      setStatus('Loading course...');
+      try {
+        const data = await requestJson(withSource(`/api/admin/courseDetails/${courseID}`));
+        course = data.course;
+        questions = data.questions || [];
+        fillDetailsForm();
+        renderFilePanel();
+        renderQuestions();
+        setStatus('');
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    load();
+  </script>
+</body>
+
+</html>

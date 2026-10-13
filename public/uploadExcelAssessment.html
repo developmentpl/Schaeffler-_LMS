@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload MCQ File</title>
+    <link rel="stylesheet" href="/styles/uploadTrainingAssessment.css">
+    <style>
+      .language-modules{display:grid;gap:12px;margin:8px 0 22px}.language-module{padding:14px;border:1px solid #c9d8cf;border-radius:8px;background:#f8fcf9}.language-module h3{margin:0 0 10px;color:#087a3f;font-size:15px}.language-module select,.language-module input{width:100%;margin-top:6px}.module-label{display:block;margin-top:9px;font-weight:700;font-size:13px}
+    </style>
+</head>
+
+<body>
+    <div class="header">
+
+         <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+        </div>
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/courseMasterSetup.html">Course Management</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+    
+    </div>
+
+
+    <h1 class="h1class" style="text-align: center;">Upload Assessment Question Bank</h1>
+    <div class="container">
+        <div class="FormClass">
+            <form action="/uploadExcel" class="Floatclass" method="POST" enctype="multipart/form-data">
+                <input type="hidden" id="level1Field" name="level1" value="">
+                <input type="hidden" id="refresherField" name="refresher" value="">
+                <input type="hidden" id="isCommonField" name="isCommon" value="">
+                <input type="hidden" id="subCourseRolesField" name="subCourseRoles" value="">
+                <div id="rolesGroup" style="display:none;">
+                  <label class="allLabels">Visible to Role (leave all unchecked for Common - all roles):</label><br>
+                  <div class="rolesCheckboxGroup">
+                    <label><input type="checkbox" class="roleCheckbox" value="Material Handling"> Material Handling</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Inspector"> Inspector</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Inspector(Contractual)"> Inspector(Contractual)</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator"> Trainee Operator</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator(Contractual)"> Trainee Operator(Contractual)</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Employee"> Employee</label>
+                    <label><input type="checkbox" class="roleCheckbox" value="Other"> Other</label>
+                  </div>
+                </div>
+                <div id="processLineGroup">
+                    <label class="allLabels">Process / Line:</label><br>
+                    <select id="mCourseID" class="idTag" name="mCourseID" required>
+                    </select><br><br>
+                </div>
+
+                <div id="stationGroup">
+                    <label class="allLabels">Station:</label><br>
+                    <select id="stationID" class="idTag" name="stationID" required>
+                    </select><br><br>
+                </div>
+
+                <div class="labelDiv">
+                    <label class="allLabels" for="courseName">Course Name:</label><br>
+                </div>
+
+                <input type="text" id="courseName" name="courseName" required><br><br>
+
+                <div class="labelDiv">
+                    <label class="allLabels" for="courseDescription">Course Description:</label><br>
+                    <textarea id="courseDescription" name="courseDescription" required></textarea><br><br>
+                </div>
+
+
+                <!-- <label for="courseIcon">Course Icon:</label><br>
+                  <input type="file" id="courseIcon" name="courseIcon"><br> -->
+
+                <label class="allLabels" for="courseDate">Course Date:</label><br>
+                <input type="date" id="courseDate" name="courseDate" required><br><br><br>
+
+                <div id="levelGroup">
+                    <label class="allLabels" for="level">Level:</label><br>
+                    <select id="level" class="idTag" name="level" required>
+                        <option value="Level 2">Level 2</option>
+                        <option value="Level 3">Level 3</option>
+                        <option value="Level 4">Level 4</option>
+                    </select><br><br><br>
+                </div>
+
+                <div id="passingGroup">
+                    <label class="allLabels" for="subCoursePassing">Passing Percentage:</label><br>
+                    <input type="number" id="subCoursePassing" name="subCoursePassing" min="0" max="100" placeholder="70" value="70" required><br><br>
+                </div>
+
+                <label class="allLabels">Language-wise Assessment Modules:</label>
+                <div class="language-modules">
+                  <div class="language-module"><h3>Language Module 1</h3><select name="language1"><option>Marathi</option><option>English</option><option>Hindi</option></select><label class="module-label">Excel Question File</label><input type="file" name="mcqFile1" accept=".xlsx" required><label class="module-label">Training Material (Video, PPT or PDF)</label><input type="file" name="supportFile1" accept="video/*,.ppt,.pptx,.pdf" required></div>
+                  <div class="language-module"><h3>Language Module 2 (optional)</h3><select name="language2"><option>English</option><option>Marathi</option><option>Hindi</option></select><label class="module-label">Excel Question File</label><input type="file" name="mcqFile2" accept=".xlsx"><label class="module-label">Training Material (Video, PPT or PDF)</label><input type="file" name="supportFile2" accept="video/*,.ppt,.pptx,.pdf"></div>
+                  <div class="language-module"><h3>Language Module 3 (optional)</h3><select name="language3"><option>Hindi</option><option>Marathi</option><option>English</option></select><label class="module-label">Excel Question File</label><input type="file" name="mcqFile3" accept=".xlsx"><label class="module-label">Training Material (Video, PPT or PDF)</label><input type="file" name="supportFile3" accept="video/*,.ppt,.pptx,.pdf"></div>
+                </div>
+
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+
+
+    <script>
+        const pageParams = new URLSearchParams(window.location.search);
+        const selectedDeptID = pageParams.get('deptID');
+        const selectedAreaID = pageParams.get('areaID');
+        const selectedMCourseID = pageParams.get('mCourseID');
+        const selectedStationID = pageParams.get('stationID');
+        const contentType = pageParams.get('contentType') || 'excel';
+        const isLevel1 = pageParams.get('level1') === '1';
+        const isRefresher = pageParams.get('refresher') === '1';
+        const isCommon = pageParams.get('common') === '1';
+
+        function applyStandaloneMode() {
+            if (isLevel1) document.getElementById('rolesGroup').style.display = 'block';
+            if (!isLevel1 && !isRefresher && !isCommon) return;
+            document.getElementById('level1Field').value = isLevel1 ? '1' : '';
+            document.getElementById('refresherField').value = isRefresher ? '1' : '';
+            document.getElementById('isCommonField').value = isCommon ? '1' : '';
+            document.getElementById('processLineGroup').style.display = 'none';
+            const mCourseSelect = document.getElementById('mCourseID');
+            mCourseSelect.required = false;
+            mCourseSelect.disabled = true;
+            document.getElementById('stationGroup').style.display = 'none';
+            const stationSelect = document.getElementById('stationID');
+            stationSelect.required = false;
+            stationSelect.disabled = true;
+            document.getElementById('levelGroup').style.display = 'none';
+            const levelSelect = document.getElementById('level');
+            const commonLevel = pageParams.get('level');
+            const fixedLevel = isRefresher ? 'Refresher' : (isCommon ? (commonLevel || 'Level 2') : 'Level 1');
+            levelSelect.innerHTML = `<option value="${fixedLevel}">${fixedLevel}</option>`;
+            levelSelect.value = fixedLevel;
+        }
+
+        function applyLevelParam() {
+            if (isLevel1 || isRefresher || isCommon) return;
+            const levelParam = pageParams.get('level');
+            if (levelParam) document.getElementById('level').value = levelParam;
+        }
+
+        function applyAssessmentMode() {
+            // Every language module now accepts its own Video, PPT or PDF.
+        }
+
+        async function loadProcesses() {
+            if (isLevel1 || isRefresher || isCommon) return;
+            const query = new URLSearchParams();
+            if (selectedDeptID) query.set('deptID', selectedDeptID);
+            if (selectedAreaID) query.set('areaID', selectedAreaID);
+
+            const url = query.toString() ? `/api/hierarchy/processes?${query}` : '/api/hierarchy/processes';
+            const response = await fetch(url);
+            const data = await response.json();
+            const processes = data.processes || [];
+            const dropdown = document.getElementById('mCourseID');
+            dropdown.innerHTML = '';
+
+            if (!processes.length) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Create Process / Line first';
+                dropdown.appendChild(option);
+                return;
+            }
+
+            processes.forEach(row => {
+                const option = document.createElement('option');
+                option.value = row.mCourseID;
+                option.textContent = row.mCourseName;
+                dropdown.appendChild(option);
+            });
+
+            if (selectedMCourseID) {
+                dropdown.value = selectedMCourseID;
+            }
+            await loadStations(dropdown.value);
+        }
+
+        async function loadStations(mCourseID) {
+            const dropdown = document.getElementById('stationID');
+            dropdown.innerHTML = '';
+            if (!mCourseID) return;
+            const response = await fetch(`/api/hierarchy/stations?mCourseID=${encodeURIComponent(mCourseID)}`);
+            const data = await response.json();
+            const stations = data.stations || [];
+
+            if (!stations.length) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Create a Station first';
+                dropdown.appendChild(option);
+                return;
+            }
+
+            stations.forEach(row => {
+                const option = document.createElement('option');
+                option.value = row.stationID;
+                option.textContent = row.stationName;
+                dropdown.appendChild(option);
+            });
+
+            if (selectedStationID) dropdown.value = selectedStationID;
+        }
+
+        window.onload = () => {
+            applyStandaloneMode();
+            applyLevelParam();
+            applyAssessmentMode();
+            loadProcesses();
+            document.getElementById('mCourseID').addEventListener('change', event => {
+                if (isLevel1 || isRefresher || isCommon) return;
+                loadStations(event.target.value);
+            });
+        };
+
+        document.querySelector('form').addEventListener('submit', event => {
+            const selectedRoles = Array.from(document.querySelectorAll('.roleCheckbox:checked')).map(cb => cb.value);
+            document.getElementById('subCourseRolesField').value = selectedRoles.join(',');
+            const uploaded = [1,2,3].filter(slot => document.querySelector(`[name="mcqFile${slot}"]`).files.length || document.querySelector(`[name="supportFile${slot}"]`).files.length);
+            for (const slot of uploaded) {
+              if (!document.querySelector(`[name="mcqFile${slot}"]`).files.length || !document.querySelector(`[name="supportFile${slot}"]`).files.length) {
+                event.preventDefault(); alert(`Language Module ${slot} requires both Excel and training material files.`); return;
+              }
+            }
+            const languages = uploaded.map(slot => document.querySelector(`[name="language${slot}"]`).value.toLowerCase());
+            if (new Set(languages).size !== languages.length) { event.preventDefault(); alert('Please select a different language for each module.'); }
+        });
+
+        function BackPage() {
+            const query = pageParams.toString();
+            window.location.href = query ? `/createCourse.html?${query}` : '/createCourse.html';
+        }
+    </script>
+</body>
+
+</html>

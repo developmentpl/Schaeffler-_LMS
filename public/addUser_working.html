@@ -1,0 +1,464 @@
+<head>
+    <title>Add User form</title>
+    <link rel="stylesheet" href="/styles/addUser.css">
+    <script src="js/jquery-3.7.1.min.js"></script>
+
+</head>
+
+<body>
+
+
+    <div class="bg_img_div"></div>
+
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/userManagement.html">Users</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+    </div>
+    <div class="container">
+        <div class="FormClass">
+            <div>
+                <h1 style="text-align: center; ">User Management</h1><br>
+            </div>
+            <div>
+                <div>
+                    <h2>Upload bulk User</h2>
+                </div>
+                <div>
+                    <form id="bulkUserListUploadForm" class="userForm" action="/upload-bulk-users" method="POST"
+                        enctype="multipart/form-data">
+                        <input type="file" name="bulkUsersFile" accept=".xlsx, .xls">
+                        <button type="submit" onclick="confirmUpload()">Upload Bulk Users</button>
+                    </form>
+                </div><br><br>
+
+                <div>
+                    <h2>Add new user</h2>
+                </div>
+
+                <form class="userForm" id=".userForm" action="/save-details" method="POST">
+                    <div>
+                        <div>
+                            <label class="labels">Full Name</label>
+                        </div>
+                        <input type="text" name="name" id="nameInput" placeholder="Name" required><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Email</label>
+                        </div>
+                        <input type="emailID" name="emailID" placeholder="Email" required><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Employee ID</label>
+                        </div>
+                        <input type="text" name="employeeID" placeholder="Employee ID"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Username</label>
+                        </div>
+                        <input type="text" name="uName" id="uName" placeholder="Username" required>
+                        <div>
+                            <button type="button" id="verifyBtn">Verify</button><br><br><br><br>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Password</label>
+                        </div>
+                        <input type="password" id="passwordField" name="uPass" placeholder="Password" required>
+                        <div>
+                            <button type="button" id="togglePassword">Show</button><br><br>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Date of joining</label>
+                        </div>
+                        <input type="date" name="dateOfJoining" placeholder="Date of joining"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Date of birth</label>
+                        </div>
+                        <input type="date" name="dateOfBirth" placeholder="Date of birth"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Address</label>
+                        </div>
+                        <input type="text" name="address" placeholder="Address"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Mobile Number</label>
+                        </div>
+                        <input type="tel" name="mobileNo" placeholder="Mobile Number"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Department</label>
+                        </div>
+                        <input type="text" name="department" placeholder="Department"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Qualification</label>
+                        </div>
+                        <input type="text" name="Qualification" placeholder="Qualification" id="Qualification"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Contract</label>
+                        </div>
+                        <input type="text" name="Contract" placeholder="Contract"><br><br>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Role</label>
+                        </div>
+                        <select name="uRole" required>
+                            <option value="" disabled selected>Select Role</option>
+                            <option value="Employee">Employee</option>
+                            <option value="Manager">Manager</option>
+                            <option value="Teacher">Teacher</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div>
+                            <label class="labels">Course Tags</label>
+                        </div>
+                        <select name="courseTags[]" id="courseTags" multiple>
+                            <option value="" disabled selected>Select Course Tag</option>
+                            <option value="default" selected>Default</option>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                        <div id="selectedTagsContainer" class="selected-tags"></div><br><br>
+                    </div><br><br>
+                    <div class="userMedia">
+                        <div class="media-container">
+                            <video id="video" class="webCamStream" ></video>
+                            <canvas id="canvas" style="width: 8cm; height: 7cm;"></canvas>
+                            <img id="photoPreview" src="" alt="Captured Photo" style="width: 8cm; height: 7cm;">
+                        </div><br><br>
+                        <div class="click_btn">
+                            <button type="button" onclick="takePhoto()">Click photo</button><br><br>
+
+                            <button type="button" onclick="retakePhoto()">Retake Photo</button><br><br>
+                        </div>
+                        <div class="submit_btn">
+                            <button type="submit" id="addUserSubmit" class="submit_btn_class"
+                                onclick="confirmSingleUpload()">Submit</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- </div> -->
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        // ----------------------------------------------------
+        // CRITICAL FIX: Global variable to store the filename
+        // ----------------------------------------------------
+        let uploadedFileName = '';
+        let stream;
+
+        // Access the webcam and display the video feed
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(str => {
+                stream = str; // Store the stream
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(err => {
+                console.error('Error accessing the webcam: ', err);
+            });
+
+        // Capture photo from the video feed
+        function takePhoto() {
+            const currentDate = new Date().toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).replace(/\//g, '-');
+
+            const currentTime = new Date().toLocaleTimeString('en-US', {
+                hour12: false,
+                hour: '2-digit',
+                minute: '2-digit',
+            }).replace(/:/g, '-');
+
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const photoPreview = document.getElementById('photoPreview');
+
+            // Temporarily set canvas size to match video to ensure a good capture
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const context = canvas.getContext('2d');
+
+            // Draw the current video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData();
+                const name = document.getElementById('nameInput').value.trim();
+                const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+                const fileNameForUpload = `${sanitizedName}_${currentDate}_${currentTime}.png`;
+
+                // Only append the photo file and its name for the dedicated photo save route
+                formData.append('photo', blob, fileNameForUpload);
+
+                // Display the photo BEFORE sending to server
+                const photoURL = URL.createObjectURL(blob);
+                photoPreview.src = photoURL;
+                photoPreview.style.display = 'block';
+
+                // Hide video and show preview
+                video.style.display = 'none';
+
+                fetch('/save-photo', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            return response.json(); // Get the JSON response containing the saved filename
+                        } else {
+                            throw new Error('Error saving the photo');
+                        }
+                    })
+                    .then(data => {
+                        console.log('Photo saved successfully. Filename received:', data.filename);
+
+                        // ------------------------------------------------------------------
+                        // CRITICAL FIX: Store the filename returned by the server
+                        // ------------------------------------------------------------------
+                        uploadedFileName = data.filename;
+
+                        // Stop the video stream
+                        if (video.srcObject) {
+                            video.srcObject.getTracks().forEach(track => track.stop());
+                            video.srcObject = null;
+                        }
+
+                        alert('Photo taken and saved successfully! You can now submit the user details.');
+                    })
+                    .catch(error => {
+                        console.error('Error saving the photo: ', error);
+                        alert('Error saving the photo. Check console for details.');
+                        // Revert UI on error
+                        video.style.display = 'block';
+                        photoPreview.style.display = 'none';
+                        uploadedFileName = ''; // Clear the filename on error
+                    });
+            }, 'image/png');
+        }
+
+        // Retake photo by restarting the video feed
+        function retakePhoto() {
+            const video = document.getElementById('video');
+            const photoPreview = document.getElementById('photoPreview');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            // Clear canvas and reset UI
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            photoPreview.style.display = 'none';
+            video.style.display = 'block';
+
+            // Restart the video feed
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(str => {
+                    stream = str;
+                    video.srcObject = stream;
+                    video.play();
+                    uploadedFileName = ''; // Clear the filename
+                })
+                .catch(err => {
+                    console.error('Error accessing the webcam for retake: ', err);
+                });
+        }
+
+        // Get references to the password field and the toggle button
+        const passwordField = document.getElementById('passwordField');
+        const toggleButton = document.getElementById('togglePassword');
+
+        // Add click event listener to the toggle button
+        toggleButton.addEventListener('click', function () {
+            if (passwordField.type === 'password') {
+                passwordField.type = 'text';
+                toggleButton.textContent = 'Hide';
+            } else {
+                passwordField.type = 'password';
+                toggleButton.textContent = 'Show';
+            }
+        });
+
+
+        // Ensure jQuery is used for non-form submission logic
+        $(document).ready(function () {
+            $('#verifyBtn').click(function () {
+                const uName = $('#uName').val();
+
+                if (uName) {
+                    $.ajax({
+                        url: '/verify-username',
+                        method: 'POST',
+                        data: { uName: uName },
+                        success: function (response) {
+                            if (response.exists) {
+                                alert('Username already exists.');
+                                $('#uName').val('');  // Clear the input field
+                            } else {
+                                alert('Username is available!');
+                            }
+                        },
+                        error: function () {
+                            alert('Error occurred while verifying the username.');
+                        }
+                    });
+                } else {
+                    alert('Please enter a username.');
+                }
+            });
+            // Course tag population
+           $.ajax({
+                url: '/get-course-tags',
+                method: 'GET',
+                success: function (response) {
+                    const courseTagsDropdown = $('#courseTags');
+                    if (response.length === 0) {
+                        courseTagsDropdown.append('<option value="none">None</option>');
+                    } else {
+                        response.forEach(tag => {
+                            courseTagsDropdown.append(`<option value="${tag}">${tag}</option>`);
+                        });
+                    }
+                },
+                error: function () {
+                    alert('Error fetching course tags.');
+                }
+            });
+
+            // Update selected tags display
+            $('#courseTags').on('change', function () {
+                const selectedTags = $(this).val(); // Get selected options
+                $('#selectedTagsContainer').empty(); // Clear the container
+                if (selectedTags) {
+                    selectedTags.forEach(tag => {
+                        $('#selectedTagsContainer').append(`<span class="tag">${tag}</span>`);
+                    });
+                }
+            });
+        });
+
+
+        function confirmUpload() {
+            // Show confirmation dialog
+            if (confirm('Are you sure you want to upload bulk users?')) {
+                // If user clicks Yes
+                document.getElementById("bulkUserListUploadForm").submit(); // Submit the form
+            } else {
+                // If user clicks No
+                document.getElementsByName("bulkUsersFile")[0].value = ""; // Clear the file input
+            }
+        }
+        // Handle the form submission
+        document.getElementById("bulkUserListUploadForm").addEventListener("submit", function (event) {
+            // Prevent the default form submission behavior
+            event.preventDefault();
+
+            // Simulate successful upload with an alert message
+            alert('Bulk users uploaded successfully!');
+
+            // Refresh the page after the alert is dismissed
+            setTimeout(function () {
+                location.reload();
+            }, 1000); // Change 1000 to the desired delay time in milliseconds
+        });
+
+        // ----------------------------------------------------
+        // CRITICAL FIX: Single user form submission handler
+        // ----------------------------------------------------
+        function confirmSingleUpload() {
+            if (uploadedFileName === '') {
+                alert('Please click and save the photo before submitting user details.');
+                return false; // Prevent submission
+            }
+            return confirm('Are you sure you want to upload this user?');
+        }
+
+        // Get the form element (using its class as ID selector is usually bad practice, but based on your HTML structure: id=".userForm" - let's use the ID set in your HTML for consistency)
+        const singleUserForm = document.querySelector('form[action="/save-details"]');
+
+        if (singleUserForm) {
+            singleUserForm.addEventListener("submit", function (event) {
+                // Prevent the default form submission (which would ignore the photoFileName)
+                event.preventDefault();
+
+                // Perform the pre-check
+                if (!confirmSingleUpload()) {
+                    return;
+                }
+
+                // Collect all form data
+                const formData = new FormData(singleUserForm);
+
+                // ------------------------------------------------------------------
+                // CRITICAL FIX: Append the stored filename to the submission data
+                // ------------------------------------------------------------------
+                formData.append('photoFileName', uploadedFileName);
+
+                // Convert FormData to URL-encoded string for Express's body-parser to handle easily
+                const formBody = new URLSearchParams(formData);
+
+                fetch('/save-details', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formBody
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('User uploaded successfully!');
+                            // Refresh the page after the alert is dismissed
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        } else {
+                            response.json().then(errorData => {
+                                alert('Error saving user data: ' + (errorData.error || 'Unknown error'));
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Submission error:', error);
+                        alert('An unexpected error occurred during user submission.');
+                    });
+            });
+        }
+
+    </script>
+
+</body>

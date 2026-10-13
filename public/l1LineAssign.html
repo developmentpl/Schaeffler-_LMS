@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L1 -&gt; Level 2 Assignment</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f7fb; background-image: radial-gradient(circle at 10% 15%, rgba(8,149,76,.10), transparent 45%), radial-gradient(circle at 88% 90%, rgba(8,149,76,.08), transparent 40%); background-attachment: fixed; color: #172033; }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { max-width: 1200px; margin: 28px auto; padding: 0 20px 112px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .filters { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+    select, input { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: middle; font-size: 13px; }
+    th { background: #f7f9fc; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 12px; font-weight: 700; background: #d8f4e2; color: #0a6b3b; }
+    .badge.sent { background: #d9f7e7; color: #087443; }
+    .pill { display: inline-block; background: #e8eef6; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .unassign-btn { padding: 6px 10px; background: linear-gradient(135deg, #b42318, #d92d20); box-shadow: none; font-size: 12px; }
+    .empty { color: #6b7a90; font-style: italic; padding: 14px; text-align: center; }
+    .actions { margin-top: 14px; display: flex; align-items: center; gap: 12px; }
+    .assignment-tabs { display: flex; gap: 8px; margin: 0 0 14px; }
+    .assignment-tabs button { background: #e8eef6; color: #172033; box-shadow: none; }
+    .assignment-tabs button.active { background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 20px 0; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+    footer p { margin: 0; }
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/acknowledgements.html">Acknowledgements</a>
+      <!-- <a href="/enrollment.html">Enrollment</a> -->
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>L1 -&gt; Level 2+ Assignment</h1>
+    <p class="lead">Users acknowledged as Level 1 completed are listed below. Pick a Department &rarr; Segment/Area
+      &rarr; Process/Line &rarr; Station and assign selected users so they get Level 2+ enrollment on that station. (Day-count /
+      holiday / absence duration scheduling is not part of this step yet.)</p>
+    <div class="status" id="status"></div>
+
+    <div class="filters">
+      <div>
+        <label for="deptSelect">Department</label>
+        <select id="deptSelect"><option value="">Select department</option></select>
+      </div>
+      <div>
+        <label for="areaSelect">Segment / Area</label>
+        <select id="areaSelect" disabled><option value="">Select department first</option></select>
+      </div>
+      <div>
+        <label for="processSelect">Process / Line</label>
+        <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+      </div>
+      <div>
+        <label for="stationSelect">Station</label>
+        <select id="stationSelect" disabled><option value="">Select process/line first</option></select>
+      </div>
+      <div>
+        <label for="startDate">Level 2 Start Date</label>
+        <input id="startDate" type="date">
+      </div>
+    </div>
+
+    <div class="assignment-tabs" role="tablist" aria-label="Assignment status">
+      <button type="button" class="active" data-tab="unassigned">Unassigned <span id="unassignedCount">(0)</span></button>
+      <button type="button" data-tab="assigned">Assigned <span id="assignedCount">(0)</span></button>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Employee ID</th>
+          <th>Username</th>
+          <th>Acknowledged On</th>
+          <th>Assigned Department</th>
+          <th>Assigned Segment/Area</th>
+          <th>Assigned Line</th>
+          <th>Assigned Station</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="10" class="empty">Loading...</td></tr></tbody>
+    </table>
+
+    <div class="actions">
+      <span class="pill" id="selectedCount">0 selected</span>
+      <button id="assignBtn" disabled>Assign Selected to Level 2+</button>
+      <button id="refreshBtn" style="background:#e8eef6;color:#172033;">Refresh</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const stationSelect = document.getElementById('stationSelect');
+    const startDateEl = document.getElementById('startDate');
+    const rowsEl = document.getElementById('rows');
+    const assignBtn = document.getElementById('assignBtn');
+    const selectedCountEl = document.getElementById('selectedCount');
+    const unassignedCountEl = document.getElementById('unassignedCount');
+    const assignedCountEl = document.getElementById('assignedCount');
+
+    let allUsers = [];
+    const selected = new Set();
+    let activeTab = 'unassigned';
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function currentSelection() {
+      return {
+        deptID: deptSelect.value || '',
+        areaID: areaSelect.value || '',
+        mCourseID: processSelect.value || '',
+        stationID: stationSelect.value || ''
+      };
+    }
+
+    function refreshAssignButtonState() {
+      const sel = currentSelection();
+      selectedCountEl.textContent = `${selected.size} selected`;
+      // Keep the button available once hierarchy + learner selection are set.
+      // A missing start date is then reported clearly when the admin clicks it.
+      assignBtn.disabled = !(sel.deptID && sel.areaID && sel.mCourseID && sel.stationID && selected.size > 0);
+    }
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      stationSelect.innerHTML = '<option value="">Select process/line first</option>';
+      stationSelect.disabled = true;
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    async function loadStations(mCourseID) {
+      stationSelect.innerHTML = '<option value="">Select station</option>';
+      stationSelect.disabled = true;
+      if (!mCourseID) return;
+      const data = await requestJson(`/api/hierarchy/stations?mCourseID=${encodeURIComponent(mCourseID)}`);
+      (data.stations || []).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.stationID;
+        opt.textContent = s.stationName;
+        stationSelect.appendChild(opt);
+      });
+      stationSelect.disabled = false;
+      if (!data.stations || !data.stations.length) {
+        stationSelect.innerHTML = '<option value="">No stations yet - add one first</option>';
+      }
+    }
+
+    deptSelect.addEventListener('change', async () => {
+      try { await loadAreas(deptSelect.value); refreshAssignButtonState(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    areaSelect.addEventListener('change', async () => {
+      try { await loadProcesses(deptSelect.value, areaSelect.value); refreshAssignButtonState(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    processSelect.addEventListener('change', async () => {
+      try { await loadStations(processSelect.value); refreshAssignButtonState(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    stationSelect.addEventListener('change', refreshAssignButtonState);
+    startDateEl.addEventListener('change', refreshAssignButtonState);
+
+    function isAlreadyAssigned(user) {
+      return Boolean(user.sentForNextLevel || user.assignedDeptID || user.assignedAreaID || user.assignedMCourseID || user.assignedStationID);
+    }
+
+    function render() {
+      rowsEl.innerHTML = '';
+      const unassignedUsers = allUsers.filter(user => !isAlreadyAssigned(user));
+      const assignedUsers = allUsers.filter(isAlreadyAssigned);
+      unassignedCountEl.textContent = `(${unassignedUsers.length})`;
+      assignedCountEl.textContent = `(${assignedUsers.length})`;
+      document.querySelectorAll('.assignment-tabs button').forEach(button => {
+        button.classList.toggle('active', button.dataset.tab === activeTab);
+      });
+      const usersToShow = activeTab === 'assigned' ? assignedUsers : unassignedUsers;
+      if (!usersToShow.length) {
+        rowsEl.innerHTML = `<tr><td colspan="10" class="empty">${activeTab === 'assigned' ? 'No users have been assigned to Level 2 yet.' : 'No unassigned Level 1 acknowledged users are available.'}</td></tr>`;
+        return;
+      }
+      const notAssigned = '<span style="color:#6b7a90;font-style:italic;">Not yet assigned</span>';
+      usersToShow.forEach(u => {
+        const tr = document.createElement('tr');
+        const checked = selected.has(String(u.uniqueID)) ? 'checked' : '';
+        tr.innerHTML = `
+          <td>${activeTab === 'unassigned' ? `<input type="checkbox" data-id="${u.uniqueID}" ${checked}>` : '<span class="pill">Assigned</span>'}</td>
+          <td>${u.name || ''}</td>
+          <td>${u.employeeID || ''}</td>
+          <td>${u.uName || ''}</td>
+          <td>${u.acknowledgeDate ? String(u.acknowledgeDate).slice(0, 10) : ''}</td>
+          <td>${u.assignedDeptName || notAssigned}</td>
+          <td>${u.assignedAreaName || notAssigned}</td>
+          <td>${u.assignedMCourseName || notAssigned}</td>
+          <td>${u.assignedStationName || notAssigned}</td>
+          <td>${activeTab === 'assigned' ? `<button type="button" class="unassign-btn" data-unassign-id="${u.uniqueID}">Unassign</button>` : '-'}</td>
+        `;
+        rowsEl.appendChild(tr);
+      });
+    }
+
+    rowsEl.addEventListener('change', event => {
+      if (!event.target.matches('input[type="checkbox"]')) return;
+      const id = event.target.dataset.id;
+      if (event.target.checked) selected.add(id);
+      else selected.delete(id);
+      refreshAssignButtonState();
+    });
+
+    rowsEl.addEventListener('click', async event => {
+      const button = event.target.closest('button[data-unassign-id]');
+      if (!button) return;
+      const uniqueID = button.dataset.unassignId;
+      const user = allUsers.find(item => String(item.uniqueID) === String(uniqueID));
+      const userName = user?.name || 'this user';
+      if (!confirm(`Unassign ${userName} from their current Level 2 Department / Segment / Line / Station assignment? They will return to the Unassigned tab and can then be assigned again.`)) return;
+      button.disabled = true;
+      try {
+        await requestJson('/api/l1/unassignLevel2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueID })
+        });
+        activeTab = 'unassigned';
+        setStatus(`${userName} was unassigned and is ready for a new Level 2 assignment.`);
+        await loadUsers();
+      } catch (error) {
+        button.disabled = false;
+        setStatus(error.message, true);
+      }
+    });
+
+    document.querySelector('.assignment-tabs').addEventListener('click', event => {
+      const tab = event.target.closest('button[data-tab]')?.dataset.tab;
+      if (!tab || tab === activeTab) return;
+      activeTab = tab;
+      selected.clear();
+      render();
+      refreshAssignButtonState();
+    });
+
+    async function loadUsers() {
+      rowsEl.innerHTML = '<tr><td colspan="10" class="empty">Loading...</td></tr>';
+      const data = await requestJson('/api/l1/eligibleForLevel2');
+      allUsers = data.users || [];
+      selected.clear();
+      render();
+      refreshAssignButtonState();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadUsers().catch(error => setStatus(error.message, true));
+    });
+
+    assignBtn.addEventListener('click', async () => {
+      const sel = currentSelection();
+      const ids = Array.from(selected.values()).map(uniqueID => ({ uniqueID }));
+      if (!sel.deptID || !sel.areaID || !sel.mCourseID || !sel.stationID || !ids.length) return;
+      if (!startDateEl.value) {
+        alert('Level 2 Start Date is required before assigning users.');
+        startDateEl.focus();
+        return;
+      }
+      const processLabel = processSelect.options[processSelect.selectedIndex]?.textContent || '';
+      const stationLabel = stationSelect.options[stationSelect.selectedIndex]?.textContent || '';
+      if (!confirm(`Assign ${ids.length} user(s) to "${processLabel} → ${stationLabel}" for Level 2+?`)) return;
+
+      try {
+        const data = await requestJson('/api/l1/assignLevel2', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deptID: sel.deptID, areaID: sel.areaID, mCourseID: sel.mCourseID, stationID: sel.stationID, users: ids, startDate: startDateEl.value || null })
+        });
+        setStatus(`Assigned: ${data.inserted || 0}. Already assigned / skipped: ${data.skipped || 0}.`);
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    Promise.all([loadDepartments(), loadUsers()]).catch(error => setStatus(error.message, true));
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Database Backup & Download</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
+    <link rel="stylesheet" href="/styles/backupData.css">
+    
+</head>
+
+<body>
+
+    <div class="header">
+
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+        </div>
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+       
+    </div>
+
+    <div class="container">
+        <h1 class="h1class">Database Backup & Download</h1>
+        <p style="text-align: center; margin-bottom: 20px;">
+            Select a format below to download a full backup of your database tables and their data.
+        </p>
+        <button id="downloadCsvBtn" class="btnclass">
+            Download All as CSV
+        </button>
+        <button id="downloadSqlBtn" class="btnclass">
+            Download All as .SQL
+        </button>
+        <div id="statusMessage" class="status-message status-info">
+            Click a button to start the download.
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+
+    <script>
+        const downloadCsvBtn = document.getElementById('downloadCsvBtn');
+        const downloadSqlBtn = document.getElementById('downloadSqlBtn');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Handles the download logic for a given endpoint and filename
+        const handleDownload = async (endpoint, filename) => {
+            statusMessage.textContent = 'Preparing download... please wait.';
+            statusMessage.className = 'status-message status-info';
+
+            try {
+                const response = await fetch(endpoint);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                statusMessage.textContent = `Download of "${filename}" initiated successfully!`;
+                statusMessage.className = 'status-message status-success';
+
+            } catch (error) {
+                console.error('Download failed:', error);
+                statusMessage.textContent = `Download failed. Check the console for errors.`;
+                statusMessage.className = 'status-message status-error';
+            }
+        };
+
+        downloadCsvBtn.addEventListener('click', () => {
+            handleDownload('/api/backup/csv', 'database_backup.csv');
+        });
+
+        downloadSqlBtn.addEventListener('click', () => {
+            handleDownload('/api/backup/sql', 'database_backup.sql');
+        });
+
+        function BackPage() {
+            window.location.href = '/adminhomepage.html';
+        }
+    </script>
+
+</body>
+
+</html>

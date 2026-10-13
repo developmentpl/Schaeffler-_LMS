@@ -1,0 +1,155 @@
+body {
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(135deg, #ebeef0,#d0d9df); */
+    background: url("/images/userlogin/bg4.png") fixed;
+    /* background: url("/images/logo/UI Background-03.jpg") no-repeat center center fixed; */
+    background-size: 100% auto;
+
+    color: #000000
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    height: 1.50cm;
+    box-sizing: border-box;
+}
+
+.navbar {
+    display: flex;
+    gap: 70px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #ffcc00;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+
+.goback {
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border: none;
+    border-radius: 2px;
+    color: #dadada;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    box-shadow: 0 2px 3px rgba(209, 205, 205, 0.897);
+}
+
+.container {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 10px;
+    margin: 30px;
+    color: #ffffff;
+}
+
+.h1class {
+    text-align: center;
+    color: #ffffff;
+    font-size: 40px;
+    margin-top: 40px;
+}
+
+.btnclass {
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border-radius: 7px;
+    border: none;
+    color: #dadada;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 5px rgba(209, 205, 205, 0.897);
+    display: block;
+    margin: 10px auto;
+}
+
+.btnclass:hover {
+    background-color: #ddd;
+    color: white;
+}
+
+footer {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #ccc;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+    z-index: 5;
+    backdrop-filter: blur(5px);
+}
+
+.status-message {
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.status-success {
+    color: rgb(0, 77, 128);
+}
+
+.status-error {
+    color: red;
+}
+
+.status-info {
+    color: blue;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+    color: #ffffff;
+    width: 100%;
+    max-width: 300px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+}
+
+.divider {
+    width: 80%;
+    height: 2px;
+    background-color: #ccc;
+    margin: 20px 0;
+}

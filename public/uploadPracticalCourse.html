@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add Practical Course</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 95%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .brand-logo img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 720px; width: 100%; margin: 0 auto; padding: 28px 20px 40px; box-sizing: border-box; }
+    h1 { margin: 0 0 6px; font-size: 28px; color: #101828; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 22px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 14px 0 6px; color: #344054; }
+    select, input, textarea { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: #08954c; box-shadow: 0 0 0 3px rgba(8, 149, 76, 0.15); }
+    select:disabled { background: #f1f3f5; color: #6b7a90; cursor: not-allowed; }
+    .level-lock-hint { font-size: 12px; color: #6b7a90; margin: 6px 0 0; }
+    textarea { resize: vertical; min-height: 70px; }
+    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    button { border: 0; border-radius: 6px; padding: 12px 18px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; margin-top: 20px; transition: transform .15s ease, box-shadow .15s ease; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .hint { font-size: 12px; color: #6b7a90; margin-top: 4px; }
+    .hint a { color: #08954c; font-weight: 600; }
+    .rolesCheckboxGroup {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 6px 18px;
+      background: #f4f9f6;
+      border: 1px solid #d9e1ec;
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin: 6px 0 0;
+    }
+    .rolesCheckboxGroup label { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14px; margin: 0; padding: 4px 0; color: #172033; cursor: pointer; white-space: nowrap; }
+    .rolesCheckboxGroup input[type="checkbox"] { width: 16px; height: 16px; accent-color: #08954c; cursor: pointer; flex-shrink: 0; margin: 0; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+    @media (max-width: 700px) { .row4 { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand-logo"><img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo"></div>
+    <div class="navbar">
+      <a href="/practicalEvaluation.html">Practical Evaluation</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Add Practical Course</h1>
+    <p class="lead">Creates a new Practical course. Every Practical course uses the same standardized OJT Observance &amp; Evaluation checklist (8 categories / 15 checkpoints, scored across Day10&ndash;Day15 plus Week3/Week4 monitoring) &mdash; you don't define the checklist here, just the course name and where it lives.</p>
+    <div class="status" id="status"></div>
+
+    <div class="panel">
+      <label for="courseName">Course Name</label>
+      <input id="courseName" placeholder="e.g. Press Shop Operator OJT">
+
+      <label for="levelSelect">Level</label>
+      <select id="levelSelect">
+        <option value="Level 1">Level 1 (standalone, no hierarchy)</option>
+        <option value="Level 2">Level 2</option>
+        <option value="Level 3">Level 3</option>
+        <option value="Level 4">Level 4</option>
+      </select>
+      <p class="level-lock-hint" id="levelLockHint" style="display:none;"></p>
+
+      <div id="hierarchyFields" style="display:none;">
+        <div class="row4">
+          <div>
+            <label for="deptSelect">Department</label>
+            <select id="deptSelect"><option value="">Select department</option></select>
+          </div>
+          <div>
+            <label for="areaSelect">Segment / Area</label>
+            <select id="areaSelect" disabled><option value="">Select department first</option></select>
+          </div>
+          <div>
+            <label for="processSelect">Process / Line</label>
+            <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+          </div>
+          <div>
+            <label for="stationSelect">Station</label>
+            <select id="stationSelect" disabled><option value="">Select process/line first</option></select>
+          </div>
+        </div>
+        <p class="hint">Need a new Department/Area/Line/Station first? <a href="/departmentManagement.html">Manage hierarchy</a>.</p>
+      </div>
+
+      <div id="rolesGroup" style="display:none;">
+        <label>Visible to Role (leave all unchecked for Common - all roles)</label>
+        <div class="rolesCheckboxGroup">
+          <label><input type="checkbox" class="roleCheckbox" value="Material Handling"> Material Handling</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Inspector"> Inspector</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Inspector(Contractual)"> Inspector(Contractual)</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator"> Trainee Operator</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator(Contractual)"> Trainee Operator(Contractual)</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Employee"> Employee</label>
+          <label><input type="checkbox" class="roleCheckbox" value="Other"> Other</label>
+        </div>
+      </div>
+
+      <label for="description">Description (optional)</label>
+      <textarea id="description" placeholder="Optional notes about this practical course"></textarea>
+
+      <button id="createBtn">Create Practical Course</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const courseNameEl = document.getElementById('courseName');
+    const levelSelect = document.getElementById('levelSelect');
+    const hierarchyFields = document.getElementById('hierarchyFields');
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const stationSelect = document.getElementById('stationSelect');
+    const descriptionEl = document.getElementById('description');
+    const createBtn = document.getElementById('createBtn');
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    // ---- Entry-point locking -------------------------------------------
+    // Coming from Induction Courses (l1Courses.html "+ Practical assessment")
+    // -> ?level1=1: this course can only ever be Level 1, so lock the Level
+    // dropdown to that and there's no hierarchy to pick.
+    // Coming from OJT Courses (l2Courses.html "+ Practical assessment")
+    // -> ?scope=level2plus (+ deptID/areaID/mCourseID/level): Level 1 isn't a
+    // valid choice from this entry point, so it's disabled in the dropdown,
+    // but Department/Segment/Process stay fully selectable (and get
+    // pre-filled from the course list you were already looking at).
+    const urlParams = new URLSearchParams(window.location.search);
+    const lockToLevel1 = urlParams.get('level1') === '1';
+    const lockOutLevel1 = urlParams.get('scope') === 'level2plus';
+    const lockToCommon = urlParams.get('common') === '1';
+    const prefillDeptID = urlParams.get('deptID') || '';
+    const prefillAreaID = urlParams.get('areaID') || '';
+    const prefillMCourseID = urlParams.get('mCourseID') || '';
+    const prefillStationID = urlParams.get('stationID') || '';
+    const prefillLevel = urlParams.get('level') || '';
+
+    const rolesGroup = document.getElementById('rolesGroup');
+
+    function toggleHierarchy() {
+      hierarchyFields.style.display = (levelSelect.value === 'Level 1' || lockToCommon) ? 'none' : 'block';
+      rolesGroup.style.display = (levelSelect.value === 'Level 1' && !lockToCommon) ? 'block' : 'none';
+    }
+    levelSelect.addEventListener('change', toggleHierarchy);
+
+    const levelLockHint = document.getElementById('levelLockHint');
+    if (lockToCommon) {
+      // Common Level 1-4 course: no Department/Area/Process/Station at all -
+      // visible to every learner at that level regardless of Line/Station.
+      const commonLevel = prefillLevel || 'Level 2';
+      levelSelect.innerHTML = `<option value="${commonLevel}">${commonLevel}</option>`;
+      levelSelect.value = commonLevel;
+      levelSelect.disabled = true;
+      levelLockHint.textContent = 'Opened from Common Courses, so this is fixed to ' + commonLevel + ' with no Department/Area/Process/Station.';
+      levelLockHint.style.display = 'block';
+    } else if (lockToLevel1) {
+      levelSelect.value = 'Level 1';
+      levelSelect.disabled = true;
+      levelLockHint.textContent = 'Opened from Induction Courses, so this is fixed to Level 1.';
+      levelLockHint.style.display = 'block';
+    } else if (lockOutLevel1) {
+      const level1Option = levelSelect.querySelector('option[value="Level 1"]');
+      if (level1Option) level1Option.disabled = true;
+      levelSelect.value = (prefillLevel && prefillLevel !== 'Level 1') ? prefillLevel : 'Level 2';
+      levelLockHint.textContent = 'Opened from OJT Courses, so Level 1 isn\'t available here — pick Level 2, 3 or 4.';
+      levelLockHint.style.display = 'block';
+    }
+    toggleHierarchy();
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      stationSelect.innerHTML = '<option value="">Select process/line first</option>';
+      stationSelect.disabled = true;
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    async function loadStations(mCourseID) {
+      stationSelect.innerHTML = '<option value="">Select station</option>';
+      stationSelect.disabled = true;
+      if (!mCourseID) return;
+      const data = await requestJson(`/api/hierarchy/stations?mCourseID=${encodeURIComponent(mCourseID)}`);
+      (data.stations || []).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.stationID;
+        opt.textContent = s.stationName;
+        stationSelect.appendChild(opt);
+      });
+      if (!data.stations || !data.stations.length) {
+        stationSelect.innerHTML = '<option value="">No stations yet - add one in Station Management</option>';
+      } else {
+        stationSelect.disabled = false;
+      }
+    }
+
+    deptSelect.addEventListener('change', () => loadAreas(deptSelect.value).catch(e => setStatus(e.message, true)));
+    areaSelect.addEventListener('change', () => loadProcesses(deptSelect.value, areaSelect.value).catch(e => setStatus(e.message, true)));
+    processSelect.addEventListener('change', () => loadStations(processSelect.value).catch(e => setStatus(e.message, true)));
+
+    // Pre-fill Department -> Segment/Area -> Process/Line -> Station when
+    // arriving from OJT Courses with a specific station already in context.
+    async function applyHierarchyPrefill() {
+      if (lockToCommon || !prefillDeptID) return;
+      deptSelect.value = prefillDeptID;
+      await loadAreas(prefillDeptID);
+      if (!prefillAreaID) return;
+      areaSelect.value = prefillAreaID;
+      await loadProcesses(prefillDeptID, prefillAreaID);
+      if (!prefillMCourseID) return;
+      processSelect.value = prefillMCourseID;
+      await loadStations(prefillMCourseID);
+      if (!prefillStationID) return;
+      stationSelect.value = prefillStationID;
+    }
+
+    createBtn.addEventListener('click', async () => {
+      const courseName = courseNameEl.value.trim();
+      const level = levelSelect.value;
+      if (!courseName) { setStatus('Course name is required.', true); return; }
+      if (!lockToCommon && level !== 'Level 1' && (!deptSelect.value || !areaSelect.value || !processSelect.value || !stationSelect.value)) {
+        setStatus('Select Department, Segment/Area, Process/Line and Station for Level 2 and above.', true);
+        return;
+      }
+
+      createBtn.disabled = true;
+      setStatus('Creating...');
+      try {
+        const data = await requestJson('/api/practical/createCourse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            courseName, level,
+            deptID: lockToCommon ? null : (deptSelect.value || null),
+            areaID: lockToCommon ? null : (areaSelect.value || null),
+            mCourseID: lockToCommon ? null : (processSelect.value || null),
+            stationID: lockToCommon ? null : (stationSelect.value || null),
+            description: descriptionEl.value.trim() || null,
+            isCommon: lockToCommon,
+            subCourseRoles: level === 'Level 1' ? Array.from(document.querySelectorAll('.roleCheckbox:checked')).map(cb => cb.value).join(',') : '',
+          })
+        });
+        const redirectUrl = lockToCommon
+          ? `/commonCourses.html?level=${encodeURIComponent(level)}`
+          : level === 'Level 1'
+            ? '/l1Courses.html'
+            : `/l2Courses.html?mCourseID=${encodeURIComponent(processSelect.value || '')}&stationID=${encodeURIComponent(stationSelect.value || '')}`;
+        setStatus(`Created "${courseName}". Redirecting...`);
+        setTimeout(() => { window.location.href = redirectUrl; }, 900);
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        createBtn.disabled = false;
+      }
+    });
+
+    loadDepartments()
+      .then(() => applyHierarchyPrefill())
+      .catch(error => setStatus(error.message, true));
+  </script>
+</body>
+
+</html>

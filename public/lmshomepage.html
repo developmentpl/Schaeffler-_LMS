@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LMS Homepage</title>
+  <link rel="stylesheet" href="/styles/LMSHomepage.css">
+
+</head>
+
+<body>
+
+  <div class="header">
+       <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+        
+    <div class="navbar">
+
+      
+      <a href="/lmshomepage.html">Home</a>
+      <a href="/logout" class="login-btn">Log out</a>
+    </div>
+    
+</div>
+
+  <!-- Main Content -->
+
+
+  <div class="container">
+    <h2 style="font-size: 3rem; color: #ffffff;">Welcome to Learning Management System</h2>
+
+    <div class="carousel">
+      <!-- Your carousel code here -->
+    </div>
+
+    <div class="card-container">
+      <!-- Card 1 - Profile -->
+
+      <div class="card">
+        <img src="/Images/lmsHomePage/Profile_New.png" width="100" height="100" alt="Card 1">
+        <a href="myProfile.html" class="btnCard card ">My Profile</a>
+      </div>
+      <!-- Card 2 - Courses -->
+
+      <div class="card">
+        <img src="/Images/lmsHomePage/Course_New.png" width="100" height="100" alt="Card 2">
+        <a href="viewscorm.html" class="btnCard card ">My Courses</a>
+      </div>
+      <!-- Card 3 - Grades -->
+
+      <div class="card">
+        <img src="/Images/lmsHomePage/Grades_New.png" width="100" height="100">
+        <a href="myGrades.html" class="btnCard card ">My Grades</a>
+        
+      </div>
+      
+    </div>
+   
+  </div>
+   <!-- <h3 style="color: #ffffff;">Keep Learning...</h3> -->
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script src="/js/refresherPopup.js"></script>
+</body>
+<script>
+  // JavaScript to fetch and display the username
+  window.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const uniqueID = sessionStorage.getItem('uniqueID');
+      const response = await fetch('/lmshomepage');
+      const data = await response.text();
+      const match = data.match(/<%= user.username %>/);
+      console.log("User Unique ID:", uniqueID);
+      if (match) {
+        document.getElementById('usernamePlaceholder').textContent = match[1];
+        console.log("User Unique ID:", uniqueID);
+      }
+    } catch (error) {
+      console.error('Error fetching username:', error);
+    }
+  });
+</script>
+
+</html>

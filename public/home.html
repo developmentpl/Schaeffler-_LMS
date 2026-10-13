@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/styles/home.css">
+</head>
+
+<body>
+    <div class="header">
+
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+
+        <div class="navbar">
+            <!-- <a href="/home.html">Home</a> -->
+            <a href="userlogin.html" class="login-btn">Log in</a>
+        </div>
+        
+        
+    </div>
+
+    <div class="sentence">
+        <span class="word1">LEARNING</span>
+        <span class="word2">MANAGEMENT</span><br><br>
+        <span class="word3">SYSTEM</span>
+    </div>
+
+    
+
+    <div class="carousel-container">
+        <div class="carousel-images">
+            <img src="/Images/userlogin/header-schaeffler-india-building_rwd_1200.jpg" alt="Schaeffler India Building">
+            <img src="/Images/userlogin/header-schaeffler-india-industrial-02_rwd_1200.jpg" alt="Schaeffler Industrial">
+            <img src="/Images/userlogin/header-schaeffler-india-automotive_rwd_1200.jpg" alt="Schaeffler Automotive">
+
+
+        </div>
+        <div class="carousel-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+</body>
+<script>
+    // Make the sentence visible when the animations begin
+    window.onload = function() {
+      document.querySelector('.sentence').style.visibility = 'visible';
+    };
+
+    document.addEventListener("DOMContentLoaded", function () {
+    let images = document.querySelectorAll(".carousel-images img");
+    let currentIndex = 0;
+    let intervalTime = 3000; // Time in milliseconds (3 seconds)
+
+    function changeImage() {
+        images[currentIndex].classList.remove("active");
+        currentIndex = (currentIndex + 1) % images.length;
+        images[currentIndex].classList.add("active");
+    }
+
+    images[currentIndex].classList.add("active"); // Show the first image
+    setInterval(changeImage, intervalTime); // Change image every few seconds
+});
+
+  </script>
+</html>

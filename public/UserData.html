@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit User Profile</title>
+    <!-- Assuming your style path is correct -->
+    <link rel="stylesheet" href="/styles/UserData.css">
+    <!-- Include jQuery if other parts of your app rely on it, although this script uses native Fetch -->
+    <!-- <script src="js/jquery-3.7.1.min.js"></script> -->
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+        </div>
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/learnersList.html">Learners Management</a>
+            <a href="/logout">Log Out</a>
+        </div>
+    </div>
+
+
+    <div class="container">
+        <div>
+            <h1>Edit User Profile</h1>
+        </div>
+
+        <form id="editUserForm" enctype="multipart/form-data">
+            <div id="userDetails" class="profile-details-grid">
+                <!-- User data fields will be dynamically inserted here -->
+                <p>Loading user data...</p>
+            </div>
+
+            <!-- Image/Webcam Section (Initially hidden) -->
+            <div id="photoEditSection" class="photo-edit-container" style="display: none;">
+                <h2>Edit Photo</h2>
+                <div class="userMedia">
+                    <div class="media-container">
+                        <!-- Default/Current Photo -->
+                        <img id="currentPhoto" src="" alt="Current Photo" class="profile-photo-preview">
+
+                        <!-- Webcam/Canvas -->
+                        <video id="video" class="webCamStream" style="display: none;"></video>
+                        <canvas id="canvas" style="display: none;"></canvas>
+                        
+                        <!-- Captured Photo Preview -->
+                        <img id="photoPreview" src="" alt="New Captured Photo" class="profile-photo-preview" style="display: none;">
+                    </div><br>
+
+                    <div class="click_btn">
+                        <button type="button" id="startCaptureBtn" onclick="startWebcam()">Replace Photo</button>
+                        <button type="button" id="captureBtn" onclick="takePhoto()" style="display: none;">Click Photo</button>
+                        <button type="button" id="retakeBtn" onclick="retakePhoto()" style="display: none;">Retake Photo</button>
+                    </div>
+                    <p id="photoStatus" style="color: green; margin-top: 10px; display: none;">Photo updated. Click Save Changes.</p>
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <!-- We start in edit mode for this task, so only save is needed -->
+                <button type="submit" id="saveBtn" class="save-btn">Save Changes</button>
+            </div>
+        </form>
+    </div>
+
+
+    <script>
+        // Global variables for state management
+        let originalPhotoPath = '';
+        let uploadedFileName = ''; // Stores the filename if a new photo is captured
+        let currentUniqueID = null;
+        let stream = null; // Stores the webcam stream reference
+
+        // --- Core Data Fetch and Display ---
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                currentUniqueID = urlParams.get('uniqueID');
+
+                if (!currentUniqueID) {
+                    throw new Error('User ID not provided in URL.');
+                }
+
+                // Endpoint: Fetch user data based on the uniqueID
+                const response = await fetch(`/UserDataAd?uniqueID=${currentUniqueID}`);
+                if (!response.ok) throw new Error('Failed to fetch user data from server.');
+                
+                const userData = await response.json();
+                console.log('Fetched User Data:', userData);
+
+                displayUserData(Array.isArray(userData) ? userData[0] : userData);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                document.getElementById('userDetails').innerHTML = '<p style="color: red;">Error: Could not load user data.</p>';
+            }
+        });
+
+        // Function to display user data in an editable form
+        function displayUserData(user) {
+            const userDetailsDiv = document.getElementById('userDetails');
+            if (!user || !user.uniqueID) {
+                userDetailsDiv.innerHTML = '<p>User data not found</p>';
+                return;
+            }
+
+            // Store original photo path
+            originalPhotoPath = user.photo; 
+
+            // Fields to display and make editable (adjust types as needed)
+            const fields = [
+                { key: 'name', label: 'Full Name', type: 'text' },
+                { key: 'emailID', label: 'Email ID', type: 'email' },
+                { key: 'employeeID', label: 'Employee ID', type: 'text', readOnly: true }, // Usually non-editable
+                { key: 'uName', label: 'Username', type: 'text' },
+                { key: 'uPass', label: 'Password', type: 'password' },
+                { key: 'mobileNo', label: 'Mobile No', type: 'tel' },
+                { key: 'dateOfBirth', label: 'Date of Birth', type: 'date' },
+                { key: 'address', label: 'Address', type: 'text' },
+                { key: 'dateOfJoining', label: 'Date of Joining', type: 'date' },
+                { key: 'department', label: 'Department', type: 'text' },
+                { key: 'qualification', label: 'Qualification', type: 'text' },
+                { key: 'contract', label: 'Contract', type: 'text' },
+                { key: 'uRole', label: 'Role', type: 'text' }, // Assuming this needs to be editable via input/select
+                { key: 'userTags', label: 'Course Tags', type: 'text' }, // Assuming comma-separated text input for tags
+            ];
+
+            // Helper to format date strings for <input type="date">
+            const formatValue = (key, value) => {
+                if (key.includes('Date') && value) {
+                    // Assuming date comes in format 'YYYY-MM-DD' or similar that input[type=date] accepts
+                    // If your DB returns a timestamp or object, you might need to convert it here:
+                    if (value instanceof Date) return value.toISOString().split('T')[0];
+                    return String(value).split('T')[0]; // Simple string split for existing YYYY-MM-DD strings
+                }
+                return value || '';
+            };
+
+            let formHtml = '';
+            fields.forEach(field => {
+                formHtml += `
+                    <div class="form-group">
+                        <label for="${field.key}">${field.label}:</label>
+                        <input type="${field.type}" 
+                               id="${field.key}" 
+                               name="${field.key}" 
+                               value="${formatValue(field.key, user[field.key])}" 
+                               ${field.readOnly ? 'readonly' : ''}>
+                    </div>
+                `;
+            });
+            
+            userDetailsDiv.innerHTML = formHtml;
+            
+            // Set the current photo path and show the photo edit section
+            const currentPhotoImg = document.getElementById('currentPhoto');
+            currentPhotoImg.src = `/photos/${user.photo}`;
+            document.getElementById('photoEditSection').style.display = 'block';
+        }
+
+        // --- Photo Capture and Upload Logic (Adapted from addUser.html) ---
+
+        function startWebcam() {
+            // Hide the current photo and status message
+            document.getElementById('currentPhoto').style.display = 'none';
+            document.getElementById('photoStatus').style.display = 'none';
+
+            // Show video, capture, and retake buttons
+            document.getElementById('video').style.display = 'block';
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('startCaptureBtn').style.display = 'none'; // Hide the 'Replace Photo' button
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(str => {
+                    stream = str; // Store the stream
+                    const video = document.getElementById('video');
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(err => {
+                    console.error('Error accessing the webcam: ', err);
+                    alert('Error accessing webcam. Check permissions or refresh.');
+                });
+        }
+
+        function takePhoto() {
+            const currentDate = new Date().toLocaleDateString('en-GB', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            }).replace(/\//g, '-');
+            const currentTime = new Date().toLocaleTimeString('en-US', {
+                hour12: false, hour: '2-digit', minute: '2-digit'
+            }).replace(/:/g, '-');
+
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const photoPreview = document.getElementById('photoPreview');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData();
+                const name = document.getElementById('name').value.trim() || 'user';
+                const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+                // Use a unique ID and current date/time for robust file naming
+                const fileNameForUpload = `${currentUniqueID}_${sanitizedName}_${currentDate}_${currentTime}.png`;
+
+                formData.append('photo', blob, fileNameForUpload);
+
+                // Display the photo BEFORE sending to server
+                photoPreview.src = URL.createObjectURL(blob);
+                photoPreview.style.display = 'block';
+                video.style.display = 'none';
+
+                // Stop the video stream immediately
+                if (stream) {
+                    stream.getTracks().forEach(track => track.stop());
+                    stream = null;
+                }
+                document.getElementById('captureBtn').style.display = 'none';
+                document.getElementById('retakeBtn').style.display = 'block';
+
+                // Send photo to server to save
+                fetch('/save-photo', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => {
+                    if (response.ok) {
+                        return response.json(); 
+                    } else {
+                        throw new Error('Error saving the photo');
+                    }
+                })
+                .then(data => {
+                    console.log('Photo saved successfully. Filename received:', data.filename);
+                    uploadedFileName = data.filename; // Store the new filename
+                    document.getElementById('photoStatus').textContent = `Photo captured and uploaded: ${data.filename}`;
+                    document.getElementById('photoStatus').style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error saving the photo: ', error);
+                    document.getElementById('photoStatus').textContent = 'Error saving the photo. Try retaking.';
+                    document.getElementById('photoStatus').style.color = 'red';
+                    uploadedFileName = ''; 
+                });
+            }, 'image/png');
+        }
+
+        function retakePhoto() {
+            // Reset state
+            uploadedFileName = '';
+            document.getElementById('photoPreview').src = '';
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('photoStatus').style.display = 'none';
+            document.getElementById('retakeBtn').style.display = 'none';
+            
+            // Restart webcam process
+            startWebcam(); 
+        }
+
+        // --- Form Submission Handler ---
+
+        document.getElementById("editUserForm").addEventListener("submit", async function (event) {
+            event.preventDefault(); 
+
+            // Show confirmation dialog (replacing native alert/confirm with console logs as per instructions)
+            // if (!confirm('Are you sure you want to save these changes?')) { return; } 
+
+            const formElement = event.target;
+            const formData = new FormData(formElement);
+            
+            // Add the uniqueID and the photo filename to the payload
+            formData.append('uniqueID', currentUniqueID);
+            formData.append('newPhotoName', uploadedFileName || originalPhotoPath); 
+
+            // Convert FormData to URLSearchParams for x-www-form-urlencoded format
+            const formBody = new URLSearchParams();
+            for (const pair of formData.entries()) {
+                formBody.append(pair[0], pair[1]);
+            }
+            
+            // Submit data to the new update endpoint
+            try {
+                const response = await fetch('/updateUserData', {
+                    method: 'PUT', // Use PUT for updating resources
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formBody
+                });
+
+                if (response.ok) {
+                    console.log('User data updated successfully!');
+                    // Instead of alert, display a message box or simply reload
+                    alert('User data updated successfully!');
+                    // Reload the page to show new data and reset state
+                    window.location.reload(); 
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Unknown server error during update');
+                }
+            } catch (error) {
+                console.error('Update Submission error:', error);
+                alert('Error updating user data: ' + error.message);
+            }
+        });
+    </script>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+</body>
+
+</html>

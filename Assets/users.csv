@@ -1,0 +1,2 @@
+"id";"name";"emailID";"employeeID";"uName";"uPass";"photo";"dateOfJoining";"dateOfBirth";"address";"mobileNo";"department";"uRole";"photo_filename";"currentDate";"currentTime";"uniqueID";"lastLoggedIn";"courseTags"
+1;"admin user";"admin@pl.in";"001";"admin";"Admin@123";"admin_user_25102024_1507.png";"2024-10-25";"1996-05-07";"Pune";"9763548964";"Development";"Manager";"C:/Users/Parallel-Admin/Desktop/JSapp/SCORM LMS/LMS_R3/public/photos/admin_user_25102024_1507.png";"24/11/2024";"6:22:47 PM";"d688d378-9c07-4961-8a57-fdd10bf9b161";"2024-12-11 20:07:13.652";"[""default""]"

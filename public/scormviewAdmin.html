@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Admin SCORM View</title>
+    <link rel="stylesheet" href="/styles/scormview.css">
+
+    <style>
+        /* Add CSS styles for navbar */
+        /*nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #333;
+            padding: 10px;
+            color: white;
+        }
+
+        /* Style iframe to fill the entire viewport */
+        #scormFrame {
+            position: fixed;
+            top: 60px;
+            /* Adjust as per your navbar height */
+            width: 100%;
+            height: calc(100% - 40px);
+            /* Adjust as per your navbar height */
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header" style="margin: 0%; z-index: 1;">
+       
+        <div class="navbar">
+            <a href="/adminhomepage.html">Home</a>
+            <a href="/courseManagement.html">Courses</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+    <!-- <nav>
+        <button onclick="markAsCompleted()">Completed</button>
+        <span id="score"></span>
+        <button onclick="retrieveScore()">See your score</button>
+        <span id="uName"></span>
+        <span id="duration"></span>
+        <span id="date"></span>
+        <span id="time"></span>
+        <span id="status"></span>
+        <span id="posttestScore"></span>
+        <span id="courseIDPlaceholder"></span>
+        <span id="courseNamePlaceholder"></span> -->
+    <!-- <div class="nav-right">
+             <div><span id="usernamePlaceholder"></div> -->
+    <!-- <div class="logout"><a href="/logout">Logout</a></div> -->
+    <!-- </div> -->
+    <!-- </nav> -->
+    <!-- Place holder for SCORM content -->
+    <iframe id="scormFrame" frameborder="0" width="100%" height="100%"></iframe>
+
+
+    <script>
+        // Function to mark the SCORM module as completed
+        // function markAsCompleted() {
+        //     window.location.href = '/lmshomepage.html'; // Navigate back to the index page
+        // }
+
+        // Function to load SCORM content based on selected package
+        function loadScormContent() {
+
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const selectedScorm = urlParams.get('scorm');
+            if (selectedScorm) {
+                const scormUrl = `/scorm/${selectedScorm}/story.html`;
+                document.getElementById('scormFrame').src = scormUrl;
+            } else {
+                alert('No SCORM package selected.');
+            }
+        }
+
+
+        // window.addEventListener("message", function (event) {
+        //     if (event.data && event.data.uName && event.data.duration && event.data.date && event.data.time && event.data.Status && event.data.posttestScore) {
+        //         document.getElementById('score').textContent = 'Score: ' + event.data.Score;
+        //         document.getElementById('uName').textContent = 'UserName: ' + event.data.uName;
+        //         document.getElementById('duration').textContent = 'Duration: ' + event.data.duration;
+        //         document.getElementById('date').textContent = 'Completion Date: ' + event.data.date;
+        //         document.getElementById('time').textContent = 'Completion Time: ' + event.data.time;
+        //         document.getElementById('status').textContent = 'Status: ' + event.data.Status;
+        //         document.getElementById('posttestScore').textContent = 'Posttest: ' + event.data.posttestScore;
+        //         console.log(uName + ", " + Score + ", " + duration + ", " + date + ", " + time + ", " + Status + ", " + posttestScore);
+        //     } else {
+        //         document.getElementById('score').textContent = 'Score: N/A';
+        //         document.getElementById('uName').textContent = 'UserName: N/A';
+        //         document.getElementById('duration').textContent = 'Duration: N/A';
+        //         document.getElementById('date').textContent = 'Completion Date: N/A';
+        //         document.getElementById('time').textContent = 'Completion Time: N/A';
+        //         document.getElementById('status').textContent = 'Status: N/A';
+        //         document.getElementById('posttestScore').textContent = 'Posttest: N/A';
+
+
+        //     }
+        // }, false);
+
+
+        // Call the function to load SCORM content when the page loads
+        //window.onload = loadScormContent;
+
+        // Function to send SCORM variables to the server
+        // function sendSCORMDataToServer(data) {
+        //     fetch('/updateUserSCORMData', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json',
+        //         },
+        //         body: JSON.stringify(data),
+        //     })
+        //         .then(response => {
+        //             if (!response.ok) {
+        //                 throw new Error('Failed to update user SCORM data');
+        //             }
+        //             console.log('User SCORM data updated successfully');
+        //         })
+        //         .catch(error => console.error('Error:', error));
+        // }
+        // // Function to handle SCORM data received from the SCORM package
+        // window.addEventListener("message", function (event) {
+        //     if (event.data && event.data.uName && event.data.duration && event.data.date && event.data.time && event.data.Status && event.data.posttestScore) {
+        //         // Extract the relevant SCORM variables
+        //         const { uName, posttestScore } = event.data;
+
+        //         // Retrieve courseID from URL parameters
+        //         const courseID = getCourseIDFromURL();
+        //         if (courseID) {
+        //             console.log("Course ID: " + courseID);
+        //         }
+        //         else {
+        //             console.log("Course ID not found.");
+        //         }
+        //         const courseName = getCourseInfoFromURL();
+        //         if (courseName) {
+        //             console.log("Course Name: " + courseName);
+        //         }
+        //         else {
+        //             console.log("Course Name not found.");
+        //         }
+
+
+        //         // Send the SCORM data to the server
+        //         sendSCORMDataToServer({ uName, posttestScore, courseID, courseName });
+        //     }
+        // }, false);
+
+        // Function to extract courseID from URL parameters
+        function getCourseIDFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('courseID');
+            /*const urlParams = new URLSearchParams(window.location.search);
+            const courseID = urlParams.get('courseID');
+            const courseName = urlParams.get('courseName');
+            return { courseID, courseName };*/
+        }
+        function getCourseInfoFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('courseName');
+        }
+
+
+        // Function to update the navbar with the retrieved courseID
+        function updateNavbarWithCourseID() {
+            /*const { courseID, courseName } = getCourseInfoFromURL();
+            const courseIDPlaceholder = document.getElementById('courseIDPlaceholder');
+            const courseNamePlaceholder = document.getElementById('courseNamePlaceholder');
+            if (courseID && courseName && courseIDPlaceholder && courseNamePlaceholder) {
+                courseIDPlaceholder.textContent = 'Course ID: ' + courseID;
+                courseNamePlaceholder.textContent = 'Course Name: ' + courseName;
+            }*/
+            const courseID = getCourseIDFromURL();
+            const courseIDPlaceholder = document.getElementById('courseIDPlaceholder');
+            if (courseID && courseIDPlaceholder) {
+                courseIDPlaceholder.textContent = 'Course ID: ' + courseID;
+            }
+        }
+
+        // Call the function to update the navbar when the page loads
+        //window.onload = updateNavbarWithCourseID;
+        // Call the function to update the navbar and load SCORM content when the page loads
+        window.onload = function () {
+            getCourseIDFromURL();
+            getCourseInfoFromURL();
+            loadScormContent();
+            //updateNavbarWithCourseID();
+        };
+
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 189.97 187.96">
+  <defs>
+    <style>
+      .cls-1 {
+        opacity: .72;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9, .cls-10, .cls-11, .cls-12, .cls-13, .cls-14, .cls-15, .cls-16, .cls-17, .cls-18, .cls-19, .cls-20, .cls-21, .cls-22, .cls-23, .cls-24, .cls-25, .cls-26, .cls-27, .cls-28, .cls-29, .cls-30, .cls-31, .cls-32, .cls-33, .cls-34, .cls-35, .cls-36, .cls-37, .cls-38, .cls-39, .cls-40, .cls-41, .cls-42, .cls-43, .cls-44, .cls-45 {
+        stroke-width: 0px;
+      }
+
+      .cls-1, .cls-11 {
+        fill: #373b41;
+      }
+
+      .cls-2 {
+        fill: #1e1f24;
+        opacity: .71;
+      }
+
+      .cls-3 {
+        fill: #2d2f36;
+        opacity: .11;
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient);
+      }
+
+      .cls-5 {
+        fill: #24262c;
+        opacity: .38;
+      }
+
+      .cls-6 {
+        fill: #31343b;
+        opacity: .38;
+      }
+
+      .cls-7 {
+        fill: #1c1e22;
+        opacity: .81;
+      }
+
+      .cls-8 {
+        fill: #2e3137;
+        opacity: .19;
+      }
+
+      .cls-9 {
+        fill: #282930;
+        opacity: .19;
+      }
+
+      .cls-10 {
+        fill: #383c42;
+        opacity: .8;
+      }
+
+      .cls-11 {
+        opacity: .76;
+      }
+
+      .cls-12 {
+        fill: #1d1f23;
+        opacity: .76;
+      }
+
+      .cls-13 {
+        fill: #1c1d21;
+        opacity: .86;
+      }
+
+      .cls-14 {
+        fill: #23252b;
+        opacity: .43;
+      }
+
+      .cls-15 {
+        fill: #32353b;
+        opacity: .42;
+      }
+
+      .cls-16 {
+        fill: #32363c;
+        opacity: .46;
+      }
+
+      .cls-17 {
+        fill: #292b32;
+        opacity: .1;
+      }
+
+      .cls-18 {
+        fill: #282a31;
+        opacity: .14;
+      }
+
+      .cls-19 {
+        fill: #2a2c33;
+        opacity: .05;
+      }
+
+      .cls-20 {
+        fill: #1b1c20;
+        opacity: .9;
+      }
+
+      .cls-21 {
+        fill: #33363d;
+        opacity: .5;
+      }
+
+      .cls-22 {
+        fill: #2d3037;
+        opacity: .15;
+      }
+
+      .cls-23 {
+        fill: #1a1b1f;
+        opacity: .95;
+      }
+
+      .cls-24 {
+        fill: #22242a;
+        opacity: .48;
+      }
+
+      .cls-25 {
+        fill: #27282f;
+        opacity: .24;
+      }
+
+      .cls-26 {
+        fill: #2f3239;
+        opacity: .27;
+      }
+
+      .cls-27 {
+        fill: #34373d;
+        opacity: .53;
+      }
+
+      .cls-28 {
+        fill: #222328;
+        opacity: .52;
+      }
+
+      .cls-29 {
+        fill: #35383f;
+        opacity: .61;
+      }
+
+      .cls-30 {
+        opacity: .04;
+      }
+
+      .cls-30, .cls-41 {
+        fill: #2c2e35;
+      }
+
+      .cls-31 {
+        fill: #303339;
+        opacity: .3;
+      }
+
+      .cls-32 {
+        fill: #202126;
+        opacity: .62;
+      }
+
+      .cls-33 {
+        fill: #34383e;
+        opacity: .57;
+      }
+
+      .cls-34 {
+        fill: #212227;
+        opacity: .57;
+      }
+
+      .cls-35 {
+        fill: #31333a;
+        opacity: .34;
+      }
+
+      .cls-36 {
+        fill: #25272d;
+        opacity: .33;
+      }
+
+      .cls-37 {
+        fill: #2b2d34;
+        opacity: 0;
+      }
+
+      .cls-38 {
+        fill: #26282e;
+        opacity: .29;
+      }
+
+      .cls-39 {
+        fill: #9aa0a5;
+      }
+
+      .cls-40 {
+        fill: #191a1e;
+      }
+
+      .cls-41 {
+        opacity: .08;
+      }
+
+      .cls-42 {
+        fill: #1f2025;
+        opacity: .67;
+      }
+
+      .cls-43 {
+        fill: #2f3138;
+        opacity: .23;
+      }
+
+      .cls-44 {
+        fill: #363a40;
+        opacity: .69;
+      }
+
+      .cls-45 {
+        fill: #36393f;
+        opacity: .65;
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="46.76" y1="137.8" x2="139.81" y2="44.75" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#25272d"/>
+      <stop offset="1" stop-color="#2c2e35"/>
+    </linearGradient>
+  </defs>
+  <circle class="cls-37" cx="92.8" cy="-64.96" r="65.79"/>
+  <g>
+    <g>
+      <circle class="cls-37" cx="124.18" cy="122.16" r="65.79"/>
+      <circle class="cls-19" cx="122.71" cy="120.69" r="65.48"/>
+      <circle class="cls-17" cx="121.24" cy="119.22" r="65.18"/>
+      <circle class="cls-18" cx="119.76" cy="117.75" r="64.87"/>
+      <circle class="cls-9" cx="118.29" cy="116.28" r="64.56"/>
+      <circle class="cls-25" cx="116.82" cy="114.81" r="64.25"/>
+      <circle class="cls-38" cx="115.35" cy="113.34" r="63.94"/>
+      <circle class="cls-36" cx="113.88" cy="111.87" r="63.63"/>
+      <circle class="cls-5" cx="112.41" cy="110.4" r="63.32"/>
+      <circle class="cls-14" cx="110.94" cy="108.93" r="63.01"/>
+      <circle class="cls-24" cx="109.47" cy="107.45" r="62.7"/>
+      <circle class="cls-28" cx="108" cy="105.98" r="62.39"/>
+      <circle class="cls-34" cx="106.53" cy="104.51" r="62.08"/>
+      <circle class="cls-32" cx="105.05" cy="103.04" r="61.77"/>
+      <circle class="cls-42" cx="103.58" cy="101.57" r="61.46"/>
+      <circle class="cls-2" cx="102.11" cy="100.1" r="61.15"/>
+      <circle class="cls-12" cx="100.64" cy="98.63" r="60.84"/>
+      <circle class="cls-7" cx="99.17" cy="97.16" r="60.53"/>
+      <circle class="cls-13" cx="97.7" cy="95.69" r="60.22"/>
+      <circle class="cls-20" cx="96.23" cy="94.22" r="59.91"/>
+      <circle class="cls-23" cx="94.76" cy="92.74" r="59.6"/>
+      <circle class="cls-40" cx="93.29" cy="91.27" r="59.3"/>
+    </g>
+    <g>
+      <circle class="cls-37" cx="65.79" cy="65.79" r="65.79"/>
+      <circle class="cls-30" cx="66.94" cy="66.94" r="65.48"/>
+      <circle class="cls-41" cx="68.08" cy="68.08" r="65.18"/>
+      <circle class="cls-3" cx="69.22" cy="69.22" r="64.87"/>
+      <circle class="cls-22" cx="70.36" cy="70.36" r="64.56"/>
+      <circle class="cls-8" cx="71.5" cy="71.5" r="64.25"/>
+      <circle class="cls-43" cx="72.64" cy="72.64" r="63.94"/>
+      <circle class="cls-26" cx="73.78" cy="73.78" r="63.63"/>
+      <circle class="cls-31" cx="74.93" cy="74.93" r="63.32"/>
+      <circle class="cls-35" cx="76.07" cy="76.07" r="63.01"/>
+      <circle class="cls-6" cx="77.21" cy="77.21" r="62.7"/>
+      <circle class="cls-15" cx="78.35" cy="78.35" r="62.39"/>
+      <circle class="cls-16" cx="79.49" cy="79.49" r="62.08"/>
+      <circle class="cls-21" cx="80.63" cy="80.63" r="61.77"/>
+      <circle class="cls-27" cx="81.77" cy="81.77" r="61.46"/>
+      <circle class="cls-33" cx="82.92" cy="82.92" r="61.15"/>
+      <circle class="cls-29" cx="84.06" cy="84.06" r="60.84"/>
+      <circle class="cls-45" cx="85.2" cy="85.2" r="60.53"/>
+      <circle class="cls-44" cx="86.34" cy="86.34" r="60.22"/>
+      <circle class="cls-1" cx="87.48" cy="87.48" r="59.91"/>
+      <circle class="cls-11" cx="88.62" cy="88.62" r="59.6"/>
+      <circle class="cls-10" cx="89.77" cy="89.77" r="59.3"/>
+    </g>
+    <circle class="cls-4" cx="93.29" cy="91.27" r="65.79"/>
+    <g>
+      <circle class="cls-39" cx="93.29" cy="71.51" r="14.32" transform="translate(9.36 153.8) rotate(-81.91)"/>
+      <path class="cls-39" d="m115.82,117.61c2.54,0,4.44-2.3,4-4.81-2.25-12.76-13.27-22.46-26.53-22.46s-24.29,9.69-26.53,22.46c-.44,2.5,1.46,4.81,4,4.81h45.07Z"/>
+    </g>
+  </g>
+  <g>
+    <circle class="cls-37" cx="253.32" cy="-64.74" r="65.79"/>
+    <circle class="cls-30" cx="254.46" cy="-63.6" r="65.48"/>
+  </g>
+</svg>

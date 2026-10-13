@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>SCORM LMS</title>
+  <link rel="stylesheet" href="/styles/uploadTrainingAssessment.css">
+  <style>
+    #courseID {
+      background: #ffffff !important;
+      background-image: none !important;
+      color: #071936 !important;
+      cursor: not-allowed !important;
+      font-weight: bold !important;
+      padding: 10px 12px !important;
+      border: 1px solid #b7c8d9 !important;
+      border-radius: 6px !important;
+      box-shadow: none !important;
+      width: 100% !important;
+    }
+    .language-modules { display:grid; gap:12px; margin:8px 0 22px; }
+    .language-module { padding:14px; border:1px solid #c9d8cf; border-radius:8px; background:#f8fcf9; }
+    .language-module h3 { margin:0 0 10px; color:#087a3f; font-size:15px; }
+    .language-module select, .language-module input { width:100%; margin-top:6px; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    </div>
+    
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseMasterSetup.html">Course Management</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <br>
+  <h1 class="h1class" style="text-align: center;">Add New Course</h1><br>
+  <div class="container">
+    <div class="FormClass">
+      <form id="addCourseForm" class="Floatclass" action="/upload" method="post" enctype="multipart/form-data">
+        <input type="hidden" id="level1Field" name="level1" value="">
+        <input type="hidden" id="refresherField" name="refresher" value="">
+        <input type="hidden" id="isCommonField" name="isCommon" value="">
+        <input type="hidden" id="subCourseRolesField" name="subCourseRoles" value="">
+        <div id="rolesGroup" style="display:none;">
+          <label class="allLabels">Visible to Role (leave all unchecked for Common - all roles):</label><br>
+          <div class="rolesCheckboxGroup">
+            <label><input type="checkbox" class="roleCheckbox" value="Material Handling"> Material Handling</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Inspector"> Inspector</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Inspector(Contractual)"> Inspector(Contractual)</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator"> Trainee Operator</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Trainee Operator(Contractual)"> Trainee Operator(Contractual)</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Employee"> Employee</label>
+            <label><input type="checkbox" class="roleCheckbox" value="Other"> Other</label>
+          </div>
+        </div>
+        <label class="allLabels">Course ID:</label><br>
+        <input type="text" id="courseID" class="idTag" name="courseID" readonly required><br><br>
+
+        <div class="labelDiv">
+          <label class="allLabels" for="courseName">Course Name:</label><br>
+        </div>
+        <input type="text" id="courseName" name="courseName" required><br>
+
+        <label class="allLabels" for="courseDescription">Course Description:</label><br>
+        <textarea id="courseDescription" name="courseDescription" required></textarea><br><br><br>
+
+        <div id="processLineGroup">
+          <label class="allLabels" for="mCourseName">Process / Line:</label><br>
+          <select id="mCourseName" name="mCourseID" required>
+            <option value="">Select Process / Line</option>
+          </select><br><br><br>
+        </div>
+
+        <label class="allLabels" for="courseDate">Course Date:</label><br>
+        <input type="date" id="courseDate" name="courseDate" required><br><br><br>
+
+        <div id="levelGroup">
+          <label class="allLabels" for="level">Course Tag:</label><br>
+          <select id="level" name="level" required>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option>
+          </select><br><br><br>
+        </div>
+
+        <div id="refresherTrainDateGroup">
+          <label class="allLabels" for="refresherTrainDate">Refresher Train Date:</label><br>
+          <select id="refresherTrainDate" name="RT_Date" required>
+            <option value="">Select Refresher Period</option>
+            <option value="3">3 Months</option>
+            <option value="6">6 Months</option>
+            <!-- <option value="default">Default Date</option>/ -->
+          </select><br><br><br>
+        </div>
+
+        <div id="passingGroup">
+          <label class="allLabels" for="subCoursePassing">Passing Percentage:</label><br>
+          <input type="number" id="subCoursePassing" name="subCoursePassing" min="0" max="100" placeholder="70" value="70" required><br><br><br>
+        </div>
+
+        <label class="allLabels">Language-wise SCORM Packages:</label><br>
+        <div class="language-modules">
+          <div class="language-module"><h3>Language Module 1</h3><select name="language1"><option>Marathi</option><option>English</option><option>Hindi</option></select><input type="file" name="scormFile1" accept=".zip" required></div>
+          <div class="language-module"><h3>Language Module 2 (optional)</h3><select name="language2"><option>English</option><option>Marathi</option><option>Hindi</option></select><input type="file" name="scormFile2" accept=".zip"></div>
+          <div class="language-module"><h3>Language Module 3 (optional)</h3><select name="language3"><option>Hindi</option><option>Marathi</option><option>English</option></select><input type="file" name="scormFile3" accept=".zip"></div>
+        </div>
+
+
+        <button type="submit">Save Course</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const pageParams = new URLSearchParams(window.location.search);
+    const selectedMCourseID = pageParams.get('mCourseID');
+    const isLevel1 = pageParams.get('level1') === '1';
+    const isRefresher = pageParams.get('refresher') === '1';
+    // Common Level 2/3/4 course (see commonCourses.html): only THIS flag hides
+    // Process/Line below - it's an additive branch, the normal Level 2+ SCORM
+    // flow (no flags at all) is completely untouched.
+    const isCommon = pageParams.get('common') === '1';
+    const levelParam = pageParams.get('level');
+
+    // Level 1 Management flow AND Refresher course flow: both are standalone -
+    // no Department/Segment/Process-Line hierarchy, no separate Course Tag, and
+    // (for Refresher specifically) no Refresher Train Date field either, since
+    // the course being uploaded here IS the refresher itself. Same pattern as
+    // uploadExcelAssessment.html and uploadTrainingMaterial.html.
+    function applyStandaloneMode() {
+      if (isLevel1) document.getElementById('rolesGroup').style.display = 'block';
+      if (!isLevel1 && !isRefresher && !isCommon) return;
+      document.getElementById('level1Field').value = isLevel1 ? '1' : '';
+      document.getElementById('refresherField').value = isRefresher ? '1' : '';
+      document.getElementById('isCommonField').value = isCommon ? '1' : '';
+
+      document.getElementById('processLineGroup').style.display = 'none';
+      const mCourseSelect = document.getElementById('mCourseName');
+      mCourseSelect.required = false;
+      mCourseSelect.disabled = true;
+
+      document.getElementById('levelGroup').style.display = 'none';
+      const levelSelect = document.getElementById('level');
+      const fixedLevel = isRefresher ? 'Refresher' : (isCommon ? (levelParam || 'Level 2') : 'Level 1');
+      levelSelect.innerHTML = `<option value="${fixedLevel}">${fixedLevel}</option>`;
+      levelSelect.value = fixedLevel;
+
+      if (isRefresher) {
+        document.getElementById('refresherTrainDateGroup').style.display = 'none';
+        const rtSelect = document.getElementById('refresherTrainDate');
+        rtSelect.required = false;
+        rtSelect.disabled = true;
+      }
+    }
+
+    // Function to fetch mCourseName from database
+    function fetchmCourseName() {
+      return new Promise((resolve, reject) => {
+        fetch('/getmCourseName')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            resolve(data.mCourseName);
+          })
+          .catch(error => {
+            console.error('Error fetching mCourseName:', error);
+            reject(error);
+          });
+      });
+    }
+
+    // Function to populate Process / Line dropdown
+    function populatemCourseNameDropdown(mCourseName) {
+      const dropdown = document.getElementById('mCourseName');
+      dropdown.innerHTML = '<option value="">Select Process / Line</option>';
+      
+      mCourseName.forEach(dept => {
+        const option = document.createElement('option');
+        option.value = dept.id;
+        option.textContent = `${dept.deptName || 'Department'} / ${dept.areaName || 'Segment'} / ${dept.name}`;
+        dropdown.appendChild(option);
+      });
+      if (selectedMCourseID) {
+        dropdown.value = selectedMCourseID;
+      }
+    }
+
+    // The Course Tag is the OJT Level (2/3/4) - same fixed set of options as
+    // uploadExcelAssessment.html, hardcoded in the <select> above. (This used
+    // to be populated from a DB-backed `levels` table via /getLevels, but that
+    // table is an unrelated legacy "manufacturing operation name" list - e.g.
+    // "Tightening Operation", "Loop 1" - left empty in this schema, which is
+    // why the dropdown always came up blank regardless of the URL param.)
+    //
+    // If the admin already picked a specific Level (2/3/4) in the filter on
+    // l2Courses.html before clicking "+ Assessment" -> SCORM, that choice was
+    // carried forward in the URL - honor it here instead of making them pick
+    // it again. Same pattern as uploadExcelAssessment.html.
+    function applyLevelParam() {
+      if (isLevel1 || isRefresher || isCommon) return;
+      if (levelParam) document.getElementById('level').value = levelParam;
+    }
+
+    // Function to fetch used course IDs from the database
+    function fetchUsedCourseIDs() {
+      return new Promise((resolve, reject) => {
+        fetch('/getUsedCourseIDs')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            resolve(data.usedCourseIDs);
+          })
+          .catch(error => {
+            console.error('Error fetching used course IDs:', error);
+            reject(error);
+          });
+      });
+    }
+
+    // Function to get the next available course ID
+    function getNextAvailableCourseID(usedCourseIDs) {
+      const allCourseIDs = Array.from({ length: 200 }, (_, i) => i + 1);
+      const availableCourseIDs = allCourseIDs.filter(id => !usedCourseIDs.includes(id));
+      return availableCourseIDs.length > 0 ? availableCourseIDs[0] : null;
+    }
+
+    // Function to set the course ID in the read-only input field
+    function setCourseID() {
+      fetchUsedCourseIDs()
+        .then(usedCourseIDs => {
+          const nextCourseID = getNextAvailableCourseID(usedCourseIDs);
+          const courseIDInput = document.getElementById('courseID');
+          if (nextCourseID) {
+            courseIDInput.value = nextCourseID;
+          } else {
+            courseIDInput.value = 'No available IDs';
+            alert('No available course IDs. Please contact administrator.');
+          }
+        })
+        .catch(error => {
+          console.error('Error setting course ID:', error);
+        });
+    }
+
+    // Initialize page - Load all dropdowns
+    window.onload = function() {
+      // Set Course ID (read-only)
+      setCourseID();
+
+      applyStandaloneMode();
+      applyLevelParam();
+      if (isLevel1 || isRefresher || isCommon) return; // No Process/Line or Course Tag dropdowns to load
+
+      // Load mCourseName
+      fetchmCourseName()
+        .then(mCourseName => {
+          populatemCourseNameDropdown(mCourseName);
+        })
+        .catch(error => {
+          console.error('Error loading mCourseName:', error);
+        });
+    };
+
+    // Log form data before submission for debugging
+    document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+      console.log('Form Data:');
+      console.log('Course ID:', document.getElementById('courseID').value);
+      console.log('Course Name:', document.getElementById('courseName').value);
+      console.log('mCourseName:', document.getElementById('mCourseName').value);
+      console.log('Level:', document.getElementById('level').value);
+      console.log('Date:', document.getElementById('courseDate').value);
+      console.log('Refresher Train Date:', document.getElementById('refresherTrainDate').value);
+      const selectedRoles = Array.from(document.querySelectorAll('.roleCheckbox:checked')).map(cb => cb.value);
+      document.getElementById('subCourseRolesField').value = selectedRoles.join(',');
+      const uploaded = [1,2,3].filter(slot => document.querySelector(`[name="scormFile${slot}"]`).files.length);
+      const languages = uploaded.map(slot => document.querySelector(`[name="language${slot}"]`).value.toLowerCase());
+      if (new Set(languages).size !== languages.length) {
+        e.preventDefault();
+        alert('Please select a different language for each SCORM package.');
+      }
+    });
+  </script>
+  
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+</body>
+
+</html>

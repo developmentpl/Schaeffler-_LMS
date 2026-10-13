@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Level 1 - Completed / Acknowledge</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: transparent; color: #172033; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px 36px 40px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar input { flex: 1; max-width: 320px; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .pill { display: inline-block; background: #e8eef6; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: middle; font-size: 13px; }
+    th { background: #f7f9fc; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+    .badge.pass { background: #d8f4e2; color: #0a6b3b; }
+    .badge.fail { background: #fbe1de; color: #9c2c1c; }
+    .badge.none { background: #eceff3; color: #6b7a90; }
+    .badge.ack { background: #d9f7e7; color: #087443; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .empty { color: #6b7a90; font-style: italic; padding: 14px; text-align: center; }
+    .actions { margin-top: 14px; display: flex; align-items: center; gap: 12px; }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Level 1 - Completed / Acknowledge</h1>
+    <p class="lead">Users are "Pass" here once they have completed every Level 1 course (assessments passed, training
+      content marked done). Acknowledge a passed user to make them eligible for Level 2+ assignment on the next page.</p>
+    <div class="status" id="status"></div>
+
+    <div class="toolbar">
+      <input id="search" placeholder="Search by name, employee ID, username...">
+      <span class="pill" id="selectedCount">0 selected</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Employee ID</th>
+          <th>Username</th>
+          <th>Level 1 Courses Completed</th>
+          <th>Status</th>
+          <th>Acknowledged</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="7" class="empty">Loading...</td></tr></tbody>
+    </table>
+
+    <div class="actions">
+      <button id="ackBtn" disabled>Acknowledge Selected</button>
+      <button id="refreshBtn" style="background:#e8eef6;color:#172033;">Refresh</button>
+    </div>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const rowsEl = document.getElementById('rows');
+    const searchEl = document.getElementById('search');
+    const ackBtn = document.getElementById('ackBtn');
+    const selectedCountEl = document.getElementById('selectedCount');
+
+    let allUsers = [];
+    const selected = new Set();
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function badge(status) {
+      if (status === 'Previous User') return '<span class="badge ack">Previous User</span>';
+      if (status === 'Pass') return '<span class="badge pass">Pass</span>';
+      if (status === 'Fail') return '<span class="badge fail">Fail</span>';
+      return '<span class="badge none">No Attempt</span>';
+    }
+
+    function isSelectable(u) {
+      return u.l1Status === 'Pass' && !u.acknowledged;
+    }
+
+    function render() {
+      const term = searchEl.value.trim().toLowerCase();
+      const filtered = !term ? allUsers : allUsers.filter(u =>
+        String(u.name || '').toLowerCase().includes(term) ||
+        String(u.employeeID || '').toLowerCase().includes(term) ||
+        String(u.uName || '').toLowerCase().includes(term)
+      );
+
+      rowsEl.innerHTML = '';
+      if (!filtered.length) {
+        rowsEl.innerHTML = '<tr><td colspan="7" class="empty">No users found.</td></tr>';
+      } else {
+        filtered.forEach(u => {
+          const tr = document.createElement('tr');
+          const selectable = isSelectable(u);
+          const checked = selected.has(String(u.uniqueID)) ? 'checked' : '';
+          tr.innerHTML = `
+            <td><input type="checkbox" data-id="${u.uniqueID}" ${checked} ${selectable ? '' : 'disabled'}></td>
+            <td>${u.name || ''}</td>
+            <td>${u.employeeID || ''}</td>
+            <td>${u.uName || ''}</td>
+            <td>${u.passedL1Assessments || 0} / ${u.totalL1Assessments || 0}</td>
+            <td>${badge(u.l1Status)}</td>
+            <td>${u.acknowledged ? '<span class="badge ack">Acknowledged</span>' : '-'}</td>
+          `;
+          rowsEl.appendChild(tr);
+        });
+      }
+      refreshButtonState();
+    }
+
+    function refreshButtonState() {
+      selectedCountEl.textContent = `${selected.size} selected`;
+      ackBtn.disabled = selected.size === 0;
+    }
+
+    rowsEl.addEventListener('change', event => {
+      if (!event.target.matches('input[type="checkbox"]')) return;
+      const id = event.target.dataset.id;
+      if (event.target.checked) selected.add(id);
+      else selected.delete(id);
+      refreshButtonState();
+    });
+
+    searchEl.addEventListener('input', render);
+
+    async function loadUsers() {
+      rowsEl.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+      const data = await requestJson('/api/l1/acknowledge/users');
+      allUsers = data.users || [];
+      selected.clear();
+      render();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadUsers().catch(error => setStatus(error.message, true));
+    });
+
+    ackBtn.addEventListener('click', async () => {
+      const ids = Array.from(selected.values());
+      if (!ids.length) return;
+      if (!confirm(`Acknowledge ${ids.length} user(s) as Level 1 completed?`)) return;
+      try {
+        const data = await requestJson('/api/l1completedusers/bulkAcknowledge', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueIDs: ids })
+        });
+        setStatus(`Acknowledged: ${data.acknowledged || 0}. Skipped: ${data.skipped || 0}.`);
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    loadUsers().catch(error => setStatus(error.message, true));
+  </script>
+</body>
+
+</html>

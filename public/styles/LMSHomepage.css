@@ -1,0 +1,252 @@
+/* Basic CSS Reset */
+
+
+body {
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(135deg, #ebeef0,#d0d9df); */
+    background: linear-gradient(rgba(15, 15, 15, 0.6), rgba(15, 15, 15, 0.6)), url("/images/userlogin/header-schaeffler-india-automotive_rwd_1200.jpg") fixed;
+    /* background: url("/images/logo/UI Background-03.jpg") no-repeat center center fixed; */
+    background-size: 100% auto;
+
+    color: #000000
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    height: 1.50cm;
+    box-sizing: border-box;
+}
+
+.navbar {
+    display: flex;
+    gap: 28px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #08954c;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+
+
+.container {
+    max-width: 1200px;
+    margin: 80px auto 20px;
+    padding: 0 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    height: calc(100vh - 160px);
+    border:0.2px solid #646464;
+    border-radius: 5px;
+    /* Adjusted to fit content in the middle of the page */
+    background-color:#000000a8;
+    animation: myfirst 2s linear 2s infinite alternate;
+    /* Semi-transparent black background for main content */
+}
+
+@keyframes myfirst {
+    0%   {border-top:2px solid #5a6154;}
+    25%  {border-right:2px solid #5a6154;}
+    50%  {border-bottom:2px solid #5a6154;}
+    75%  {border-left:2px solid #5a6154;}
+    100% {border:2px solid #5a6154;}
+  }
+
+h2 {
+    font-weight: bold;
+    margin-bottom: 70px;
+    font-size: 3rem;
+    /* Increased font size to 3rem */
+}
+
+h3 {
+    font-weight: bold;
+    margin-top: 50px;
+}
+
+/* Card Styles */
+.card-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+    /* Add space between cards */
+    flex-wrap: wrap;
+    /* Allow cards to wrap to the next row */
+}
+.card-body{
+    color:  #646464;;
+}
+
+.h1class
+{
+    text-align: center;
+    align-items: center;
+    font-size: 40px;
+    color:  #646464;
+}
+.card {
+    background-color:  #000000c4;
+    border-radius: 10px;
+    /* box-shadow: 0 5px 6px #efebe5; */
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    width: 200px;
+    /* Set width of each card */
+    height: 300px;
+    /* Set height of each card */
+    font-weight: bold;
+    align-items: center;
+    animation: cardAnimation 10s linear infinite;
+    /* Adjust the duration to change image every 7 seconds (7s * 3 images) */
+    margin-bottom: 20px;
+    /* Add margin bottom for spacing */
+    position: relative;
+    /* Make the card position relative */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-decoration: none;
+}
+
+/* @keyframes cardAnimation {
+
+    0%, 33.33% {
+        box-shadow: 0 8px 2px #0c022c;
+    }
+    33.33%, 66.66% {
+        box-shadow: 0 6px 2px #240155;
+    }
+    66.66%, 100% {
+        box-shadow: 0 8px 2px #3c013e;
+    }
+} */
+
+.card a {
+    /*display: inline-block;
+    /*padding: 10px 20px; /* Adjust padding */
+    border-radius: 10px;
+    /* Add border-radius */
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    color: white;
+    /* Set text color */
+    margin-top: 20px;
+    /* Add margin top */
+    text-decoration: none;
+    /* Remove underline */
+    font-weight: bold;
+    width: 150px;
+}
+
+.card a:hover {
+    background-color: #333333;
+    /* Darken background color on hover */
+    color: #9AA0A5;
+    text-decoration: none;
+    /* Change text color to white on hover */
+}
+
+
+.card:hover {
+    background-color: rgba(5, 1, 21, 0.785);
+    /* Semi-transparent white background for cards on hover */
+}
+
+.card img {
+    max-width: 170px;
+    /* Adjusted maximum width of the image */
+    max-height: 170px;
+    /* Adjusted maximum height of the image */
+    margin-bottom: 50px;
+    /* Add margin bottom to the image */
+}
+
+.btnccard {
+    text-align: center;
+    width: 100px;
+    height: 80px;
+}
+
+.rounded-button {
+    border-radius: 4px;
+    display: block;
+    width: auto;
+    /* Adjusted button width to depend on content */
+    padding: 8px 16px;
+    /* Decreased padding */
+    border: 2px solid black;
+    /* Added black border */
+    background-color: transparent;
+    /* Removed background color */
+    color: white;
+    font-size: 0.9rem;
+    /* Decreased font size */
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-align: center;
+    /* Centered button text */
+    font-weight: bold;
+    position: absolute;
+    /* Position the button absolutely within the card */
+    bottom: 60px;
+    /* Adjusted the distance from the bottom */
+    left: 50%;
+    /* Positioned the button at the center horizontally */
+    transform: translateX(-50%);
+    /* Center the button horizontally */
+}
+
+.rounded-button:hover {
+    background-color: #131516;
+}
+
+footer {
+    background-color: #ffffff;
+    color: #000000;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+    z-index: 5;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .card {
+        width: calc(50% - 20px);
+    }
+}
+
+@media (max-width: 576px) {
+    .card {
+        width: 100%;
+    }
+}

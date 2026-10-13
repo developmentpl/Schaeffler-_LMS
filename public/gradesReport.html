@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grades Report</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f7fb; background-image: radial-gradient(circle at 10% 15%, rgba(8,149,76,.10), transparent 45%), radial-gradient(circle at 88% 90%, rgba(8,149,76,.08), transparent 40%); background-attachment: fixed; color: #172033; }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { max-width: 1400px; margin: 28px auto; padding: 0 20px 112px; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+    select, input[type="text"] { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .tabs { display: flex; gap: 6px; border-bottom: 2px solid #d9e1ec; }
+    .tab { padding: 12px 22px; cursor: pointer; font-weight: 700; color: #6b7a90; background: #fff; border: 1px solid #d9e1ec; border-bottom: none; border-radius: 8px 8px 0 0; position: relative; top: 1px; }
+    .tab.active { color: #08954c; background: #f4f7fb; border-bottom: 2px solid #f4f7fb; }
+    .tab:hover { color: #08954c; }
+    .subtabs { display: flex; gap: 6px; margin-bottom: 16px; }
+    .subtab { padding: 8px 18px; cursor: pointer; font-weight: 700; font-size: 13px; color: #6b7a90; background: #f0f3f8; border: 1px solid #d9e1ec; border-radius: 6px; }
+    .subtab.active { color: #fff; background: #08954c; border-color: #08954c; }
+    .panelWrap { background: #fff; border: 1px solid #d9e1ec; border-top: none; border-radius: 0 0 8px 8px; padding: 20px; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; background: #f7f9fc; border: 1px solid #d9e1ec; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr; } }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar input { flex: 1; max-width: 320px; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .tableScroll { overflow-x: auto; border: 1px solid #d9e1ec; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: middle; font-size: 13px; white-space: nowrap; }
+    th { background: #f7f9fc; position: sticky; top: 0; }
+    th.sticky-col, td.sticky-col { position: sticky; left: 0; background: #fff; z-index: 1; }
+    th.sticky-col { background: #f7f9fc; z-index: 2; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700; }
+    .badge.pass { background: #d8f4e2; color: #0a6b3b; }
+    .badge.fail { background: #fbe1de; color: #9c2c1c; }
+    .scoreFail { color: #c0392b; font-weight: 700; }
+    .badge.none { background: #eceff3; color: #6b7a90; }
+    .badge.ack { background: #dbeafe; color: #1d4ed8; }
+    .badge.previous { background: #fff1c2; color: #805b00; }
+    .empty { color: #6b7a90; font-style: italic; padding: 30px 0; text-align: center; }
+    .btn { border: none; border-radius: 6px; padding: 9px 16px; font: inherit; font-weight: 700; cursor: pointer; }
+    .btn.primary { background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; }
+    .btn.primary:hover { background: #06703b; }
+    .btn.save { background: #0a8a3b; color: #fff; }
+    .btn.save:hover { background: #07702f; }
+    .btn:disabled { background: #c7d0dc; color: #fff; cursor: not-allowed; }
+    .markInput { width: 64px; padding: 5px 6px; border: 1px solid #0b5cab; border-radius: 5px; font: inherit; }
+    .passingCriteriaBox { display: flex; align-items: center; gap: 10px; background: #eef4fc; border: 1px solid #cfe0fb; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; color: #0b3f8a; flex-wrap: wrap; }
+    .passingCriteriaBox b { font-size: 16px; }
+    .passingCriteriaBox input[type="number"] { width: 80px; }
+    .passingCriteriaBox label { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 400; margin: 0; color: #0b3f8a; }
+    .passingCriteriaBox .modeLabel { font-weight: 700; }
+    .btn.secondary { background: #e8eef6; color: #172033; }
+    .btn.secondary:hover { transform: none; box-shadow: none; background: #dbe4f0; }
+    .certBtn { border: none; border-radius: 6px; padding: 6px 12px; font-weight: 700; font-size: 12px; cursor: pointer; background: #0a8a3b; color: #fff; }
+    .certBtn:disabled { background: #d7dce3; color: #8a96a8; cursor: not-allowed; }
+    td.totalCol, td.resultCol { font-weight: 700; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 20px 0; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+    footer p { margin: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Grades Report</h1>
+    <p class="lead">Marks and status for every user, one column per course.</p>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="l1">Level 1 Grades Report</div>
+      <div class="tab" data-tab="l2plus">Level 2 and above Grades Report</div>
+      <div class="tab" data-tab="refresher">Refresher Grades Report</div>
+    </div>
+    <div class="panelWrap">
+
+      <!-- Level 1 panel -->
+      <div class="panel active" data-tab="l1">
+        <div class="status" id="l1Status"></div>
+
+        <!-- Grading Mode (Common/Individual) for every Level 1 assessment/SCORM
+             course. Independent of the Level 2+ and Refresher boxes below -
+             saving here only touches Level 1 courses. Content injected by
+             initPassingCriteriaBox() so all three boxes share one template. -->
+        <div class="passingCriteriaBox" id="l1PassingCriteriaBox" data-label="Grading Mode for Level 1 (Assessment/SCORM only)"></div>
+
+        <div class="toolbar">
+          <input id="l1Search" placeholder="Search by name, employee ID, username...">
+          <button type="button" class="btn primary" id="l1EditBtn">Edit Marks</button>
+          <button type="button" class="btn save" id="l1SaveBtn" style="display:none;">Save Changes</button>
+          <button type="button" class="btn" id="l1DownloadBtn" style="background:#e8eef6;color:#172033;">&#8681; Download CSV</button>
+        </div>
+        <div class="tableScroll">
+          <table id="l1Table">
+            <thead><tr id="l1HeadRow"><th class="sticky-col">Name</th></tr></thead>
+            <tbody id="l1Rows"><tr><td class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Level 2+ panel -->
+      <div class="panel" data-tab="l2plus">
+        <div class="filters">
+          <div>
+            <label for="deptSelect">Department</label>
+            <select id="deptSelect"><option value="">Select department</option></select>
+          </div>
+          <div>
+            <label for="areaSelect">Segment / Area</label>
+            <select id="areaSelect" disabled><option value="">Select department first</option></select>
+          </div>
+          <div>
+            <label for="processSelect">Process / Line</label>
+            <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+          </div>
+        </div>
+
+        <!-- Grading Mode (Common/Individual) for every Level 2+ assessment/
+             SCORM course. Practical/OJT is excluded - it always stays on its
+             own 70%-default behavior, never a Common/Individual choice.
+             Content injected by initPassingCriteriaBox(). -->
+        <div class="passingCriteriaBox" id="l2plusPassingCriteriaBox" data-label="Grading Mode for Level 2 and above (Assessment/SCORM only - Practical always stays at its own 70% default)"></div>
+
+        <div id="l2plusEmpty" class="empty">Select a Department, Segment/Area and Process/Line above to see Level 2-4 grades.</div>
+
+        <div id="l2plusContent" style="display:none;">
+          <div class="subtabs">
+            <div class="subtab active" data-level="2">Level 2</div>
+            <div class="subtab" data-level="3">Level 3</div>
+            <div class="subtab" data-level="4">Level 4</div>
+          </div>
+          <div class="status" id="l2plusStatus"></div>
+          <div class="toolbar">
+            <input id="l2plusSearch" placeholder="Search by name, employee ID, username...">
+            <button type="button" class="btn primary" id="l2plusEditBtn">Edit Marks</button>
+            <button type="button" class="btn save" id="l2plusSaveBtn" style="display:none;">Save Changes</button>
+            <button type="button" class="btn" id="l2plusDownloadBtn" style="background:#e8eef6;color:#172033;">&#8681; Download CSV</button>
+          </div>
+          <div class="tableScroll">
+            <table id="l2plusTable">
+              <thead>
+                <tr id="l2plusHeadRow"><th class="sticky-col">Name</th></tr>
+              </thead>
+              <tbody id="l2plusRows"><tr><td class="empty">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Refresher panel -->
+      <div class="panel" data-tab="refresher">
+        <p style="color:#44526b;font-size:13px;margin:0 0 14px;">
+          One year after the license date of a user's current certified level,
+          the same level courses must be completed again. Disqualified lists
+          each incomplete or failed course. Failed courses stay locked until
+          Retrain is selected. When every course is complete, use Renew
+          Certificate to enter the new license date and begin the next cycle.
+        </p>
+        <div class="status" id="refresherStatus"></div>
+        <div class="toolbar">
+          <input id="refresherSearch" placeholder="Search by name, employee ID, username...">
+          <button type="button" class="btn" id="refresherReloadBtn" style="background:#e8eef6;color:#172033;">Reload</button>
+          <button type="button" class="btn" id="refresherDownloadBtn" style="background:#e8eef6;color:#172033;">&#8681; Download CSV</button>
+        </div>
+        <div class="tableScroll">
+          <table id="refresherTable">
+            <thead>
+              <tr>
+                <th class="sticky-col">Name</th>
+                <th>Employee ID</th>
+                <th>Username</th>
+                <th>Level</th>
+                <th>License Date</th>
+                <th>Refresher Due</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="refresherRows"><tr><td class="empty">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    // ---------- shared helpers ----------
+    async function requestJson(url) {
+      const response = await fetch(url);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    // SCORM-package courses are scored the same way assessment courses are
+    // (numeric % + Pass/Fail badge) - the score/status are computed
+    // server-side in /api/l*/gradesReport from the SCORM package's own
+    // legacy score table, against the course's passing threshold. Practical
+    // courses are scored the same way too - score = overallPercent, status =
+    // Pass/Fail/Pending from the OJT checklist - but only once an admin has
+    // clicked Submit on practicalEvaluationForm.html (a still-in-progress
+    // Draft never shows a score here, same as an unattempted course).
+    function isNumericGraded(course) {
+      return course.courseType === 'assessment' || course.courseType === 'scorm' || course.courseType === 'practical';
+    }
+
+    // Practical scores are a computed roll-up of a 15-checkpoint x 8-column
+    // grid, edited only on its own dedicated form (practicalEvaluationForm.html).
+    // They are intentionally excluded from the generic single-number "Edit
+    // Marks" flow here (and from /api/admin/grades/bulkUpdate server-side) -
+    // overwriting just the total would silently desync it from the checklist
+    // it was computed from.
+    function isBulkEditable(course) {
+      return course.courseType === 'assessment' || course.courseType === 'scorm';
+    }
+
+    function formatCell(course, grade) {
+      if (!grade || (grade.score == null && !grade.status)) return '-';
+      if (grade.status === 'Previous User') return `${grade.score == null ? 100 : grade.score}`;
+      if (isNumericGraded(course)) {
+        if (grade.score == null) return '-';
+        // Practical's score is the combined day14+day15+wk3+wk4 % out of
+        // 100 (finalPercent) - shown in red when finalResult is Fail (any of
+        // those 4 columns, or the combined %, came in under this course's
+        // own passing % - server-computed in /api/practical/evaluation/save),
+        // otherwise shown the same as every other course's score.
+        if (course.courseType === 'practical' && grade.status === 'Fail') {
+          return `<span class="scoreFail">${grade.score}</span>`;
+        }
+        return `${grade.score}`;
+      }
+      // training-type: completion only, no meaningful numeric marks
+      if (grade.status === 'Completed') return '<span class="badge ack">Completed</span>';
+      return '-';
+    }
+
+    // In edit mode, an assessment-type or scorm-type course that already has
+    // an attempt becomes an editable number input (only existing attempts
+    // can be edited - see /api/admin/grades/bulkUpdate, which now writes to
+    // coursegrades for both course types). Training-type courses and
+    // never-attempted courses are never editable.
+    function renderScoreCell(course, grade, uniqueID, editMode) {
+      if (editMode && isBulkEditable(course) && grade && grade.score != null) {
+        return `<input type="number" class="markInput" min="0" max="100"
+          data-uid="${uniqueID}" data-subcourseid="${course.subCourseID}" data-original="${grade.score}"
+          value="${grade.score}">`;
+      }
+      return formatCell(course, grade);
+    }
+
+    // Each course's own passing % (subcourses.subCoursePassing, admin-
+    // configurable per course via courseView.html - see "Passing %" field)
+    // - falls back to the historical 70% default only when unset for that
+    // course. courses[].subCoursePassing is already included in every
+    // /api/l*/gradesReport response.
+    function passingThresholdFor(course) {
+      return course.subCoursePassing == null ? 70 : Number(course.subCoursePassing);
+    }
+
+    // Result column: looks only at numeric courses the user has actually
+    // attempted and requires each one to clear its own passing % (see
+    // passingThresholdFor above).
+    function computeResult(courses, grades) {
+      const attempted = courses
+        .filter(isNumericGraded)
+        .map(c => ({ course: c, grade: grades[c.subCourseID] }))
+        .filter(({ grade }) => grade && grade.score != null);
+      if (!attempted.length) return { label: '-', cls: 'none' };
+      const allPass = attempted.every(({ course, grade }) => Number(grade.score) >= passingThresholdFor(course));
+      return allPass ? { label: 'Pass', cls: 'pass' } : { label: 'Fail', cls: 'fail' };
+    }
+
+    function computeTotalGrades(courses, grades) {
+      return courses
+        .filter(isNumericGraded)
+        .map(c => grades[c.subCourseID])
+        .filter(g => g && g.score != null)
+        .reduce((sum, g) => sum + Number(g.score), 0);
+    }
+
+    // Acknowledgement is the authoritative certification gate. The server
+    // permits acknowledgement only after every role-applicable course has
+    // passed, so the report must not re-evaluate unrelated role courses.
+    function certificateEligibility(courses, grades, user) {
+      if (!user.acknowledged) return { eligible: false, reason: 'Not yet acknowledged for this level' };
+      return { eligible: true, reason: '' };
+    }
+
+    function certificateCellHtml(uniqueID, eligible, reason, level, extra) {
+      const extraParams = extra ? `&deptID=${encodeURIComponent(extra.deptID)}&areaID=${encodeURIComponent(extra.areaID)}&mCourseID=${encodeURIComponent(extra.mCourseID)}` : '';
+      if (!eligible) {
+        return `<button type="button" class="certBtn" disabled title="${reason}">Certificate</button>`;
+      }
+      return `<button type="button" class="certBtn" onclick="window.location.href='/LisenceIssue.html?uid=${uniqueID}&level=${level}${extraParams}'">Certificate</button>`;
+    }
+
+    function buildHead(headRowEl, courses) {
+      headRowEl.innerHTML = '<th class="sticky-col">Name</th><th>Employee ID</th><th>Username</th>';
+      courses.forEach(c => {
+        const th = document.createElement('th');
+        th.textContent = c.courseName || `Course #${c.subCourseID}`;
+        headRowEl.appendChild(th);
+      });
+      ['Total Grades', 'Result', 'Certificate'].forEach(label => {
+        const th = document.createElement('th');
+        th.textContent = label;
+        headRowEl.appendChild(th);
+      });
+    }
+
+
+    function renderTable(rowsEl, courses, users, term, ctx) {
+      ctx = ctx || {};
+      const filtered = !term ? users : users.filter(u =>
+        String(u.name || '').toLowerCase().includes(term) ||
+        String(u.employeeID || '').toLowerCase().includes(term) ||
+        String(u.uName || '').toLowerCase().includes(term)
+      );
+
+      rowsEl.innerHTML = '';
+      if (!courses.length) {
+        rowsEl.innerHTML = '<tr><td class="empty">No courses found for this selection yet.</td></tr>';
+        return;
+      }
+      if (!filtered.length) {
+        rowsEl.innerHTML = `<tr><td colspan="${6 + courses.length}" class="empty">No users found.</td></tr>`;
+        return;
+      }
+      filtered.forEach(u => {
+        const tr = document.createElement('tr');
+        const grades = u.grades || {};
+        const applicableIDs = Array.isArray(u.applicableCourseIDs)
+          ? new Set(u.applicableCourseIDs.map(Number))
+          : null;
+        const applicableCourses = applicableIDs
+          ? courses.filter(c => applicableIDs.has(Number(c.subCourseID)))
+          : courses;
+        const userLink = `/userGradesReport.html?uniqueID=${encodeURIComponent(u.uniqueID)}`;
+        let cells = `<td class="sticky-col"><a href="${userLink}">${u.name || ''}</a></td><td><a href="${userLink}">${u.employeeID || ''}</a></td><td>${u.uName || ''}</td>`;
+        courses.forEach(c => {
+          if (applicableIDs && !applicableIDs.has(Number(c.subCourseID))) {
+            cells += '<td><span class="badge none" title="This course is not assigned to the user role">N/A</span></td>';
+            return;
+          }
+          const grade = grades[c.subCourseID];
+          cells += `<td>${renderScoreCell(c, grade, u.uniqueID, ctx.editMode)}</td>`;
+        });
+        const total = computeTotalGrades(applicableCourses, grades);
+        const result = u.isPreviousUser
+          ? { label: 'Previous User', cls: 'previous' }
+          : computeResult(applicableCourses, grades);
+        const elig = certificateEligibility(applicableCourses, grades, u);
+        cells += `<td class="totalCol">${total}</td>`;
+        cells += `<td class="resultCol"><span class="badge ${result.cls}">${result.label}</span></td>`;
+        cells += `<td>${certificateCellHtml(u.uniqueID, elig.eligible, elig.reason, ctx.level, ctx.extra)}</td>`;
+        tr.innerHTML = cells;
+        rowsEl.appendChild(tr);
+      });
+    }
+
+    // Status: Qualified (every required course for the user's current level
+    // has a fresh post-certification pass), Disqualified (at least one still
+    // pending/failed - listed by name, with a (Locked) tag on any that need
+    // an admin Retrain click first), or Not Due (current level hasn't hit
+    // its 1-year mark yet - still shown per "all users" report scope).
+    function refresherStatusBadge(u) {
+      if (u.statusLabel === 'Qualified') return '<span class="badge pass">Qualified</span>';
+      if (u.statusLabel === 'Not Due') return '<span class="badge none">Not Due</span>';
+      if (u.statusLabel === 'No Courses Found') return '<span class="badge none" title="No Level 1 courses matched this user - check role/hierarchy setup">No Courses Found</span>';
+      const names = (u.pendingCourses || [])
+        .map(c => `[${c.levelLabel || ''}] ${c.courseName}` + (c.locked ? ' (Locked)' : ''))
+        .join(', ');
+      return `<span class="badge fail">Disqualified</span>${names ? ` (${names})` : ''}`;
+    }
+
+    function refresherActionCell(u) {
+      if (u.statusLabel === 'Qualified') {
+        const params = new URLSearchParams({ uid: u.uniqueID, level: u.level });
+        if (u.deptID) params.set('deptID', u.deptID);
+        if (u.areaID) params.set('areaID', u.areaID);
+        if (u.mCourseID) params.set('mCourseID', u.mCourseID);
+        if (u.stationID !== null && u.stationID !== undefined) params.set('stationID', u.stationID);
+        return `<button type="button" class="btn primary" onclick="window.location.href='/LisenceIssue.html?${params.toString()}'">Renew Certificate</button>`;
+      }
+      const locked = (u.pendingCourses || []).filter(c => c.locked);
+      if (!locked.length) return '-';
+      return locked.map(c => `<button type="button" class="btn" style="background:#e8b400;color:#172033;padding:5px 10px;font-size:12px;margin:2px;"
+        onclick="retrainCourse(${u.uniqueID}, ${c.subCourseID}, this)">Retrain: [${c.levelLabel || ''}] ${c.courseName}</button>`).join('');
+    }
+
+    async function retrainCourse(uniqueID, subCourseID, btnEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = 'Unlocking...';
+      try {
+        const response = await fetch('/api/refresher/unlock', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uniqueID, subCourseID })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) throw new Error(data.error || 'Failed to unlock');
+        loadRefresherReport();
+      } catch (error) {
+        setStatus(refresherStatusEl, error.message, true);
+        btnEl.disabled = false;
+        btnEl.textContent = 'Retrain';
+      }
+    }
+
+    function renderRefresherTable(rowsEl, users, term) {
+      const filtered = !term ? users : users.filter(u =>
+        String(u.name || '').toLowerCase().includes(term) ||
+        String(u.employeeID || '').toLowerCase().includes(term) ||
+        String(u.uName || '').toLowerCase().includes(term)
+      );
+
+      rowsEl.innerHTML = '';
+      if (!filtered.length) {
+        rowsEl.innerHTML = '<tr><td class="empty">No users found.</td></tr>';
+        return;
+      }
+
+      filtered.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="sticky-col">${u.name || ''}</td>
+          <td>${u.employeeID || ''}</td>
+          <td>${u.uName || ''}</td>
+          <td>${u.levelLabel || ''}</td>
+          <td>${u.levelDate || '-'}</td>
+          <td>${u.dueDate || '-'}</td>
+          <td>${refresherStatusBadge(u)}</td>
+          <td>${refresherActionCell(u)}</td>
+        `;
+        rowsEl.appendChild(tr);
+      });
+    }
+
+    // Reads every .markInput in a table whose value differs from its
+    // original, and returns the edits array the bulkUpdate route expects.
+    function collectMarkEdits(tableEl) {
+      const edits = [];
+      tableEl.querySelectorAll('.markInput').forEach(input => {
+        const newVal = Number(input.value);
+        const original = Number(input.dataset.original);
+        if (!Number.isNaN(newVal) && newVal !== original) {
+          edits.push({ uniqueID: Number(input.dataset.uid), subCourseID: Number(input.dataset.subcourseid), score: newVal });
+        }
+      });
+      return edits;
+    }
+
+    async function saveMarkEdits(tableEl, statusEl, onDone) {
+      const edits = collectMarkEdits(tableEl);
+      if (!edits.length) {
+        setStatus(statusEl, 'No marks were changed.');
+        onDone();
+        return;
+      }
+      try {
+        setStatus(statusEl, 'Saving changes...');
+        const response = await fetch('/api/admin/grades/bulkUpdate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ edits })
+        });
+        const data = await response.json();
+        if (!response.ok || data.success === false) throw new Error(data.error || 'Failed to save changes');
+        const skippedNote = data.skipped && data.skipped.length ? ` (${data.skipped.length} edit(s) skipped)` : '';
+        setStatus(statusEl, `Saved ${data.updated} mark(s).${skippedNote}`);
+        onDone();
+      } catch (error) {
+        setStatus(statusEl, error.message, true);
+      }
+    }
+
+    // ---------- CSV export (shared by all three tabs) ----------
+    // Builds CSV straight from the same courses/users data model the tables
+    // are rendered from - not by scraping the DOM - so badge/button markup
+    // never leaks into the file and edit-mode <input> values don't confuse
+    // it. Plain-text score/status only, same values shown on screen.
+    function csvCell(value) {
+      const text = String(value == null ? '' : value);
+      return /[",\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    function plainCellText(course, grade) {
+      if (!grade || (grade.score == null && !grade.status)) return '-';
+      if (isNumericGraded(course)) {
+        return grade.score == null ? '-' : String(grade.score);
+      }
+      return grade.status === 'Completed' ? 'Completed' : '-';
+    }
+
+    function downloadCSV(filename, rows) {
+      const csvContent = rows.map(row => row.map(csvCell).join(',')).join('\r\n');
+      const blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+
+    // includeCert: adds a Certificate Eligible column (Yes/No + reason if No).
+    function exportGradesCSV(filename, courses, users, includeCert) {
+      if (!courses.length || !users.length) return;
+      const header = ['Name', 'Employee ID', 'Username']
+        .concat(courses.map(c => c.courseName || `Course #${c.subCourseID}`))
+        .concat(['Total Grades', 'Result']);
+      if (includeCert) header.push('Certificate Eligible');
+
+      const rows = [header];
+      users.forEach(u => {
+        const grades = u.grades || {};
+        const applicableIDs = Array.isArray(u.applicableCourseIDs)
+          ? new Set(u.applicableCourseIDs.map(Number))
+          : null;
+        const applicableCourses = applicableIDs
+          ? courses.filter(c => applicableIDs.has(Number(c.subCourseID)))
+          : courses;
+        const row = [u.name || '', u.employeeID || '', u.uName || ''];
+        courses.forEach(c => row.push(
+          applicableIDs && !applicableIDs.has(Number(c.subCourseID))
+            ? 'N/A'
+            : plainCellText(c, grades[c.subCourseID])
+        ));
+        row.push(computeTotalGrades(applicableCourses, grades));
+        row.push(u.isPreviousUser ? 'Previous User' : computeResult(applicableCourses, grades).label);
+        if (includeCert) {
+          const elig = certificateEligibility(applicableCourses, grades, u);
+          row.push(elig.eligible ? 'Yes' : `No (${elig.reason})`);
+        }
+        rows.push(row);
+      });
+      downloadCSV(filename, rows);
+    }
+
+    // ---------- top-level tabs ----------
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.toggle('active', t === tab));
+        panels.forEach(p => p.classList.toggle('active', p.dataset.tab === tab.dataset.tab));
+        if (tab.dataset.tab === 'refresher' && !refresherUsers.length) {
+          loadRefresherReport();
+        }
+      });
+    });
+
+    // ---------- Level 1 panel ----------
+    const l1StatusEl = document.getElementById('l1Status');
+    const l1HeadRow = document.getElementById('l1HeadRow');
+    const l1Rows = document.getElementById('l1Rows');
+    const l1SearchEl = document.getElementById('l1Search');
+    const l1EditBtn = document.getElementById('l1EditBtn');
+    const l1SaveBtn = document.getElementById('l1SaveBtn');
+    let l1Courses = [];
+    let l1Users = [];
+    let l1EditMode = false;
+
+    function setStatus(el, message, isError) {
+      el.textContent = message || '';
+      el.style.color = isError ? '#b42318' : '#0b5cab';
+    }
+
+    function renderL1() {
+      renderTable(l1Rows, l1Courses, l1Users, l1SearchEl.value.trim().toLowerCase(), { editMode: l1EditMode, level: 1 });
+    }
+
+    l1SearchEl.addEventListener('input', renderL1);
+
+    l1EditBtn.addEventListener('click', () => {
+      l1EditMode = true;
+      l1EditBtn.style.display = 'none';
+      l1SaveBtn.style.display = 'inline-block';
+      renderL1();
+    });
+
+    l1SaveBtn.addEventListener('click', () => {
+      saveMarkEdits(document.getElementById('l1Table'), l1StatusEl, () => {
+        l1EditMode = false;
+        l1EditBtn.style.display = 'inline-block';
+        l1SaveBtn.style.display = 'none';
+        loadL1Report();
+      });
+    });
+
+    async function loadL1Report() {
+      l1Rows.innerHTML = '<tr><td class="empty">Loading...</td></tr>';
+      setStatus(l1StatusEl, 'Loading...');
+      try {
+        const data = await requestJson('/api/l1/gradesReport');
+        l1Courses = data.courses || [];
+        l1Users = data.users || [];
+        buildHead(l1HeadRow, l1Courses);
+        renderL1();
+        setStatus(l1StatusEl, `${l1Users.length} user(s), ${l1Courses.length} Level 1 course(s).`);
+      } catch (error) {
+        setStatus(l1StatusEl, error.message, true);
+        l1Rows.innerHTML = '<tr><td class="empty">Could not load report.</td></tr>';
+      }
+    }
+
+    loadL1Report();
+
+    // ---------- Level 2+ panel ----------
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const l2plusEmpty = document.getElementById('l2plusEmpty');
+    const l2plusContent = document.getElementById('l2plusContent');
+    const l2plusStatusEl = document.getElementById('l2plusStatus');
+    const l2plusHeadRow = document.getElementById('l2plusHeadRow');
+    const l2plusRows = document.getElementById('l2plusRows');
+    const l2plusSearchEl = document.getElementById('l2plusSearch');
+    const l2plusEditBtn = document.getElementById('l2plusEditBtn');
+    const l2plusSaveBtn = document.getElementById('l2plusSaveBtn');
+    const subtabs = document.querySelectorAll('.subtab');
+
+    let activeLevel = 2;
+    let l2plusEditMode = false;
+    const reportCache = new Map(); // key: `${levelNum}_${mCourseID}` -> { courses, users }
+
+    function currentSelection() {
+      return { deptID: deptSelect.value || '', areaID: areaSelect.value || '', mCourseID: processSelect.value || '' };
+    }
+
+    function renderL2Plus(entry) {
+      const sel = currentSelection();
+      renderTable(l2plusRows, entry.courses, entry.users, l2plusSearchEl.value.trim().toLowerCase(), {
+        editMode: l2plusEditMode,
+        level: activeLevel,
+        extra: sel
+      });
+    }
+
+    function exitL2PlusEditMode() {
+      l2plusEditMode = false;
+      l2plusEditBtn.style.display = 'inline-block';
+      l2plusSaveBtn.style.display = 'none';
+    }
+
+    l2plusEditBtn.addEventListener('click', () => {
+      l2plusEditMode = true;
+      l2plusEditBtn.style.display = 'none';
+      l2plusSaveBtn.style.display = 'inline-block';
+      const sel = currentSelection();
+      const entry = reportCache.get(`${activeLevel}_${sel.mCourseID}`);
+      if (entry) renderL2Plus(entry);
+    });
+
+    l2plusSaveBtn.addEventListener('click', () => {
+      saveMarkEdits(document.getElementById('l2plusTable'), l2plusStatusEl, () => {
+        exitL2PlusEditMode();
+        loadLevelReport(activeLevel, true);
+      });
+    });
+
+    // ---- Grading Mode: Common vs Individual, one independent setting per panel ----
+    // 'common'     -> every course in that scope is graded at ONE shared %.
+    // 'individual' -> each course is graded at its own subCoursePassing
+    //                 (fallback 70 when that course never had one set).
+    // Switching modes never writes to subcourses/refresher_subcourses -
+    // nothing is erased, so flipping back to Individual always restores each
+    // course's own saved %. Each of the three boxes (l1/l2plus/refresher) is
+    // fully independent of the other two, backed by ?scope=l1|l2plus|refresher
+    // on /api/admin/courses/passingCriteria.
+    function initPassingCriteriaBox(scope, idPrefix, onSaved) {
+      const box = document.getElementById(`${idPrefix}PassingCriteriaBox`);
+      const label = box.dataset.label || 'Grading Mode';
+      box.innerHTML = `
+        <span class="modeLabel">${label}:</span>
+        <b id="${idPrefix}PassingCriteriaValue">Common (70%)</b>
+        <span id="${idPrefix}PassingCriteriaEditArea" style="display:none; align-items:center; gap:10px;">
+          <label><input type="radio" name="${idPrefix}PassingModeRadio" value="common"> Common</label>
+          <input type="number" id="${idPrefix}PassingCriteriaInput" min="0" max="100">
+          <label><input type="radio" name="${idPrefix}PassingModeRadio" value="individual"> Individual (each course's own %)</label>
+        </span>
+        <button type="button" class="btn" id="${idPrefix}PassingCriteriaEditBtn">Change</button>
+        <button type="button" class="btn save" id="${idPrefix}PassingCriteriaSaveBtn" style="display:none;">Save</button>
+        <button type="button" class="btn secondary" id="${idPrefix}PassingCriteriaCancelBtn" style="display:none;">Cancel</button>
+        <span class="status" id="${idPrefix}PassingCriteriaStatus" style="margin:0;"></span>
+      `;
+
+      const valueEl = document.getElementById(`${idPrefix}PassingCriteriaValue`);
+      const editArea = document.getElementById(`${idPrefix}PassingCriteriaEditArea`);
+      const inputEl = document.getElementById(`${idPrefix}PassingCriteriaInput`);
+      const editBtn = document.getElementById(`${idPrefix}PassingCriteriaEditBtn`);
+      const saveBtn = document.getElementById(`${idPrefix}PassingCriteriaSaveBtn`);
+      const cancelBtn = document.getElementById(`${idPrefix}PassingCriteriaCancelBtn`);
+      const statusEl = document.getElementById(`${idPrefix}PassingCriteriaStatus`);
+      const modeRadios = () => box.querySelectorAll(`input[name="${idPrefix}PassingModeRadio"]`);
+      let currentMode = 'common';
+      let currentValue = 70;
+
+      function displayText() {
+        return currentMode === 'individual' ? 'Individual (each course\'s own %)' : `Common (${currentValue}%)`;
+      }
+
+      function updateInputEnabled() {
+        const selected = box.querySelector(`input[name="${idPrefix}PassingModeRadio"]:checked`);
+        inputEl.disabled = !selected || selected.value !== 'common';
+      }
+
+      function showView() {
+        valueEl.style.display = 'inline';
+        editArea.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+      }
+
+      async function load() {
+        try {
+          const data = await requestJson(`/api/admin/courses/passingCriteria?scope=${scope}`);
+          currentMode = data.mode === 'individual' ? 'individual' : 'common';
+          currentValue = data.commonValue == null ? 70 : Number(data.commonValue);
+          valueEl.textContent = displayText();
+        } catch (error) {
+          setStatus(statusEl, error.message, true);
+        }
+      }
+
+      editBtn.addEventListener('click', () => {
+        modeRadios().forEach(r => { r.checked = r.value === currentMode; });
+        inputEl.value = currentValue;
+        updateInputEnabled();
+        valueEl.style.display = 'none';
+        editArea.style.display = 'inline-flex';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+      });
+
+      modeRadios().forEach(r => r.addEventListener('change', updateInputEnabled));
+
+      cancelBtn.addEventListener('click', () => {
+        setStatus(statusEl, '');
+        showView();
+      });
+
+      saveBtn.addEventListener('click', async () => {
+        const selected = box.querySelector(`input[name="${idPrefix}PassingModeRadio"]:checked`);
+        const newMode = selected ? selected.value : 'common';
+        const newVal = Number(inputEl.value);
+        if (newMode === 'common' && (Number.isNaN(newVal) || newVal < 0 || newVal > 100)) {
+          setStatus(statusEl, 'Enter a number between 0 and 100.', true);
+          return;
+        }
+        saveBtn.disabled = true;
+        try {
+          setStatus(statusEl, 'Saving...');
+          const response = await fetch('/api/admin/courses/passingCriteria', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scope, mode: newMode, commonValue: Number.isNaN(newVal) ? currentValue : newVal })
+          });
+          const data = await response.json().catch(() => ({}));
+          if (!response.ok || data.success === false) throw new Error(data.error || 'Failed to save grading mode');
+          currentMode = data.mode;
+          currentValue = Number(data.commonValue);
+          valueEl.textContent = displayText();
+          setStatus(statusEl, 'Saved.');
+          showView();
+          if (onSaved) onSaved();
+        } catch (error) {
+          setStatus(statusEl, error.message, true);
+        } finally {
+          saveBtn.disabled = false;
+        }
+      });
+
+      load();
+    }
+
+    // Level 2+ box: every cached Level 2+ report now potentially has a
+    // different effective threshold - drop the whole cache and reload
+    // whatever's on screen.
+    initPassingCriteriaBox('l2plus', 'l2plus', () => {
+      reportCache.clear();
+      if (l2plusContent.style.display !== 'none') loadLevelReport(activeLevel, true);
+    });
+
+    // Level 1 box: just reload the Level 1 table if it's the active tab.
+    initPassingCriteriaBox('l1', 'l1', () => {
+      loadL1Report();
+    });
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    async function loadLevelReport(levelNum, force) {
+      const sel = currentSelection();
+      if (!sel.mCourseID) return;
+      const cacheKey = `${levelNum}_${sel.mCourseID}`;
+      l2plusRows.innerHTML = '<tr><td class="empty">Loading...</td></tr>';
+      setStatus(l2plusStatusEl, 'Loading...');
+      try {
+        let entry = reportCache.get(cacheKey);
+        if (!entry || force) {
+          const data = await requestJson(`/api/l${levelNum}/gradesReport?deptID=${encodeURIComponent(sel.deptID)}&areaID=${encodeURIComponent(sel.areaID)}&mCourseID=${encodeURIComponent(sel.mCourseID)}`);
+          entry = { courses: data.courses || [], users: data.users || [] };
+          reportCache.set(cacheKey, entry);
+        }
+        buildHead(l2plusHeadRow, entry.courses);
+        renderL2Plus(entry);
+        setStatus(l2plusStatusEl, `${entry.users.length} user(s), ${entry.courses.length} Level ${levelNum} course(s).`);
+      } catch (error) {
+        setStatus(l2plusStatusEl, error.message, true);
+        l2plusRows.innerHTML = '<tr><td class="empty">Could not load report.</td></tr>';
+      }
+    }
+
+    function refreshL2PlusVisibility() {
+      exitL2PlusEditMode();
+      const sel = currentSelection();
+      const ready = Boolean(sel.deptID && sel.areaID && sel.mCourseID);
+      l2plusEmpty.style.display = ready ? 'none' : 'block';
+      l2plusContent.style.display = ready ? 'block' : 'none';
+      if (ready) loadLevelReport(activeLevel, true);
+    }
+
+    subtabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        exitL2PlusEditMode();
+        subtabs.forEach(t => t.classList.toggle('active', t === tab));
+        activeLevel = Number(tab.dataset.level);
+        loadLevelReport(activeLevel, false);
+      });
+    });
+
+    l2plusSearchEl.addEventListener('input', () => {
+      const sel = currentSelection();
+      const entry = reportCache.get(`${activeLevel}_${sel.mCourseID}`);
+      if (entry) renderL2Plus(entry);
+    });
+
+    deptSelect.addEventListener('change', async () => {
+      try { await loadAreas(deptSelect.value); refreshL2PlusVisibility(); }
+      catch (error) { setStatus(l2plusStatusEl, error.message, true); }
+    });
+    areaSelect.addEventListener('change', async () => {
+      try { await loadProcesses(deptSelect.value, areaSelect.value); refreshL2PlusVisibility(); }
+      catch (error) { setStatus(l2plusStatusEl, error.message, true); }
+    });
+    processSelect.addEventListener('change', refreshL2PlusVisibility);
+
+    loadDepartments().catch(error => setStatus(l2plusStatusEl, error.message, true));
+
+    // ---------- Refresher panel ----------
+    const refresherStatusEl = document.getElementById('refresherStatus');
+    const refresherSearchEl = document.getElementById('refresherSearch');
+    const refresherReloadBtn = document.getElementById('refresherReloadBtn');
+    const refresherRows = document.getElementById('refresherRows');
+    let refresherUsers = [];
+
+    function renderRefresher() {
+      renderRefresherTable(refresherRows, refresherUsers, refresherSearchEl.value.trim().toLowerCase());
+    }
+
+    async function loadRefresherReport() {
+      refresherRows.innerHTML = '<tr><td class="empty">Loading...</td></tr>';
+      setStatus(refresherStatusEl, 'Loading...');
+      try {
+        const data = await requestJson('/api/admin/refresherStatusReport');
+        refresherUsers = data.users || [];
+        renderRefresher();
+        const qualified = refresherUsers.filter(u => u.statusLabel === 'Qualified').length;
+        const disqualified = refresherUsers.filter(u => u.statusLabel === 'Disqualified').length;
+        setStatus(refresherStatusEl, `${refresherUsers.length} user(s) total - ${qualified} Qualified, ${disqualified} Disqualified.`);
+      } catch (error) {
+        setStatus(refresherStatusEl, error.message, true);
+        refresherRows.innerHTML = '<tr><td class="empty">Could not load refresher report.</td></tr>';
+      }
+    }
+
+    refresherReloadBtn.addEventListener('click', loadRefresherReport);
+    refresherSearchEl.addEventListener('input', renderRefresher);
+
+    // ---------- Download buttons ----------
+    document.getElementById('l1DownloadBtn').addEventListener('click', () => {
+      if (!l1Courses.length || !l1Users.length) {
+        setStatus(l1StatusEl, 'Nothing to download yet.', true);
+        return;
+      }
+      exportGradesCSV('grades_report_level1.csv', l1Courses, l1Users, true);
+    });
+
+    document.getElementById('l2plusDownloadBtn').addEventListener('click', () => {
+      const sel = currentSelection();
+      const entry = reportCache.get(`${activeLevel}_${sel.mCourseID}`);
+      if (!entry || !entry.courses.length || !entry.users.length) {
+        setStatus(l2plusStatusEl, 'Nothing to download yet.', true);
+        return;
+      }
+      const lineLabel = (processSelect.options[processSelect.selectedIndex]?.textContent || 'line').replace(/[^a-z0-9]+/gi, '_');
+      exportGradesCSV(`grades_report_level${activeLevel}_${lineLabel}.csv`, entry.courses, entry.users, true);
+    });
+
+    document.getElementById('refresherDownloadBtn').addEventListener('click', () => {
+      if (!refresherUsers.length) {
+        setStatus(refresherStatusEl, 'Nothing to download yet.', true);
+        return;
+      }
+      const header = ['Name', 'Employee ID', 'Username', 'Level', 'License Date', 'Refresher Due', 'Status', 'Outstanding Courses'];
+      const rows = [header];
+      refresherUsers.forEach(u => {
+        const outstanding = (u.pendingCourses || [])
+          .map(c => `[${c.levelLabel || ''}] ${c.courseName}` + (c.locked ? ' (Locked)' : ''))
+          .join('; ');
+        rows.push([u.name || '', u.employeeID || '', u.uName || '', u.levelLabel || '', u.levelDate || '', u.dueDate || '', u.statusLabel || '', outstanding]);
+      });
+      downloadCSV('grades_report_refresher.csv', rows);
+    });
+  </script>
+</body>
+
+</html>

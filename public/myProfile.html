@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="/styles/myProfile.css">
+
+</head>
+
+<body>
+    <div class="header">
+
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+        <div class="navbar">
+            <a href="/lmshomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+    </div>
+
+
+    <div class="container">
+        <div>
+            <h1>My Profile</h1>
+            <p class="page-subtitle">This is a read-only view of your details. Contact your admin to request any changes.</p>
+        </div>
+        <div id="userDetails">
+            <p class="loading-text">Loading your profile&hellip;</p>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript to fetch and display user's data (view-only - there is
+        // no save/update action anywhere on this page).
+        window.addEventListener('DOMContentLoaded', async () => {
+            const userDetailsDiv = document.getElementById('userDetails');
+            try {
+                const response = await fetch('/myProfile');
+                if (response.status === 401) {
+                    userDetailsDiv.innerHTML = '<p class="empty-text">Your session has expired. Please log in again to view your profile.</p>';
+                    return;
+                }
+                const userData = await response.json();
+                displayUserData(userData);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+                userDetailsDiv.innerHTML = '<p class="empty-text">Could not load your profile right now. Please try again later.</p>';
+            }
+        });
+
+        // Function to display user data
+        function displayUserData(userData) {
+            const userDetailsDiv = document.getElementById('userDetails');
+            // userData is an array with a single object for the logged-in user
+            if (Array.isArray(userData) && userData.length === 1) {
+                const user = userData[0];
+                const field = (label, value) => `
+                    <div class="profile-field">
+                        <span class="field-label">${label}</span>
+                        <span class="field-value">${value && String(value).trim() !== '' ? value : '—'}</span>
+                    </div>`;
+
+                const initial = String(user.name || '?').trim().charAt(0).toUpperCase() || '?';
+                const hasPhoto = user.photo && String(user.photo).trim() !== '';
+                const userHtml = `
+                    <div class="profile-photo-wrap">
+                        <img id="profilePhotoImg" src="/photos/${user.photo || ''}" alt="User Photo"
+                             style="${hasPhoto ? '' : 'display:none;'}"
+                             onerror="this.style.display='none'; document.getElementById('profilePhotoFallback').style.display='flex';">
+                        <div id="profilePhotoFallback" class="profile-photo-fallback" style="${hasPhoto ? 'display:none;' : ''}">${initial}</div>
+                    </div>
+                    ${field('Name', user.name)}
+                    ${field('Email ID', user.emailID)}
+                    ${field('Employee ID', user.employeeID)}
+                    ${field('Username', user.uName)}
+                    ${field('Mobile No', user.mobileNo)}
+                    ${field('Date of Birth', user.dateOfBirth)}
+                    ${field('Address', user.address)}
+                    ${field('Date of Joining', user.dateOfJoining)}
+                    ${field('Department', user.department)}
+                    ${field('Role', user.uRole)}
+                    ${field('Registration Date', user.currentDate)}
+                `;
+                userDetailsDiv.innerHTML = userHtml;
+            } else {
+                userDetailsDiv.innerHTML = '<p class="empty-text">User data not found.</p>';
+            }
+        }
+        function BackPage() {
+            window.location.href = '/lmshomepage.html'; // Navigate back to the index page
+        }
+
+    </script>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+    <script src="/js/refresherPopup.js"></script>
+</body>
+
+</html>

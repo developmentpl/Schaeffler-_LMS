@@ -1,0 +1,169 @@
+body { 
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(135deg, #ebeef0,#d0d9df); */
+   background: url("/images/userlogin/bg4.png") fixed;
+    /* background: url("/images/logo/UI Background-03.jpg") no-repeat center center fixed; */
+    background-size: 100% auto;
+
+    color: #000000
+    
+}
+
+
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+   justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    height: 1.50cm;
+    box-sizing: border-box;
+}
+
+.navbar {
+    display: flex;
+    gap: 70px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #ffcc00;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+
+.goback {
+   background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border:none;
+    border: none;
+    border-radius: 2px;
+    color: #fffdfd;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    box-shadow: 0 2px 3px rgba(209, 205, 205, 0.897);
+}
+
+
+/* .grid-container {
+    display: grid;
+    grid-template-columns: auto auto auto;
+    padding: 10px;
+    justify-content: center;
+}
+
+.grid-item {
+    padding: 20px;
+
+} */
+
+
+
+/* Main content styles */
+.container {
+    min-height: calc(100vh - 100px);
+    display: grid;
+    grid-template-columns: auto auto auto;
+    padding: 10px;
+    margin: 30px;
+    justify-content: center;
+}
+
+.h1class {
+
+    text-align: center;
+    color: white;
+    font-size: 40px;
+    margin-top: 40px;
+   
+}
+
+/* .table-container {
+    overflow-x: auto;
+} */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(209, 205, 205, 0.897);
+    /* Add box shadow */
+    background-color: #000000e2;
+    border-color:#effee7e2;
+    /* Set a black background color */
+    color: #ffffff;
+}
+
+th,
+td {
+    border: 1px solid #6b6565;
+    padding: 8px;
+    text-align: left;
+}
+
+tr:hover {
+    background-color: #302d2de2;
+    /* Set a black background color */
+
+}
+
+th {
+    background-color: #000000f5;
+}
+
+.btnclass {
+   background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border-radius: 7px;
+    border:none;
+    color: #dadada;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 5px rgba(209, 205, 205, 0.897);
+    /* Add box shadow */
+    float: right;
+
+}
+
+.btnclass:hover {
+    background-color: #ddd;
+    color: white;
+}
+footer {
+    background-color: rgba(0, 0, 0, 0.4);
+    color: #ccc;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+    z-index: 5;
+    backdrop-filter: blur(5px);
+}
+
+/* Hide columns that are not mentioned */
+/* .hide-column {
+    display: none;
+} */
+
+ p{
+    color: #ffffff;
+}

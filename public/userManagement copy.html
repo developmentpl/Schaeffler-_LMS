@@ -1,0 +1,737 @@
+<!-- userManagement.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="/styles/userManagement.css">
+
+</head>
+
+<body>
+
+    <!-- <div class="navbar">
+        <div class="navbar-brand">Learning Management System</div>
+        <div class="nav-right">
+            <div><span id="usernamePlaceholder"></span></div>
+            <div class="logout"><a href="/logout">Logout</a></div>
+        </div>
+    </div> -->
+
+
+
+    <div class="header">
+
+
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+
+    <div><span id="usernamePlaceholder"></span></div>
+
+    <div class="container table-container">
+        <div class="container">
+            <div class="grid-item">
+                <div class="EnEdit">
+
+                    Enable Editing &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="editButton"
+                        class="btnclass1" />
+                    <label for="editButton" class="toggle"></label>
+                </div>
+                <h1 class="h1class">User Management</h1>
+
+                <button onclick="redirectToAddUser()" class="btnclass">Add User</button>
+                <button id="downloadButton" class="downloadClass btnclass">Download Data</button>
+                <!-- <button id="editButton" class="btnclass">Enable Editing</button> -->
+                <button id="saveButton" class="btnclass" style="display: none;">Save Changes</button>
+                <div>
+                    <!-- <label for="searchInput">Search:</label> -->
+                    <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Search..."
+                        class="search-button">
+                    <!-- <select id="searchColumn" class="DropdownClass">
+                        <option value="1">Search by</option>
+                        <option value="2">Name</option>
+                        <option value="3">Email ID</option>
+                        <option value="4">Employee ID</option>
+                        <option value="5">Username</option>
+                        <option value="5">Password</option>
+                        <option value="6">Mobile Number</option>
+                        <option value="7">Date of Birth</option>
+                        <option value="9">Address</option> 
+                        <option value="11">Date of Joining</option>
+                        <option value="14">Department</option>
+                        <option value="13">Contract</option>
+                        <option value="14">Qualification</option>
+                        <option value="15">Role</option>
+                        <option value="16">Registration Date</option>
+                    </select> -->
+                    <select id="searchColumn" class="DropdownClass">
+                        <option value="1">Search by</option>
+                        <option value="1">Name</option>
+                        <option value="2">Email ID</option>
+                        <option value="3">Employee ID</option>
+                        <option value="4">Username</option>
+                        <option value="5">Password</option>
+                        <option value="6">Mobile Number</option>
+                        <option value="7">Date of Birth</option>
+                        <option value="8">Address</option>
+                        <option value="10">Date of Joining</option> 
+                        <option value="11">Department</option>
+                        <option value="12">Contract</option>
+                        <option value="13">Qualification</option>
+                        <option value="14">Role</option>
+                        <option value="15">Registration Date</option>
+                    </select>
+                    <div id="pagination"></div>
+                </div>
+
+
+
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Name</th>
+                            <th>Email ID</th>
+                            <th>Employee ID</th>
+                            <th>Username</th>
+                            <th>Password</th>
+                            <th>Mobile No</th>
+                            <th>Date of Birth</th>
+                            <th>Address</th>
+                            <th>Photo</th>
+                            <th>Date Of Joining</th>
+                            <th>Department</th>
+                            <th>Contract</th>
+                            <th>Qualification</th>
+                            <th>Role</th>
+                            <th>Registration Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userData">
+                        <!-- User data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        checkb = "true";
+
+        //---------------------------------------------(Vipul Code Starts Here)--------------------------------------
+        let currentPage = 1;
+        //const limit = 50;
+        const limit = 5;
+        let totalUsers = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchUsers(currentPage);
+        });
+
+        async function fetchUsers(page) {
+            try {
+                const res = await fetch(`/userData?page=${page}&limit=${limit}`);
+                const data = await res.json();
+                const users = data.users;
+                totalUsers = data.total;
+
+                const userDataContainer = document.getElementById('userData');
+                userDataContainer.innerHTML = '';
+                let serialNumber = (page - 1) * limit + 1;
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    const serialCell = document.createElement('td');
+                    serialCell.textContent = serialNumber++;
+                    row.appendChild(serialCell);
+
+                    const columnsOrder = ['uniqueID', 'name', 'emailID', 'employeeID', 'uName', 'uPass', 'mobileNo', 'dateOfBirth', 'address', 'photo', 'dateOfJoining', 'department', 'Contract', 'Qualification', 'uRole', 'currentDate'];
+
+                    columnsOrder.forEach(column => {
+                        const cell = document.createElement('td');
+                        if (column === 'photo') {
+                            const img = document.createElement('img');
+                            img.src = `/photos/${user[column]}`;
+                            img.style.width = '50px';
+                            cell.appendChild(img);
+                        } else {
+                            cell.textContent = user[column];
+                            cell.dataset.column = column;
+                            if (column === 'uniqueID') cell.classList.add('uniqueID');
+                            if (column === 'name') {
+                                cell.id = 'nameIDCell';
+                                cell.classList.add('name');
+                            }
+                        }
+                        row.appendChild(cell);
+
+                    });
+
+                    const deleteButtonCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => deleteUser(user['uniqueID']));
+                    deleteButtonCell.appendChild(deleteButton);
+                    row.appendChild(deleteButtonCell);
+
+                    userDataContainer.appendChild(row);
+                });
+
+                // attachCellListeners();
+                const cells = document.querySelectorAll('td:not(.uniqueID)');
+                cells.forEach(cell => {
+                    cell.addEventListener('click', function () {
+                        const uniqueID = cell.parentElement.querySelector('.uniqueID').textContent;
+                        const columnName = cell.dataset.column;
+                        const cellValue = cell.textContent.trim();
+                        console.log('uniqueID ID:', uniqueID);
+                        console.log('Column Name:', columnName);
+                        console.log('Cell Value:', cellValue);
+                    });
+                });
+                renderPagination();
+            } catch (err) {
+                console.error('Error:', err);
+            }
+        }
+
+        function renderPagination() {
+            const totalPages = Math.ceil(totalUsers / limit);
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            const prev = document.createElement('button');
+            prev.textContent = '<< Prev';
+            prev.disabled = currentPage === 1;
+            prev.onclick = () => {
+                currentPage--;
+                fetchUsers(currentPage);
+
+
+
+            };
+            pagination.appendChild(prev);
+
+            const pageInfo = document.createElement('span');
+            pageInfo.textContent = ` Page ${currentPage} of ${totalPages} `;
+            pageInfo.style.margin = '0 10px';
+            pagination.appendChild(pageInfo);
+
+            const next = document.createElement('button');
+            next.textContent = 'Next >>';
+            next.disabled = currentPage === totalPages;
+            next.onclick = () => {
+                currentPage++;
+                fetchUsers(currentPage);
+
+
+            };
+
+            pagination.appendChild(next);
+
+        }
+
+
+        //---------------------------------------------(Vipul Code Ends Here)----------------------------------------
+        // JavaScript to fetch and display the username and user data
+        // window.addEventListener('DOMContentLoaded', async () => {
+        //     try {
+        //         // Fetch user data
+        //         const userDataResponse = await fetch('/userData');
+        //         const userData = await userDataResponse.json();
+        //         const userDataContainer = document.getElementById('userData');
+
+        //         let serialNumber = 1; // Initialize the serial number counter
+
+        //         userData.forEach(user => {
+        //             const row = document.createElement('tr');
+
+        //             // Create a cell for the serial number
+        //             const serialCell = document.createElement('td');
+        //             serialCell.textContent = serialNumber++; // Increment serial number for each row
+        //             row.appendChild(serialCell);
+
+        //             // Get all keys (column names) from the user object
+        //             const columns = Object.keys(user);
+
+        //             // Specify the order of columns to match the order in the table header
+        //             const columnsOrder = ['name', 'emailID', 'employeeID', 'uName', 'uPass', 'mobileNo', 'dateOfBirth', 'address', 'photo', 'dateOfJoining', 'department', 'Contract', 'Qualification', 'uRole', 'currentDate'];
+
+        //             // Insert data into the table cells in the correct order
+        //             columnsOrder.forEach(column => {
+        //                 const cell = document.createElement('td');
+        //                 if (column === 'photo') {
+        //                     // If column is photo, create an img element and set its src to the photo filename
+        //                     const img = document.createElement('img');
+        //                     img.src = `/photos/${user[column]}`;
+        //                     img.style.width = '50px'; // Adjust width as needed
+        //                     cell.appendChild(img);
+        //                 } else {
+        //                     cell.textContent = user[column];
+        //                     cell.dataset.column = column;
+        //                     // Assign a class to the employeeID cell
+        //                     if (column === 'employeeID') {
+        //                         cell.classList.add('employeeID');
+        //                     }
+        //                 }
+
+        //                 //cell.textContent = user[column];
+        //                 row.appendChild(cell);
+        //             });
+        //             // Add event listener to each table cell
+        //             const cells = document.querySelectorAll('td:not(.employeeID)');
+        //             cells.forEach(cell => {
+        //                 cell.addEventListener('click', function () {
+        //                     const employeeID = cell.parentElement.querySelector('.employeeID').textContent;
+        //                     const columnName = cell.dataset.column; // Get column name from data attribute
+        //                     const cellValue = cell.textContent.trim(); // Get cell value
+        //                     console.log('Employee ID:', employeeID);
+        //                     console.log('Column Name:', columnName);
+        //                     console.log('Cell Value:', cellValue);
+        //                     // Now you have employeeID, column name, and cell value, you can use this data as needed
+        //                 });
+        //             });
+        //             // Create a delete button and attach click event handler
+        //             const deleteButtonCell = document.createElement('td');
+        //             const deleteButton = document.createElement('button');
+        //             deleteButton.textContent = 'Delete';
+        //             deleteButton.addEventListener('click', () => {
+        //                 deleteUser(user['employeeID']); // Pass the username to the deleteUser function
+        //             });
+        //             deleteButtonCell.appendChild(deleteButton);
+        //             row.appendChild(deleteButtonCell);
+
+        //             userDataContainer.appendChild(row);
+        //         });
+        //     } catch (error) {
+        //         console.error('Error fetching data:', error);
+        //     }
+
+        //     //New Code for wheh user clicks on name then userdata.html open start here 
+
+        //     const employeeIDCells = document.querySelectorAll('td:nth-child(2)');
+        //     employeeIDCells.forEach(cell => {
+        //         cell.addEventListener('click', async () => {
+        //             // Extract employeeID from the clicked cell
+        //             const employeeID = cell.textContent;
+        //             const secondColumnData = cell.parentElement.children[3].textContent;
+        //             console.log(secondColumnData);
+        //             try {
+        //                 // Fetch data for the clicked employeeID
+        //                 const response = await fetch(`UserDataAd?employeeID=${secondColumnData}`);
+        //                 const data = await response.json();
+        //                 // Redirect to userGradesReport.html with the fetched data
+        //                 window.location.href = `/UserData.html?employeeID=${secondColumnData}`;
+        //             } catch (error) {
+        //                 console.error('Error fetching user data:', error);
+        //             }
+        //         });
+        //     });
+        //     //New Code for when user clicks on name then userdata.html open end here 
+        // });
+        function redirectToAddUser() {
+            window.location.href = "/addUser.html";
+        }
+        function redirectToAdminHomePage() {
+            window.location.href = "/adminHomePage.html";
+        }
+
+        // Function to delete user
+        async function deleteUser(uniqueID) {
+            // Display confirmation dialog
+            const confirmation = confirm('Are you sure you want to delete this user?');
+            if (!confirmation) {
+                return; // If the user cancels, do nothing
+            }
+
+            try {
+                const response = await fetch('/deleteUser', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ uniqueID }) // Pass the uniqueID to the server
+                });
+                if (response.ok) {
+                    alert('User deleted successfully');
+                    console.log("User cha emp id:" + uniqueID);
+                    window.location.reload(); // Refresh the page after deletion
+                } else {
+                    const errorMessage = await response.text();
+                    alert(`Failed to delete user: ${errorMessage}`);
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert('Failed to delete user. Please try again later.');
+            }
+        }
+
+
+        // function searchUsers() {
+        //     const input = document.getElementById('searchInput');
+        //     const filter = input.value.toUpperCase();
+        //     const table = document.getElementById('userTable');
+        //     const tr = table.getElementsByTagName('tr');
+        //     const column = document.getElementById('searchColumn').value; // Get the value from the searchColumn input
+
+        //     // Loop through all table rows, and hide those who don't match the search query
+        //     for (let i = 0; i < tr.length; i++) {
+        //         const td = tr[i].getElementsByTagName('td')[column]; // Use the column index provided by the searchColumn input
+        //         if (td) {
+        //             const txtValue = td.textContent || td.innerText;
+        //             if (txtValue.toUpperCase().indexOf(filter) > -1) {
+        //                 tr[i].style.display = '';
+        //             } else {
+        //                 tr[i].style.display = 'none';
+        //             }
+        //         }
+        //     }
+        // }
+
+        async function searchUsers() {
+            const input = document.getElementById('searchInput').value;
+            if (!input.trim()) {
+                fetchUsers(currentPage); // fallback to default paginated data
+                return;
+            }
+
+            try {
+                const response = await fetch(`/searchUsers?term=${encodeURIComponent(input)}`);
+                const users = await response.json();
+                totalUsers = users.length;
+                const userDataContainer = document.getElementById('userData');
+                userDataContainer.innerHTML = '';
+                let serialNumber = 1;
+
+                users.forEach(user => {
+                    const row = document.createElement('tr');
+                    const serialCell = document.createElement('td');
+                    serialCell.textContent = serialNumber++;
+                    row.appendChild(serialCell);
+
+                    const columnsOrder = ['uniqueID', 'name', 'emailID', 'employeeID', 'uName', 'uPass', 'mobileNo', 'dateOfBirth', 'address', 'photo', 'dateOfJoining', 'department', 'Contract', 'Qualification', 'uRole', 'currentDate'];
+
+                    columnsOrder.forEach(column => {
+                        const cell = document.createElement('td');
+                        if (column === 'photo') {
+                            const img = document.createElement('img');
+                            img.src = `/photos/${user[column]}`;
+                            img.style.width = '50px';
+                            cell.appendChild(img);
+                        } else {
+                            cell.textContent = user[column];
+                            cell.dataset.column = column;
+                            if (column === 'uniqueID') cell.classList.add('uniqueID');
+                        }
+                        row.appendChild(cell);
+                    });
+
+                    const deleteButtonCell = document.createElement('td');
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.onclick = () => deleteUser(user['uniqueID']);
+                    deleteButtonCell.appendChild(deleteButton);
+                    row.appendChild(deleteButtonCell);
+
+                    userDataContainer.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error searching users:', error);
+            }
+        }
+
+
+
+        // Function to download data in .xlsx format
+        function downloadData() {
+            const userTable = document.getElementById('userTable');
+            const tableData = [];
+
+            // Loop through table rows and cells to get data
+            for (let i = 0; i < userTable.rows.length; i++) {
+                const rowData = [];
+                const row = userTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+
+            // Convert data to CSV format
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+
+            // Create a Blob object containing the CSV data
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+
+            // Set the filename for the download
+            link.download = 'users_data.csv';
+
+            // Trigger the download
+            link.click();
+        }
+        // Add event listener to the download button
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+
+        // Add event listener to the edit button
+        document.getElementById('editButton').addEventListener('click', function () {
+            if (this.checked) {
+                enableEdit();
+            } else {
+                disableEdit();
+            }
+        });
+
+        // Add event listener to the save button
+        document.getElementById('saveButton').addEventListener('click', function () {
+            saveUserChanges();
+        });
+
+
+        // Function to enable editing for the entire table
+        function enableEdit() {
+            const cells = document.querySelectorAll('td:not(.uniqueID)');
+            cells.forEach(cell => {
+                // Get the index of the cell's column
+                const columnIndex = cell.cellIndex;
+                if (columnIndex != 0 && columnIndex != 10 && columnIndex != 17) {
+                    cell.contentEditable = true;
+                }
+            });
+            // Show the save button
+            document.getElementById('saveButton').style.display = 'inline-block';
+        }
+
+        //Disable Edidting for entire table
+        function disableEdit() {
+            //location.reload();
+            const cells = document.querySelectorAll('td:not(.uniqueID)');
+
+            cells.forEach(cell => {
+                cell.contentEditable = false;
+            });
+
+            // Hide the save button
+            //checkb = true;
+            document.getElementById('saveButton').style.display = 'none';
+        }
+
+
+        // Function to save changes ----previous
+        // function saveUserChanges() {
+        //     const cells = document.querySelectorAll('td:not(.uniqueID)');
+
+        //     const updatedData = [];
+
+        //     // Iterate through cells to collect updated data
+        //     cells.forEach(cell => {
+        //         const columnIndex = cell.cellIndex;
+        //         if (columnIndex != 0 && columnIndex != 9 && columnIndex != 16) {
+        //             updatedData.push({
+        //                 uniqueID: cell.parentElement.querySelector('.uniqueID'),
+        //                 columnName: cell.dataset.column, // Get the column name from the data attribute
+        //                 newValue: cell.textContent.trim() // Get the new value after editing
+        //             });
+        //         }
+
+        //     });
+
+        //     // Show confirmation alert before saving
+        //     const confirmSave = confirm("Are you sure you want to save the changes?");
+        //     if (!confirmSave) {
+        //         location.reload();
+        //         return; // Do not proceed with saving if user clicks "Cancel"
+        //     }
+
+        //     // Send updated data to the server
+        //     updateUserDatabase(updatedData);
+
+        //     // Send updated data to the server
+        //     fetch('/userDetailsSaveChanges', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(updatedData)
+        //     })
+        //         .then(response => {
+        //             if (response.ok) {
+        //                 console.log('Changes saved successfully');
+        //                 location.reload();
+        //             } else {
+        //                 throw new Error('Failed to save changes');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Error saving changes:', error);
+        //         });
+        //     document.getElementById('saveButton').style.display = 'none';
+        // }
+
+
+
+        //-------------current  prev
+        // function saveUserChanges() {
+        //     const cells = document.querySelectorAll('td:not(.uniqueID)');
+
+        //     const updatedData = [];
+
+        //     // Collect updated data
+        //     cells.forEach(cell => {
+        //         const columnIndex = cell.cellIndex;
+        //         if (columnIndex != 0 && columnIndex != 9 && columnIndex != 16) {
+        //             updatedData.push({
+        //                 uniqueID: cell.parentElement.querySelector('.uniqueID').textContent,
+        //                 columnName: cell.dataset.column,
+        //                 newValue: cell.textContent.trim()
+        //             });
+        //         }
+        //     });
+
+        //     const confirmSave = confirm("Are you sure you want to save the changes?");
+        //     if (!confirmSave) {
+        //         location.reload();
+        //         return;
+        //     }
+
+        //     fetch('/userDetailsSaveChanges', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(updatedData)
+        //     })
+        //         .then(response => {
+        //             if (response.ok) {
+        //                 console.log('Changes saved successfully');
+        //                 // Auto-disable edit mode
+        //                 document.getElementById('editButton').checked = false;
+        //                 disableEdit(); // call your existing function to lock the table
+        //             } else {
+        //                 throw new Error('Failed to save changes');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Error saving changes:', error);
+        //         });
+
+        //     document.getElementById('saveButton').style.display = 'none';
+        // }
+
+
+
+        //---------------new one
+        function saveUserChanges() {
+            const cells = document.querySelectorAll('td:not(.uniqueID)');
+
+            const updatedData = [];
+
+            // Collect updated data
+            cells.forEach(cell => {
+                const columnIndex = cell.cellIndex;
+                if (columnIndex != 0 && columnIndex != 10 && columnIndex != 17) {
+                    updatedData.push({
+                        uniqueID: cell.parentElement.querySelector('.uniqueID').textContent,
+                        columnName: cell.dataset.column,
+                        newValue: cell.textContent.trim()
+                    });
+                }
+            });
+
+            // Confirmation
+            const confirmSave = confirm("Are you sure you want to save the changes?");
+            if (!confirmSave) {
+                location.reload();
+                return;
+            }
+
+            // Send data to server
+            fetch('/userDetailsSaveChanges', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Changes saved successfully');
+
+                        // Turn off toggle and disable edit mode
+                        document.getElementById('editButton').checked = true;
+                        disableEdit();
+
+                        // Hide save button
+                        document.getElementById('saveButton').style.display = 'none';
+
+                        // Optional delay to allow UI to reflect changes before reload
+                        setTimeout(() => {
+                            location.reload();
+                        }, 300);
+                    } else {
+                        throw new Error('Failed to save changes');
+                    }
+                })
+                .catch(error => {
+                    console.error('Updated data:', updatedData);
+                    console.error('Error saving changes:', error);
+                });
+        }
+
+
+        // Function to update the database with edited data
+        // function updateUserDatabase(updatedData) {
+        //     // Send the updatedData to the server using AJAX or fetch
+        //     fetch('/userDetailsSaveChanges', {
+        //         method: 'POST',
+        //         headers: {
+        //             'Content-Type': 'application/json'
+        //         },
+        //         body: JSON.stringify(updatedData)
+        //     })
+        //         .then(response => {
+        //             if (response.ok) {
+        //                 console.log('Changes saved successfully');
+        //             } else {
+        //                 throw new Error('Failed to save changes');
+        //             }
+        //         })
+        //         .catch(error => {
+        //             console.error('Error saving changes:', error);
+        //         });
+        // }
+
+        function BackPage() {
+            window.location.href = '/adminhomepage.html'; // Navigate back to the index page
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const editToggle = document.getElementById('editButton');
+            if (editToggle) {
+                editToggle.checked = false; // 🔒 Reset checkbox
+                disableEdit();              // 🔒 Lock table by default
+            }
+        });
+    </script>
+
+</body>
+
+</html>

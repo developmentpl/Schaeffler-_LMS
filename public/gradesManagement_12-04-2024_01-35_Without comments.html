@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades Management</title>
+    <link rel="stylesheet" href="/styles/gradesManagement.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="header">
+        <div class="navbar">
+            <a href="/adminhomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+
+    <div class="container table-container">
+        <div class="container">
+            <div class="grid-item">
+                <div class="EnEdit">
+                    Enable Editing &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="editButton"
+                        class="btnclass1" />
+                    <label for="editButton" class="toggle"></label>
+                </div>
+                <h1 class="h1class">Grades Management</h1>
+                <button id="downloadButton" class="downloadClass btnclass">Download Data</button>
+                <button id="saveButton" class="btnclass" style="display: none;">Save Changes</button>
+                <div>
+                    <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Search..."
+                        class="search-button">
+                    <select id="searchColumn" class="DropdownClass">
+                        <option value="0">Search by</option>
+                        <option value="1">Name</option>
+                        <option value="2">Username</option>
+                        <option value="3">Token ID</option>
+                    </select>
+                </div>
+                <table id="gradesTable">
+                    <thead>
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Token ID</th>
+                            <!-- Dynamic headers for pretest and posttest -->
+                        </tr>
+                    </thead>
+                    <tbody id="gradesData">
+                        <!-- Grades data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        checkb = "true";
+        function findCourseInfoForUser(user, courseNamesData) {
+            for (let i = 0; i < courseNamesData.length; i++) {
+                const course = courseNamesData[i];
+                if (course.courseID === user.courseID) {
+                    return {
+                        courseID: course.courseID,
+                        courseName: course.courseName
+                    };
+                }
+            }
+            return {
+                courseID: '',
+                courseName: ''
+            };
+        }
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const courseNamesResponse = await fetch('/courseNames');
+                const courseNamesData = await courseNamesResponse.json();
+                console.log(courseNamesData);
+                const courseNames = courseNamesData.map(course => ({
+                    courseID: course.courseID,
+                    courseName: course.courseName
+                }));
+                const numCourses = courseNames.length;
+                const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+                for (let i = 0; i < numCourses; i++) {
+                    const courseId = courseNames[i].courseID;
+                    const courseName = courseNames[i].courseName;
+                    tableHeaderRow.innerHTML += `<th class="hiddenColumn">uCourse${i}</th><th>${courseName} - Pretest</th><th>${courseName} - Posttest</th>`;
+                }
+                const gradesDataResponse = await fetch('/gradesData');
+                const gradesData = await gradesDataResponse.json();
+                const gradesDataContainer = document.getElementById('gradesData');
+
+                gradesData.forEach((user, index) => {
+                    const row = document.createElement('tr');
+                    const serialNumberCell = document.createElement('td');
+                    serialNumberCell.textContent = index + 1;
+                    row.appendChild(serialNumberCell);
+                    const columns = Object.keys(user);
+                    const columnsOrder = ['name', 'uName', 'employeeID'];
+                    for (let i = 1; i <= numCourses; i++) {
+                        columnsOrder.push(`uCourse${i}`, `course${i}Pretest`, `course${i}Posttest`);
+                    }
+                    columnsOrder.forEach(column => {
+                        const cell = document.createElement('td');
+                        cell.textContent = user[column];
+                        cell.dataset.column = column;
+                        if (column.startsWith('uCourse') || column.endsWith('Pretest') || column.endsWith('Posttest')) {
+                            const courseIndex = parseInt(column.replace(/\D/g, ''));
+                            const course = courseNames[courseIndex - 1];
+                            cell.dataset.courseID = course.courseID;
+                            cell.dataset.courseName = course.courseName;
+                        }
+                        if (column === 'employeeID') {
+                            cell.classList.add('employeeID');
+                        }
+                        row.appendChild(cell);
+                    });
+
+                    gradesDataContainer.appendChild(row);
+                });
+                const cells = document.querySelectorAll('td:not(.employeeID)');
+                cells.forEach(cell => {
+                    cell.addEventListener('click', function () {
+                        const employeeID = cell.parentElement.querySelector('.employeeID').textContent;
+                        const columnName = cell.dataset.column;
+                        const cellValue = cell.textContent.trim();
+                        const clickedCourseIndex = parseInt(columnName.replace(/[^\d]/g, ''));
+                        const clickedCourse = courseNames[clickedCourseIndex - 1];
+                        const courseID = clickedCourse.courseID;
+                        const courseName = clickedCourse.courseName;
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+            const employeeIDCells = document.querySelectorAll('td:nth-child(4)');
+            employeeIDCells.forEach(cell => {
+                cell.addEventListener('click', async () => {
+                    const employeeID = cell.textContent;
+                    try {
+                        const response = await fetch(`/getUserGrades?employeeID=${employeeID}`);
+                        const data = await response.json();
+                        window.location.href = `/userGradesReport.html?employeeID=${employeeID}`;
+                    } catch (error) {
+                        console.error('Error fetching user data:', error);
+                    }
+                });
+            });
+        });
+        function redirectToAdminHomePage() {
+            window.location.href = "/adminHomePage.html";
+        }
+        function searchUsers() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('gradesTable');
+            const tr = table.getElementsByTagName('tr');
+            const column = document.getElementById('searchColumn').value; 
+            for (let i = 0; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td')[column]; 
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+        function downloadData() {
+            const gradesTable = document.getElementById('gradesTable');
+            const tableData = [];
+            for (let i = 0; i < gradesTable.rows.length; i++) {
+                const rowData = [];
+                const row = gradesTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'grades_data.csv';
+            link.click();
+        }
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+        document.getElementById('editButton').addEventListener('click', function () {
+            if (this.checked) {
+                enableEdit();
+            } else {
+                disableEdit();
+            }
+        });
+        document.getElementById('saveButton').addEventListener('click', function () {
+            saveChanges();
+        });
+        function enableEdit() {
+            const cells = document.querySelectorAll('td:not(.employeeID):not(:last-child)');
+            cells.forEach(cell => {
+                const columnIndex = cell.cellIndex;
+                if (!['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                    cell.contentEditable = true;
+                    cell.addEventListener('keydown', function (event) {
+                        if (event.key === 'Tab') {
+                            event.preventDefault();
+                            let nextCell = cell.nextElementSibling;
+                            while (nextCell) {
+                                if (!['id', 'name', 'uName', 'employeeID'].includes(nextCell.dataset.column)) {
+                                    nextCell.focus();
+                                    break;
+                                }
+                                nextCell = nextCell.nextElementSibling;
+                            }
+                        }
+                    });
+                }
+            });
+            document.getElementById('saveButton').style.display = 'inline-block';
+        }
+        function disableEdit() {
+            const cells = document.querySelectorAll('td:not(.employeeID)');
+            cells.forEach(cell => {
+                cell.contentEditable = false;
+            });
+            document.getElementById('saveButton').style.display = 'none';
+        }
+        function saveChanges() {
+            const cells = document.querySelectorAll('td:not(.employeeID):not(:last-child)');
+            const updatedData = [];
+            cells.forEach((cell, user) => {
+                if (cell.cellIndex > 0 && !['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                    console.log('Cell Data:', cell.dataset);
+                    const newValue = cell.textContent.trim();
+                    const columnName = cell.dataset.column;
+                    if (newValue !== '') {
+                        updatedData.push({
+                            employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                            columnName: columnName,
+                            newValue: newValue,
+                            courseID: cell.dataset.courseID,
+                            courseName: cell.dataset.courseName
+                        });
+                    }
+                    else {
+                        if (columnName.endsWith('Pretest') || columnName.endsWith('Posttest')) {
+                            const courseNumber = columnName.match(/\d+/)[0];
+                            const uCourseCell = cell.parentElement.querySelector(`[data-column="uCourse${courseNumber}"]`);
+                            const courseXPretestCell = cell.parentElement.querySelector(`[data-column="course${courseNumber}Pretest"]`);
+                            const courseXPosttestCell = cell.parentElement.querySelector(`[data-column="course${courseNumber}Posttest"]`);
+                            if ((newValue === '' && courseXPosttestCell.textContent === '') ||
+                                (newValue === '' && courseXPosttestCell.textContent === 'null') ||
+                                (courseXPretestCell.textContent === '' && newValue === '') ||
+                                (courseXPretestCell.textContent === 'null' && newValue === '')) {
+                                uCourseCell.textContent = '';
+                                updatedData.push({
+                                    employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                                    columnName: `uCourse${courseNumber}`,
+                                    newValue: null,
+                                    courseID: cell.dataset.courseID,
+                                    courseName: null
+                                });
+                            }
+                            if (newValue !== null) {
+                                updatedData.push({
+                                    employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                                    columnName: columnName,
+                                    newValue: null,
+                                    courseID: cell.dataset.courseID,
+                                    courseName: null
+                                });
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Updated data:', updatedData);
+            if (updatedData.length === 0) {
+                console.log('No changes to save.');
+                return;
+            }
+            const confirmSave = confirm("Are you sure you want to save the changes?");
+            if (!confirmSave) {
+                location.reload();
+                return;
+            }
+            else {
+                updatedData.forEach(data => {
+                    console.log('Calling updateDatabase with:', data.employeeID, data.columnName, data.newValue, data.courseName);
+                    updateDatabase(data.employeeID, data.columnName, data.newValue, data.courseName);
+                });
+                fetch('/saveChanges', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ updatedData: updatedData })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Changes saved successfully');
+                            updatedData.forEach(entry => {
+                                const columnName = entry.columnName;
+                                const newValue = entry.newValue;
+                                const courseName = entry.courseName;
+                                if (columnName && columnName.startsWith('course') && (columnName.endsWith('Pretest') || columnName.endsWith('Posttest'))) {
+                                    const courseNumber = columnName.match(/\d+/)[0];
+                                    const uCourseCell = document.querySelector(`[data-column="uCourse${courseNumber}"]`);
+                                    if (newValue && newValue.trim() !== '' && newValue.trim() !== undefined && newValue.trim() !== null) {
+                                        uCourseCell.textContent = courseName;
+                                    } else {
+                                        uCourseCell.textContent = '';
+                                    }
+                                }
+                            });
+                            location.reload();
+                        } else {
+                            throw new Error('Failed to save changes');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error saving changes:', error);
+                    });
+                document.getElementById('saveButton').style.display = 'none';
+            }
+
+        }
+        function updateDatabase(updatedData) {
+            fetch('/saveChanges', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ updatedData: updatedData })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Changes saved successfully');
+                    } else {
+                        throw new Error('Failed to save changes');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving changes:', error);
+                });
+        }
+        function autofillUCourseCells(courseNameData) {
+            courseNameData.forEach(entry => {
+                const columnName = entry.columnName;
+                const newValue = entry.newValue;
+                const courseName = entry.courseName;
+                if (columnName && columnName.startsWith('course') && (columnName.endsWith('Pretest') || columnName.endsWith('Posttest'))) {
+                    const courseNumber = columnName.match(/\d+/)[0];
+                    const uCourseCell = document.querySelector(`[data-column="uCourse${courseNumber}"]`);
+                    if (newValue && newValue.trim() !== '' && newValue.trim() !== undefined && newValue.trim() !== null) {
+                        uCourseCell.textContent = courseName;
+                        console.log("uCourseX cell is filled");
+                    } else {
+                        uCourseCell.textContent = '';
+                    }
+                }
+            });
+        }
+        function addTotalPosttestHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const totalPosttestHeader = document.createElement('th');
+            totalPosttestHeader.textContent = 'Total Posttest';
+            totalPosttestHeader.setAttribute('data-hidden', 'true');
+            tableHeaderRow.appendChild(totalPosttestHeader);
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addTotalPosttestHeader, 100);
+        });
+        function calculateAndAppendTotalPosttest() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttest = 0;
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0; 
+                        totalPosttest += posttestGrade;
+                    }
+                });
+                const totalPosttestCell = document.createElement('td');
+                totalPosttestCell.textContent = totalPosttest.toFixed(2);
+                totalPosttestCell.setAttribute('data-column', 'totalPosttest');
+                row.appendChild(totalPosttestCell);
+            });
+        }
+        function calculateMeanPercentage(totalPosttestGrades) {
+            const totalTests = totalPosttestGrades.length;
+            if (totalTests === 0) return 0;
+            const totalPosttest = totalPosttestGrades.reduce((total, grade) => total + grade, 0);
+            const meanPercentage = ((totalPosttest / (totalTests * 100)) * 100).toFixed(2);
+            return meanPercentage;
+            console.log("totalPosttest", totalPosttest, "totalTests", totalTests);
+            console.log("meanPercentage", meanPercentage);
+        }
+        function calculateAndAppendTotalPosttest() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttestGrades = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0;
+                        totalPosttestGrades.push(posttestGrade);
+                    }
+                });
+                const totalPosttestCell = document.createElement('td');
+                totalPosttestCell.textContent = totalPosttestGrades.reduce((total, grade) => total + grade, 0).toFixed(2);
+                totalPosttestCell.setAttribute('data-column', 'totalPosttest');
+                row.appendChild(totalPosttestCell);
+            });
+        }
+        function addMeanPercentageHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const meanPercentageHeader = document.createElement('th');
+            meanPercentageHeader.textContent = 'Mean Percentage';
+            meanPercentageHeader.setAttribute('data-hidden', 'true');
+            tableHeaderRow.appendChild(meanPercentageHeader);
+        }
+        function calculateAndAppendMeanPercentage() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttestGrades = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0;
+                        totalPosttestGrades.push(posttestGrade);
+                    }
+                });
+                const meanPercentage = calculateMeanPercentage(totalPosttestGrades);
+                const meanPercentageCell = document.createElement('td');
+                meanPercentageCell.textContent = meanPercentage + '%';
+                meanPercentageCell.setAttribute('data-column', 'meanPercentage');
+                row.appendChild(meanPercentageCell);
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addMeanPercentageHeader, 300);
+            setTimeout(calculateAndAppendTotalPosttest, 300);
+            setTimeout(calculateAndAppendMeanPercentage, 300);
+        });
+        function addLevelHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const levelHeader = document.createElement('th');
+            levelHeader.textContent = 'Level';
+
+            levelHeader.classList.add('level-header');
+            tableHeaderRow.appendChild(levelHeader);
+        }
+        function determineLevel(percentage) {
+            console.log(percentage);
+            if (percentage <= 59) {
+                return 'FAIL';
+            } else if (percentage >= 60 && percentage <= 69) {
+                return 'L1';
+            } else if (percentage >= 70 && percentage <= 79) {
+                return 'L2';
+            } else if (percentage >= 80 && percentage <= 89) {
+                return 'L3';
+            } else {
+                return 'L4';
+            }
+        }
+        function calculateLevel() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                const meanPercentageCell = row.lastElementChild;
+                const meanPercentageText = meanPercentageCell.textContent.trim();
+                const meanPercentage = parseFloat(meanPercentageText.substring(0, meanPercentageText.length - 1));
+                const level = determineLevel(meanPercentage);
+                const levelCell = document.createElement('td');
+                levelCell.textContent = level;
+                row.appendChild(levelCell);
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addLevelHeader, 300);
+            setTimeout(calculateLevel, 300);
+        });
+        function toggleColumnVisibility() {
+            const totalPosttestCells = document.querySelectorAll('[data-column="totalPosttest"]');
+            const meanPercentageCells = document.querySelectorAll('[data-column="meanPercentage"]');
+            totalPosttestCells.forEach(cell => {
+                cell.classList.toggle('hidden');
+            });
+            meanPercentageCells.forEach(cell => {
+                cell.classList.toggle('hidden');
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(toggleColumnVisibility, 300);
+        });
+        function addCellClasses() {
+            const employeeIDCells = document.querySelectorAll('td:nth-child(4)');
+            employeeIDCells.forEach(cell => {
+                cell.classList.add('employeeID-cell');
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addCellClasses, 300);
+        });
+        function addCourseTestClasses() {
+            const courseCells = document.querySelectorAll('[data-column^="course"]');
+            courseCells.forEach(cell => {
+                const columnName = cell.dataset.column;
+                if (columnName.endsWith('Pretest')) {
+                    cell.classList.add('pretest-cell');
+                    const courseNumber = columnName.match(/\d+/)[0];
+                    cell.classList.add(`course${courseNumber}-pretest`);
+                } else if (columnName.endsWith('Posttest')) {
+                    cell.classList.add('posttest-cell');
+                    const courseNumber = columnName.match(/\d+/)[0];
+                    cell.classList.add(`course${courseNumber}-posttest`);
+                }
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addCourseTestClasses, 300);
+        });
+        function addLevelCellClass() {
+            const levelCells = document.querySelectorAll('#gradesData td:last-child');
+            levelCells.forEach(cell => {
+                cell.classList.add('level-cell');
+            });
+        }
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addLevelCellClass, 300);
+        });
+    </script>
+</body>
+</html>

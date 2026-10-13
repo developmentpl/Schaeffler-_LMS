@@ -1,0 +1,2 @@
+1. Change database name in index.js and qclicktool.js
+2. 

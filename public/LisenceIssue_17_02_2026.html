@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lisence Issue</title>
+    <!-- Use the refined CSS for a better look -->
+    <link rel="stylesheet" href="/styles/LisenceIssue.css">
+    <style>
+        .certificate {
+            width: 60%;
+            margin: auto;
+            padding: 20px;
+            border: 5px solid gold;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Styles needed for the new image elements */
+        .webCamStream,
+        #photoPreview {
+            width: 200px;
+            height: 200px;
+            object-fit: cover;
+            border: 3px solid #ccc;
+            border-radius: 5px;
+            display: none;
+            margin: 10px auto;
+        }
+
+        .media-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #canvas {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/gradesManagement.html">Grades Management</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="FormClass">
+            <div>
+                <h1 style="text-align: center; ">Lisence Issue</h1><br>
+            </div>
+            <div>
+                <div>
+                    <div>
+                        <h2>User Datails</h2>
+                    </div>
+
+                    <form class="userForm" id="userForm" action="/update-data" method="POST">
+                        <div style="display:none">
+                            <div>
+                                <label class="labels">Unique ID</label>
+                            </div>
+                            <input type="text" name="uniqueID" id="IDinput" placeholder="IDinput" required><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Full Name</label>
+                            </div>
+                            <input type="text" name="name" id="nameInput" placeholder="Name" required><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Email</label>
+                            </div>
+                            <input type="emailID" name="emailID" placeholder="Email" id="emailID"><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Employee ID</label>
+                            </div>
+                            <input type="text" name="employeeID" placeholder="Employee ID" id="EmpID"><br><br>
+                        </div>
+
+                        <div>
+                            <div>
+                                <label class="labels">Mobile Number</label>
+                            </div>
+                            <input type="tel" name="mobileNo" placeholder="Mobile Number" id="mobileNo"><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Department</label>
+                            </div>
+                            <input type="text" name="department" placeholder="Department" id="department"><br><br>
+                        </div>
+                        <div>
+                            <label class="labels">Contract</label>
+                            <input type="text" name="Qualification" placeholder="Contract"
+                                id="Contract"><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">License Issue Date</label>
+                            </div>
+                            <input type="date" name="LisenceIssue" placeholder="LisenceIssue" id="LisenceIssue"><br><br>
+                        </div>
+
+                        <div>
+                            <label class="labels">Select an Option</label>
+                            <select name="selectedOption" class="selectedOptionDropdown" required id="level">
+                                <option value="Level 1">Level 1</option>
+                                <option value="Level 2">Level 2</option>
+                                <option value="Inspector">Inspector</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="labels">Certificate Type</label>
+                            <select name="certificateType" class="selectedOptionDropdown" required id="certificateType">
+                                <option value="dept1">Battery Module Line</option>
+                                <option value="dept2">Battery Pack Line</option>
+                                <!-- <option value="Inspector">Inspector</option> -->
+                            </select>
+                        </div>
+                        <br><br>
+
+                        <!-- --- NEW: IMAGE EDITING SECTION --- -->
+                        <div class="userMedia">
+                            <h3>User Photo (Click to Change)</h3>
+                            <div class="media-container">
+                                <!-- Existing Photo / New Photo Preview -->
+                                <img id="photoPreview" src="" alt="User Photo" width="200" height="200"
+                                    style="display: block;">
+                                <!-- Webcam Feed (hidden until 'Change Photo' is clicked) -->
+                                <video id="video" class="webCamStream" autoplay></video>
+                                <canvas id="canvas"></canvas>
+                                <input type="hidden" name="photoFileName" id="photoFileNameInput">
+                            </div>
+                            <div class="click_btn">
+                                <button type="button" id="changePhotoBtn">Change Photo</button><br><br>
+                                <button type="button" onclick="takePhoto()" id="captureBtn"
+                                    style="display: none;">Capture Photo</button><br><br>
+                                <button type="button" onclick="retakePhoto()" id="retakeBtn"
+                                    style="display: none;">Retake Photo</button><br><br>
+                            </div>
+                        </div><br><br>
+                        <!-- --- END: IMAGE EDITING SECTION --- -->
+
+
+                        <div class="submit_btn">
+                            <!-- This button submits the data and generates the certificate -->
+                            <button type="submit" id="submitCertificate" class="submit_btn_class">Submit & Print
+                                Certificate</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for webcam stream and tracking the photo file name
+        let stream;
+        let uploadedFileName = '';
+        let isCameraActive = false;
+
+        // --- Helper Functions ---
+        function getQueryParams(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        const uid = getQueryParams("uid");
+        console.log("Certificate UID:", uid);
+
+        // --- Photo Capture Functions ---
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            isCameraActive = false;
+        }
+
+        function startCamera() {
+            const video = document.getElementById('video');
+            const photoPreview = document.getElementById('photoPreview');
+            const captureBtn = document.getElementById('captureBtn');
+            const retakeBtn = document.getElementById('retakeBtn');
+            const changePhotoBtn = document.getElementById('changePhotoBtn');
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(str => {
+                    stream = str;
+                    video.srcObject = stream;
+                    video.play();
+
+                    video.style.display = 'block';
+                    photoPreview.style.display = 'none';
+                    changePhotoBtn.style.display = 'none';
+                    captureBtn.style.display = 'block';
+                    retakeBtn.style.display = 'none';
+                    isCameraActive = true;
+                })
+                .catch(err => {
+                    console.error('Error accessing the webcam: ', err);
+                    alert('Cannot access webcam. Please check permissions.');
+                    isCameraActive = false;
+                });
+        }
+
+        function takePhoto() {
+            if (!isCameraActive) return;
+
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const photoPreview = document.getElementById('photoPreview');
+            const captureBtn = document.getElementById('captureBtn');
+            const retakeBtn = document.getElementById('retakeBtn');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob((blob) => {
+                const formData = new FormData();
+                const name = document.getElementById('nameInput').value.trim();
+
+                // Generate unique filename
+                const currentDate = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-');
+                const currentTime = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' }).replace(/:/g, '-');
+                const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+                const fileNameForUpload = `${sanitizedName}_${currentDate}_${currentTime}_CERT.png`;
+
+                formData.append('photo', blob, fileNameForUpload);
+                photoPreview.src = URL.createObjectURL(blob);
+                photoPreview.style.display = 'block';
+                video.style.display = 'none';
+
+                stopCamera();
+                captureBtn.style.display = 'none';
+                retakeBtn.style.display = 'block';
+
+
+                // Save photo to server
+                fetch('/save-photo', {
+                    method: 'POST',
+                    body: formData
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success && data.filename) {
+                            uploadedFileName = data.filename;
+                            document.getElementById('photoFileNameInput').value = data.filename;
+                            alert('New photo captured and saved successfully.');
+                        } else {
+                            throw new Error(data.error || 'Server error saving photo.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error saving the photo:', error);
+                        alert('Error saving the photo. Please try again.');
+                        video.style.display = 'block';
+                        photoPreview.style.display = 'none';
+                        uploadedFileName = '';
+                    });
+            }, 'image/png');
+        }
+
+        function retakePhoto() {
+            document.getElementById('photoPreview').style.display = 'none';
+            document.getElementById('changePhotoBtn').style.display = 'none';
+            document.getElementById('captureBtn').style.display = 'block';
+            document.getElementById('retakeBtn').style.display = 'none';
+            startCamera();
+        }
+
+        // --- Event Listeners and Initial Load ---
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (!uid) {
+                console.error("UID missing from URL.");
+                return;
+            }
+
+            // Set up listener for changing photo
+            document.getElementById('changePhotoBtn').addEventListener('click', startCamera);
+
+            // Fetch initial user data
+            fetch(`/getCertificate?id=${uid}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error("Error fetching user data:", data.error);
+                        alert("User data for certificate not found.");
+                    } else {
+                        // Populate form fields
+                        document.getElementById("IDinput").value = data.uniqueID || '';
+                        document.getElementById("nameInput").value = data.name || '';
+                        document.getElementById("emailID").value = data.emailID || '';
+                        document.getElementById("EmpID").value = data.employeeID || '';
+                        document.getElementById("mobileNo").value = data.mobileNo || '';
+                        document.getElementById("department").value = data.department || '';
+                        document.getElementById("Qualification").value = data.contract || '';
+
+                        // Set the initial photo path
+                        const photoPath = data.photo || 'default.png';
+                        const photoPreview = document.getElementById('photoPreview');
+                        photoPreview.src = `/photos/${photoPath}`;
+                        photoPreview.style.display = 'block';
+
+                        // Initialize filename input with existing photo path
+                        uploadedFileName = photoPath;
+                        document.getElementById('photoFileNameInput').value = photoPath;
+
+                        if (data.Level) {
+                            document.getElementById('level').value = data.Level;
+                        }
+                        if (data.LisenceIssueDate) {
+                            // Assuming LisenceIssueDate comes back in a format compatible with <input type="date">
+                            document.getElementById('LisenceIssue').value = data.LisenceIssueDate.split('T')[0];
+                        }
+                    }
+                })
+                .catch(error => console.error("Error fetching initial data:", error));
+
+
+            // Form submission handler
+            // Form submission handler
+            const userForm = document.getElementById('userForm');
+            userForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                stopCamera();
+
+                const uniqueID = document.getElementById('IDinput').value;
+                const LisenceIssue = document.getElementById('LisenceIssue').value;
+                const Level = document.getElementById('level').value;
+                const certificateType = document.getElementById('certificateType').value; // Get certificate type
+                const finalPhotoFileName = document.getElementById('photoFileNameInput').value;
+
+                if (!LisenceIssue || !Level) {
+                    alert('Please select a License Issue Date and Level.');
+                    return;
+                }
+
+                if (!certificateType) {
+                    alert('Please select a Certificate Type.');
+                    return;
+                }
+
+                if (!confirm('Are you sure you want to finalize and print the certificate?')) {
+                    return;
+                }
+
+                try {
+                    // Update user data with certificate type
+                    const response = await fetch('/update-license-issue', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            uniqueID: uniqueID,
+                            LisenceIssue: LisenceIssue,
+                            Level: Level,
+                            photo: finalPhotoFileName,
+                            certificateType: certificateType // Send certificate type to backend
+                        }),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+
+                    if (response.status === 404) {
+                        throw new Error(data.error || 'User not found in database for update.');
+                    }
+
+                    if (data.success) {
+                        // Redirect based on certificate type
+                        let certificatePage = 'Certificate.html'; // Default
+
+                        if (certificateType === 'dept1') {
+                            certificatePage = 'Certificate.html'; // Battery Module Line
+                        } else if (certificateType === 'dept2') {
+                            certificatePage = 'Certificate1.html'; // Battery Pack Line
+                        }
+
+                        // Redirect to the appropriate certificate page
+                        window.location.href = `/${certificatePage}?uid=${uniqueID}`;
+                    } else {
+                        throw new Error(data.error || 'Failed to update user data on server.');
+                    }
+
+                } catch (error) {
+                    console.error('Error during certificate submission:', error);
+                    alert('An error occurred during submission: ' + error.message);
+                }
+            });
+        });
+
+    </script>
+</body>
+
+</html>

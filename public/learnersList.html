@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learners List</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 95%, rgba(8, 149, 76, 0.08), transparent 45%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .right-image img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1200px; width: 100%; margin: 0 auto; padding: 28px 20px 40px; box-sizing: border-box; }
+    h1 { margin-bottom: 16px; color: #101828; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    input { border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; min-width: 260px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; }
+    th { background: #f7f9fc; }
+    td img { width: 44px; height: 44px; object-fit: cover; border-radius: 4px; }
+    button, .btn { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    button:hover, .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .delete { background: #b42318; }
+    .nameLink { color: #08954c; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .nameLink:hover { text-decoration: underline; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+
+    /* Delete-reason modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(16, 24, 40, 0.55); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.active { display: flex; }
+    .modal-box { background: #ffffff; border-radius: 14px; padding: 28px; width: 90%; max-width: 440px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25); }
+    .modal-box h3 { margin: 0 0 6px; color: #101828; }
+    .modal-box p { margin: 0 0 14px; color: #6b7a90; font-size: 0.9rem; }
+    .modal-box textarea { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 8px; padding: 10px 12px; font: inherit; min-height: 80px; resize: vertical; }
+    .modal-box textarea:focus { outline: none; border-color: #08954c; box-shadow: 0 0 0 3px rgba(8, 149, 76, 0.15); }
+    .modal-error { color: #b42318; font-size: 0.85rem; min-height: 18px; margin-top: 6px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+    .modal-actions button.cancelBtn { background: #e8eef6; color: #172033; }
+    .modal-actions button.cancelBtn:hover { transform: none; box-shadow: none; background: #dbe4f0; }
+    .modal-actions button.confirmDeleteBtn { background: #b42318; }
+    .modal-actions button.confirmDeleteBtn:hover { box-shadow: 0 6px 14px rgba(180, 35, 24, 0.35); }
+
+    /* Scan-for-learner-addition modal */
+    .scan-modal-box { max-width: 560px; }
+    .scan-instructions { background: #eef6f0; border: 1px solid #cfe8d6; border-radius: 8px; padding: 12px 14px; font-size: 0.88rem; color: #14532d; margin-bottom: 14px; }
+    .scan-live-indicator { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; color: #08954c; font-size: 0.85rem; margin-bottom: 10px; }
+    .scan-live-dot { width: 9px; height: 9px; border-radius: 50%; background: #08954c; animation: scanPulse 1.4s infinite ease-in-out; }
+    @keyframes scanPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+    #scanHiddenInput { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+    .scan-fields-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+    .scan-fields-table th, .scan-fields-table td { text-align: left; padding: 7px 9px; border-bottom: 1px solid #e6edf5; font-size: 0.88rem; }
+    .scan-fields-table th { width: 42%; color: #6b7a90; font-weight: 700; }
+    .scan-fields-table td.empty { color: #b0b8c4; font-style: italic; }
+    .scan-status-banner { border-radius: 8px; padding: 10px 12px; font-size: 0.88rem; margin-bottom: 12px; display: none; }
+    .scan-status-banner.info { display: block; background: #eaf2ff; color: #0b3f8a; border: 1px solid #cfe0fb; }
+    .scan-status-banner.warn { display: block; background: #fff4e5; color: #8a5a0b; border: 1px solid #fbe3c0; }
+    .scan-status-banner.error { display: block; background: #fdecea; color: #8a1c0b; border: 1px solid #f6c6c0; }
+    .scan-status-banner.success { display: block; background: #e9f9ef; color: #0b6b34; border: 1px solid #c3ecd3; }
+    .scan-status-banner a { color: inherit; font-weight: 700; }
+    .modal-actions button.secondaryBtn { background: #e8eef6; color: #172033; }
+    .modal-actions button.secondaryBtn:hover { transform: none; box-shadow: none; background: #dbe4f0; }
+
+    /* Webcam QR-scan modal */
+    .qr-scan-video-wrap { position: relative; background: #000; border-radius: 10px; overflow: hidden; margin-bottom: 12px; aspect-ratio: 4 / 3; }
+    .qr-scan-video-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .qr-scan-video-wrap .qr-scan-frame { position: absolute; inset: 12%; border: 3px solid rgba(8, 149, 76, 0.85); border-radius: 10px; pointer-events: none; }
+    .qr-scan-video-wrap .qr-scan-placeholder { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 0.85rem; padding: 16px; text-align: center; }
+    @media (max-width: 720px) {
+      .header { height: auto; min-height: 72px; align-items: flex-start; gap: 12px; padding: 14px 18px; flex-direction: column; }
+      .right-image img { width: 220px; max-width: 82vw; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    </div>
+    <div class="navbar">
+      <a href="/learnersManagement.html">Learners Management</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Learners List</h1>
+    <div class="toolbar">
+      <a class="btn" href="/addUser.html">Add Learner</a>
+      <a class="btn" href="/pastUsers.html">Past Users</a>
+      <button type="button" id="scanAddBtn">📷 Please Scan for Learner Addition</button>
+      <button type="button" id="scanQrBtn">📸 Scan QR Code</button>
+      <input id="search" placeholder="Search learners...">
+      <button id="downloadButton">Download Data</button>
+    </div>
+    <div class="toolbar" id="pagination"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Sr No</th><th>Name</th><th>User Type</th><th>Employee ID</th><th>User ID</th><th>Password</th><th>Mobile</th><th>Department</th><th>Role</th><th>Registered</th><th>Photo</th><th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <div class="modal-overlay" id="deleteModalOverlay">
+    <div class="modal-box">
+      <h3>Delete this learner?</h3>
+      <p>Please give a reason for deleting this learner. This will be saved on the Past Users list.</p>
+      <textarea id="deleteReasonInput" placeholder="e.g. Left the company, duplicate account, incorrect entry..."></textarea>
+      <div class="modal-error" id="deleteReasonError"></div>
+      <div class="modal-actions">
+        <button type="button" class="cancelBtn" id="deleteCancelBtn">Cancel</button>
+        <button type="button" class="confirmDeleteBtn" id="deleteConfirmBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scan-for-learner-addition modal: reads the Code128 barcode(s) printed
+       on a Level 1 certificate (see levelCertificate.html) via a USB barcode
+       scanner, which behaves like a keyboard (types the decoded text, then
+       Enter). Works fully offline - no camera/network, just keystroke
+       capture. Scan both the USER and LOGIN barcodes from the certificate;
+       each scan merges its fields into the same session so all data ends up
+       together before Add User is clicked. -->
+  <div class="modal-overlay" id="scanModalOverlay">
+    <div class="modal-box scan-modal-box">
+      <h3>Scan Learner Certificate</h3>
+      <div class="scan-instructions">
+        Scan the <b>LOGIN</b> barcode on the learner's Level 1 certificate - that alone is enough to add the
+        learner (Username + Password). Optionally also scan the <b>USER</b> barcode first to capture their
+        Name too. Scanned data appears below automatically - no typing needed.
+      </div>
+      <div class="scan-live-indicator"><span class="scan-live-dot"></span> Ready to scan&hellip;</div>
+      <input type="text" id="scanHiddenInput" autocomplete="off" spellcheck="false">
+      <div class="scan-status-banner" id="scanStatusBanner"></div>
+      <table class="scan-fields-table">
+        <tr><th>Name</th><td id="scanFldName" class="empty">Not scanned yet</td></tr>
+        <tr><th>Username (User ID)</th><td id="scanFldUName" class="empty">Not scanned yet</td></tr>
+        <tr><th>Password</th><td id="scanFldPass" class="empty">Not scanned yet</td></tr>
+        <tr><th>Date of Joining</th><td id="scanFldDoj" class="empty">Not scanned yet</td></tr>
+        <tr><th>License Issue Date</th><td id="scanFldLi" class="empty">Not scanned yet</td></tr>
+        <tr><th>Level</th><td id="scanFldLevel" class="empty">Not scanned yet</td></tr>
+      </table>
+      <div class="modal-error" id="scanReasonError"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondaryBtn" id="scanResetBtn">Reset Scan</button>
+        <button type="button" class="cancelBtn" id="scanCloseBtn">Close</button>
+        <button type="button" id="scanAddUserBtn">Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Webcam QR-scan modal: reads the QR code printed on a Level 1
+       certificate (see levelCertificate.html's "Print QR Code" button) using
+       the webcam plus a fully vendored, offline QR decoder
+       (/js/jsqr-offline.js, hand-ported from the open-source jsQR project) -
+       no CDN, no network calls, and no dependency on any particular
+       browser's built-in APIs. Works in any modern browser that supports
+       getUserMedia + canvas (Chrome, Edge, Firefox, Safari). The QR encodes
+       Name, Username, Password, License Issue Date and Date of Joining as
+       plain "Key: Value" lines, decoded by parseQrPayload() below.
+       Requirement: a secure context - the page must be loaded over HTTPS or
+       from http://localhost, since browsers block camera access on a plain
+       http://<lan-ip> address. -->
+  <div class="modal-overlay" id="qrScanModalOverlay">
+    <div class="modal-box scan-modal-box">
+      <h3>Scan Learner QR Code</h3>
+      <div class="scan-instructions">
+        Point the webcam at the <b>QR code</b> printed on the learner's Level 1 certificate (use the
+        "Print QR Code" button on that certificate). It carries Name, Username, Password, License Issue Date
+        and Date of Joining in one code - no typing needed. Works in any modern browser; the page must be
+        opened over HTTPS or <code>http://localhost</code> (camera access is blocked on a plain network address).
+      </div>
+      <div class="qr-scan-video-wrap">
+        <video id="qrScanVideo" autoplay playsinline muted></video>
+        <div class="qr-scan-frame"></div>
+        <div class="qr-scan-placeholder" id="qrScanPlaceholder">Starting camera&hellip;</div>
+      </div>
+      <div class="scan-status-banner" id="qrScanStatusBanner"></div>
+      <table class="scan-fields-table">
+        <tr><th>Unique ID</th><td id="qrScanFldUniqueID" class="empty">Not scanned yet</td></tr>
+        <tr><th>Name</th><td id="qrScanFldName" class="empty">Not scanned yet</td></tr>
+        <tr><th>Username (User ID)</th><td id="qrScanFldUName" class="empty">Not scanned yet</td></tr>
+        <tr><th>Password</th><td id="qrScanFldPass" class="empty">Not scanned yet</td></tr>
+        <tr><th>Date of Joining</th><td id="qrScanFldDoj" class="empty">Not scanned yet</td></tr>
+        <tr><th>License Issue Date</th><td id="qrScanFldLi" class="empty">Not scanned yet</td></tr>
+      </table>
+      <div class="modal-error" id="qrScanReasonError"></div>
+      <div class="modal-actions">
+        <button type="button" class="secondaryBtn" id="qrScanResetBtn">Reset Scan</button>
+        <button type="button" class="cancelBtn" id="qrScanCloseBtn">Close</button>
+        <button type="button" id="qrScanAddUserBtn">Add User</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/jsqr-offline.js"></script>
+  <script>
+    let currentPage = 1;
+    const limit = 50;
+    let allUsers = [];
+
+    async function loadUsers(page = 1) {
+      currentPage = page;
+      const response = await fetch(`/userData?page=${page}&limit=${limit}`);
+      const data = await response.json();
+      allUsers = data.users || [];
+      render(allUsers, data.total || 0);
+    }
+
+    function render(users, total) {
+      const term = document.getElementById('search').value.toLowerCase();
+      const filtered = users.filter(user => Object.values(user).some(value => String(value || '').toLowerCase().includes(term)));
+      const rows = document.getElementById('rows');
+      rows.innerHTML = '';
+      filtered.forEach((user, index) => {
+        const tr = document.createElement('tr');
+        const editLink = `/UserData.html?uniqueID=${encodeURIComponent(user.uniqueID)}`;
+        tr.innerHTML = `
+          <td>${(currentPage - 1) * limit + index + 1}</td>
+          <td><a class="nameLink" href="${editLink}">${user.name || ''}</a></td>
+          <td>${user.isPreviousUser ? '# Previous' : 'Current'}</td>
+          <td>${user.employeeID || ''}</td>
+          <td>${user.uName || ''}</td>
+          <td>${user.uPass || ''}</td>
+          <td>${user.mobileNo || ''}</td>
+          <td>${user.department || ''}</td>
+          <td>${user.uRole || ''}</td>
+          <td>${user.registerDate || ''}</td>
+          <td>${user.photo ? `<img src="/photos/${user.photo}" alt="">` : ''}</td>
+          <td><button class="delete" onclick="deleteUser('${user.uniqueID}')">Delete</button></td>
+        `;
+        rows.appendChild(tr);
+      });
+
+      const totalPages = Math.max(1, Math.ceil(total / limit));
+      document.getElementById('pagination').innerHTML = `
+        <button ${currentPage === 1 ? 'disabled' : ''} onclick="loadUsers(${currentPage - 1})">Prev</button>
+        <span>Page ${currentPage} of ${totalPages}</span>
+        <button ${currentPage >= totalPages ? 'disabled' : ''} onclick="loadUsers(${currentPage + 1})">Next</button>
+      `;
+    }
+
+    // ---- Delete with a required reason (saved to the Past Users list) ----
+    let pendingDeleteUniqueID = null;
+    const deleteModalOverlay = document.getElementById('deleteModalOverlay');
+    const deleteReasonInput = document.getElementById('deleteReasonInput');
+    const deleteReasonError = document.getElementById('deleteReasonError');
+    const deleteConfirmBtn = document.getElementById('deleteConfirmBtn');
+
+    function deleteUser(uniqueID) {
+      pendingDeleteUniqueID = uniqueID;
+      deleteReasonInput.value = '';
+      deleteReasonError.textContent = '';
+      deleteModalOverlay.classList.add('active');
+      deleteReasonInput.focus();
+    }
+
+    function closeDeleteModal() {
+      deleteModalOverlay.classList.remove('active');
+      pendingDeleteUniqueID = null;
+    }
+
+    document.getElementById('deleteCancelBtn').addEventListener('click', closeDeleteModal);
+    deleteModalOverlay.addEventListener('click', event => {
+      if (event.target === deleteModalOverlay) closeDeleteModal();
+    });
+
+    deleteConfirmBtn.addEventListener('click', async () => {
+      const reason = deleteReasonInput.value.trim();
+      if (!reason) {
+        deleteReasonError.textContent = 'Please enter a reason for deleting this learner.';
+        return;
+      }
+      if (!pendingDeleteUniqueID) return;
+
+      deleteConfirmBtn.disabled = true;
+      try {
+        const response = await fetch(`/deleteUser/${encodeURIComponent(pendingDeleteUniqueID)}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reason })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) {
+          deleteReasonError.textContent = data.message || 'Unable to delete learner.';
+          return;
+        }
+        closeDeleteModal();
+        loadUsers(currentPage);
+      } catch (error) {
+        deleteReasonError.textContent = 'Unable to delete learner. Please try again.';
+      } finally {
+        deleteConfirmBtn.disabled = false;
+      }
+    });
+
+    document.getElementById('search').addEventListener('input', () => render(allUsers, allUsers.length));
+    document.getElementById('downloadButton').addEventListener('click', () => {
+      window.location.href = '/api/users-csv';
+    });
+
+    // ---- Scan for Learner Addition ----
+    // A USB barcode scanner is a keyboard-wedge device: pointed at a printed
+    // barcode, it "types" the decoded text (very fast) and finishes with an
+    // Enter keypress, exactly like a person typing then pressing Enter. No
+    // camera, no drivers, no internet needed - this works fully offline on a
+    // standalone PC. levelCertificate.html prints a Level 1 certificate with
+    // two Code128 barcodes: USER ("N:name|L:level|LI:licenseIssueDate|DOJ:dateOfJoining")
+    // and LOGIN ("U:username|P:password"). Scanning either one merges its
+    // fields into the same session below, so scanning both barcodes builds
+    // up the full record before "Add User" is clicked.
+    const scanModalOverlay = document.getElementById('scanModalOverlay');
+    const scanHiddenInput = document.getElementById('scanHiddenInput');
+    const scanStatusBanner = document.getElementById('scanStatusBanner');
+    const scanReasonError = document.getElementById('scanReasonError');
+    const scanAddUserBtn = document.getElementById('scanAddUserBtn');
+
+    let scannedData = {};
+
+    const scanFieldEls = {
+      name: document.getElementById('scanFldName'),
+      uName: document.getElementById('scanFldUName'),
+      uPass: document.getElementById('scanFldPass'),
+      dateOfJoining: document.getElementById('scanFldDoj'),
+      licenseIssueDate: document.getElementById('scanFldLi'),
+      level: document.getElementById('scanFldLevel')
+    };
+
+    function setScanStatus(kind, html) {
+      if (!html) {
+        scanStatusBanner.className = 'scan-status-banner';
+        scanStatusBanner.innerHTML = '';
+        return;
+      }
+      scanStatusBanner.className = 'scan-status-banner ' + kind;
+      scanStatusBanner.innerHTML = html;
+    }
+
+    function renderScannedFields() {
+      Object.keys(scanFieldEls).forEach(key => {
+        const el = scanFieldEls[key];
+        const value = scannedData[key];
+        if (value) {
+          el.textContent = value;
+          el.classList.remove('empty');
+        } else {
+          el.textContent = 'Not scanned yet';
+          el.classList.add('empty');
+        }
+      });
+    }
+
+    // Parses one decoded barcode payload against the two formats printed by
+    // levelCertificate.html. Unrecognised/garbled scans are ignored rather
+    // than clobbering fields already captured from a previous scan.
+    function parseScannedPayload(raw) {
+      const text = String(raw || '').trim();
+      if (!text) return false;
+      const keyMap = { N: 'name', U: 'uName', P: 'uPass', DOJ: 'dateOfJoining', LI: 'licenseIssueDate', L: 'level' };
+      let matched = false;
+      text.split('|').forEach(part => {
+        const idx = part.indexOf(':');
+        if (idx === -1) return;
+        const key = part.slice(0, idx).trim().toUpperCase();
+        const value = part.slice(idx + 1).trim();
+        const field = keyMap[key];
+        if (field && value) {
+          scannedData[field] = value;
+          matched = true;
+        }
+      });
+      return matched;
+    }
+
+    function focusScanInput() {
+      scanHiddenInput.value = '';
+      scanHiddenInput.focus();
+    }
+
+    function openScanModal() {
+      scannedData = {};
+      renderScannedFields();
+      setScanStatus();
+      scanReasonError.textContent = '';
+      scanModalOverlay.classList.add('active');
+      focusScanInput();
+    }
+
+    function closeScanModal() {
+      scanModalOverlay.classList.remove('active');
+    }
+
+    document.getElementById('scanAddBtn').addEventListener('click', openScanModal);
+    document.getElementById('scanCloseBtn').addEventListener('click', closeScanModal);
+    document.getElementById('scanResetBtn').addEventListener('click', () => {
+      scannedData = {};
+      renderScannedFields();
+      setScanStatus();
+      focusScanInput();
+    });
+
+    scanModalOverlay.addEventListener('click', event => {
+      if (event.target === scanModalOverlay) {
+        closeScanModal();
+      } else if (scanModalOverlay.classList.contains('active')) {
+        focusScanInput();
+      }
+    });
+
+    // If focus ever slips off the capture input while the modal is open
+    // (stray click, etc.), pull it back so the scanner's keystrokes don't
+    // get lost.
+    scanHiddenInput.addEventListener('blur', () => {
+      if (scanModalOverlay.classList.contains('active')) {
+        setTimeout(() => {
+          if (scanModalOverlay.classList.contains('active')) focusScanInput();
+        }, 50);
+      }
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && scanModalOverlay.classList.contains('active')) closeScanModal();
+    });
+
+    // Finalizes whatever's currently in the capture input: parses it as a
+    // barcode payload, merges any recognised fields into scannedData, and
+    // clears the input for the next scan.
+    function finalizeScan() {
+      const raw = scanHiddenInput.value;
+      if (!raw) return;
+      scanHiddenInput.value = '';
+      const matched = parseScannedPayload(raw);
+      renderScannedFields();
+      if (matched) {
+        setScanStatus('info', 'Scan captured. Scan the next barcode, or click <b>Add User</b> once Name, Username and Password are filled in.');
+      } else if (raw.trim()) {
+        setScanStatus('warn', 'That scan was not recognised as a learner certificate barcode. Please try again.');
+      }
+    }
+
+    // Barcode scanners are keyboard-wedge devices: they "type" the decoded
+    // text character by character in a couple of milliseconds, then
+    // (usually, but not always - it's a configurable setting on the scanner
+    // itself) send a terminator keystroke, typically Enter or Tab. Relying
+    // ONLY on that terminator meant scans from a scanner configured with a
+    // different/no suffix never got parsed - the text would sit typed into
+    // the field with nothing visibly happening. To make this work
+    // regardless of how the scanner is configured, we ALSO auto-finalize
+    // after a short idle gap: a barcode scan lands entirely within a few
+    // milliseconds, while a human typing takes 100ms+ between keystrokes, so
+    // a 120ms pause with no new keystrokes is a safe signal that a scan (or
+    // paste) has finished.
+    let scanIdleTimer = null;
+    function scheduleIdleFinalize() {
+      if (scanIdleTimer) clearTimeout(scanIdleTimer);
+      scanIdleTimer = setTimeout(finalizeScan, 120);
+    }
+
+    scanHiddenInput.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === 'Tab') {
+        event.preventDefault();
+        if (scanIdleTimer) clearTimeout(scanIdleTimer);
+        finalizeScan();
+      }
+    });
+    scanHiddenInput.addEventListener('input', scheduleIdleFinalize);
+
+    scanAddUserBtn.addEventListener('click', async () => {
+      scanReasonError.textContent = '';
+      // Only Username + Password are actually required to create the
+      // account (matches /save-details' own validation) - Name is a nice-
+      // to-have from the USER barcode, but that barcode carries more data
+      // and can be harder to scan reliably than the compact LOGIN barcode.
+      // If Name wasn't scanned, the learner is still added and flagged so
+      // the admin can fill it in from the certificate afterward.
+      if (!scannedData.uName || !scannedData.uPass) {
+        setScanStatus('warn', 'Please scan the LOGIN barcode (Username/Password) before adding this learner.');
+        return;
+      }
+
+      scanAddUserBtn.disabled = true;
+      try {
+        setScanStatus('info', 'Checking if this learner already exists&hellip;');
+        const verifyResponse = await fetch('/verify-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uName: scannedData.uName })
+        });
+        const verifyData = await verifyResponse.json().catch(() => ({}));
+
+        if (verifyData.exists) {
+          setScanStatus('warn', `This learner is <b>already in Learners Management</b> - Username: <b>${scannedData.uName}</b> (${scannedData.name || ''}). No action needed.`);
+          return;
+        }
+
+        // If the USER barcode wasn't scanned (or didn't read), fall back to
+        // the username so the learner doesn't show up with a blank name in
+        // the list - the admin still needs to fix this up via Edit.
+        const nameMissing = !scannedData.name;
+        const payload = {
+          name: scannedData.name || scannedData.uName || '',
+          uName: scannedData.uName || '',
+          uPass: scannedData.uPass || '',
+          dateOfJoining: scannedData.dateOfJoining || '',
+          emailID: '', employeeID: '', dateOfBirth: '', address: '', mobileNo: '',
+          department: '', Contract: '', uRole: 'Employee', Qualification: ''
+        };
+
+        const saveResponse = await fetch('/save-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const saveData = await saveResponse.json().catch(() => ({}));
+
+        if (!saveResponse.ok || saveData.error) {
+          setScanStatus('error', saveData.error || 'Could not add this learner. Please try again.');
+          return;
+        }
+
+        const newUniqueID = saveData.uploadedUser && saveData.uploadedUser.uniqueID;
+        const editLink = newUniqueID ? `/UserData.html?uniqueID=${encodeURIComponent(newUniqueID)}` : '/learnersList.html';
+        const nameNote = nameMissing
+          ? ' Name wasn\'t scanned - please set the correct name from the certificate.'
+          : '';
+        setScanStatus('success', `Learner <b>${payload.name}</b> added successfully.${nameNote} <a href="${editLink}">Edit full details</a> (Name, Employee ID, Department, Mobile, Photo, etc.)`);
+        scannedData = {};
+        renderScannedFields();
+        loadUsers(currentPage);
+      } catch (error) {
+        setScanStatus('error', 'Could not add this learner. Please try again.');
+      } finally {
+        scanAddUserBtn.disabled = false;
+      }
+    });
+
+    // ---- Scan QR Code (Webcam) for Learner Addition ----
+    // Uses a fully vendored, offline QR decoder (/js/jsqr-offline.js, a
+    // hand-ported build of the open-source jsQR library) instead of any
+    // browser-native detection API - there is nothing to install and no
+    // CDN/network dependency, and it works in any modern browser (not just
+    // Chrome/Edge). Each video frame is drawn to an offscreen canvas, read
+    // back as pixel data, and handed to jsQR() for decoding.
+    // levelCertificate.html's "Print QR Code" button encodes
+    // Name/Username/Password/License Issue Date/Date of Joining as plain
+    // "Key: Value" lines in one QR code - parseQrPayload() below reads that
+    // format.
+    const qrScanModalOverlay = document.getElementById('qrScanModalOverlay');
+    const qrScanVideo = document.getElementById('qrScanVideo');
+    const qrScanPlaceholder = document.getElementById('qrScanPlaceholder');
+    const qrScanStatusBanner = document.getElementById('qrScanStatusBanner');
+    const qrScanReasonError = document.getElementById('qrScanReasonError');
+    const qrScanAddUserBtn = document.getElementById('qrScanAddUserBtn');
+
+    let qrScannedData = {};
+    let qrScanStream = null;
+    let qrScanLoopHandle = null;
+    let qrLastDecodedRaw = '';
+    const qrScanCanvas = document.createElement('canvas');
+    const qrScanCanvasCtx = qrScanCanvas.getContext('2d', { willReadFrequently: true });
+
+    const qrScanFieldEls = {
+      name: document.getElementById('qrScanFldName'),
+      uniqueID: document.getElementById('qrScanFldUniqueID'),
+      uName: document.getElementById('qrScanFldUName'),
+      uPass: document.getElementById('qrScanFldPass'),
+      dateOfJoining: document.getElementById('qrScanFldDoj'),
+      licenseIssueDate: document.getElementById('qrScanFldLi')
+    };
+
+    function setQrScanStatus(kind, html) {
+      if (!html) {
+        qrScanStatusBanner.className = 'scan-status-banner';
+        qrScanStatusBanner.innerHTML = '';
+        return;
+      }
+      qrScanStatusBanner.className = 'scan-status-banner ' + kind;
+      qrScanStatusBanner.innerHTML = html;
+    }
+
+    function renderQrScannedFields() {
+      Object.keys(qrScanFieldEls).forEach(key => {
+        const el = qrScanFieldEls[key];
+        const value = qrScannedData[key];
+        if (value) {
+          el.textContent = value;
+          el.classList.remove('empty');
+        } else {
+          el.textContent = 'Not scanned yet';
+          el.classList.add('empty');
+        }
+      });
+    }
+
+    // Parses the multi-line "Key: Value" payload produced by
+    // levelCertificate.html's qrIdentityPayload(). Unrecognised lines are
+    // ignored rather than clobbering fields already captured.
+    function parseQrPayload(raw) {
+      const text = String(raw || '').trim();
+      if (!text) return false;
+      const keyMap = {
+        'unique id': 'uniqueID',
+        'uniqueid': 'uniqueID',
+        'name': 'name',
+        'username': 'uName',
+        'password': 'uPass',
+        'license issue date': 'licenseIssueDate',
+        'date of joining': 'dateOfJoining'
+      };
+      let matched = false;
+      text.split(/\r?\n/).forEach(line => {
+        const idx = line.indexOf(':');
+        if (idx === -1) return;
+        const key = line.slice(0, idx).trim().toLowerCase();
+        const value = line.slice(idx + 1).trim();
+        const field = keyMap[key];
+        if (field && value) {
+          qrScannedData[field] = value;
+          matched = true;
+        }
+      });
+      return matched;
+    }
+
+    async function startQrCamera() {
+      qrScanPlaceholder.style.display = 'flex';
+      qrScanPlaceholder.textContent = 'Starting camera…';
+      setQrScanStatus();
+
+      if (typeof window.jsQR !== 'function') {
+        qrScanPlaceholder.textContent = 'QR decoder failed to load.';
+        setQrScanStatus('error', 'The offline QR decoder script did not load. Please reload the page and try again.');
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        qrScanPlaceholder.textContent = 'Camera access is not available in this browser.';
+        setQrScanStatus('error', 'This browser does not support webcam access. Please try Chrome, Edge, or Firefox.');
+        return;
+      }
+
+      if (!window.isSecureContext) {
+        qrScanPlaceholder.textContent = 'Camera blocked: this page must be opened over HTTPS or http://localhost.';
+        setQrScanStatus('error', 'Camera access requires a secure context. Open this page via HTTPS or http://localhost, not a plain network address.');
+        return;
+      }
+
+      try {
+        qrScanStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        qrScanVideo.srcObject = qrScanStream;
+        await qrScanVideo.play();
+        qrScanPlaceholder.style.display = 'none';
+        qrLastDecodedRaw = '';
+        scheduleQrDetectLoop();
+      } catch (error) {
+        qrScanPlaceholder.textContent = 'Could not access the webcam.';
+        setQrScanStatus('error', 'Could not access the webcam: ' + error.message + '. Check camera permissions for this site.');
+      }
+    }
+
+    function stopQrCamera() {
+      if (qrScanLoopHandle) {
+        cancelAnimationFrame(qrScanLoopHandle);
+        qrScanLoopHandle = null;
+      }
+      if (qrScanStream) {
+        qrScanStream.getTracks().forEach(track => track.stop());
+        qrScanStream = null;
+      }
+      qrScanVideo.srcObject = null;
+    }
+
+    // Polls the video feed a few times a second (not every animation frame -
+    // decoding a full frame is relatively expensive) looking for a QR code.
+    // Each attempt draws the current video frame onto an offscreen canvas,
+    // reads the pixel data back out, and hands it to the vendored jsQR()
+    // decoder. A successful decode merges its fields into qrScannedData; the
+    // same code is ignored on repeat frames so the status message doesn't
+    // spam while the code sits in frame.
+    function scheduleQrDetectLoop() {
+      let lastAttempt = 0;
+      const DETECT_INTERVAL_MS = 250;
+
+      const loop = (timestamp) => {
+        if (!qrScanStream) return;
+        if (timestamp - lastAttempt >= DETECT_INTERVAL_MS && qrScanVideo.readyState >= 2 && qrScanVideo.videoWidth) {
+          lastAttempt = timestamp;
+          try {
+            qrScanCanvas.width = qrScanVideo.videoWidth;
+            qrScanCanvas.height = qrScanVideo.videoHeight;
+            qrScanCanvasCtx.drawImage(qrScanVideo, 0, 0, qrScanCanvas.width, qrScanCanvas.height);
+            const imageData = qrScanCanvasCtx.getImageData(0, 0, qrScanCanvas.width, qrScanCanvas.height);
+            const code = window.jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: 'attemptBoth' });
+            if (code && code.data && code.data !== qrLastDecodedRaw) {
+              qrLastDecodedRaw = code.data;
+              const matched = parseQrPayload(qrLastDecodedRaw);
+              renderQrScannedFields();
+              if (matched) {
+                setQrScanStatus('info', 'QR code captured. Click <b>Add User</b>, or scan another certificate to overwrite these fields.');
+              } else {
+                setQrScanStatus('warn', 'That QR code was not recognised as a learner certificate QR code. Please try again.');
+              }
+            }
+          } catch (error) {
+            // Transient decode failures (e.g. a blurry frame) are expected
+            // and safe to ignore - just try again on the next frame.
+          }
+        }
+        qrScanLoopHandle = requestAnimationFrame(loop);
+      };
+
+      qrScanLoopHandle = requestAnimationFrame(loop);
+    }
+
+    function openQrScanModal() {
+      qrScannedData = {};
+      renderQrScannedFields();
+      qrScanReasonError.textContent = '';
+      qrScanModalOverlay.classList.add('active');
+      startQrCamera();
+    }
+
+    function closeQrScanModal() {
+      qrScanModalOverlay.classList.remove('active');
+      stopQrCamera();
+    }
+
+    document.getElementById('scanQrBtn').addEventListener('click', openQrScanModal);
+    document.getElementById('qrScanCloseBtn').addEventListener('click', closeQrScanModal);
+    document.getElementById('qrScanResetBtn').addEventListener('click', () => {
+      qrScannedData = {};
+      qrLastDecodedRaw = '';
+      renderQrScannedFields();
+      setQrScanStatus();
+    });
+
+    qrScanModalOverlay.addEventListener('click', event => {
+      if (event.target === qrScanModalOverlay) closeQrScanModal();
+    });
+
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && qrScanModalOverlay.classList.contains('active')) closeQrScanModal();
+    });
+
+    qrScanAddUserBtn.addEventListener('click', async () => {
+      qrScanReasonError.textContent = '';
+      if (!qrScannedData.uName || !qrScannedData.uPass) {
+        setQrScanStatus('warn', 'Please scan the learner\'s QR code (Username/Password) before adding this learner.');
+        return;
+      }
+
+      qrScanAddUserBtn.disabled = true;
+      try {
+        setQrScanStatus('info', 'Checking if this learner already exists&hellip;');
+        const verifyResponse = await fetch('/verify-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ uName: qrScannedData.uName })
+        });
+        const verifyData = await verifyResponse.json().catch(() => ({}));
+
+        if (verifyData.exists) {
+          setQrScanStatus('warn', `This learner is <b>already in Learners Management</b> - Username: <b>${qrScannedData.uName}</b> (${qrScannedData.name || ''}). No action needed.`);
+          return;
+        }
+
+        const nameMissing = !qrScannedData.name;
+        const payload = {
+          uniqueID: qrScannedData.uniqueID || '',
+          name: qrScannedData.name || qrScannedData.uName || '',
+          uName: qrScannedData.uName || '',
+          uPass: qrScannedData.uPass || '',
+          dateOfJoining: qrScannedData.dateOfJoining || '',
+          emailID: '', employeeID: '', dateOfBirth: '', address: '', mobileNo: '',
+          department: '', Contract: '', uRole: 'Employee', Qualification: ''
+        };
+
+        const saveResponse = await fetch('/save-details', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const saveData = await saveResponse.json().catch(() => ({}));
+
+        if (!saveResponse.ok || saveData.error) {
+          setQrScanStatus('error', saveData.error || 'Could not add this learner. Please try again.');
+          return;
+        }
+
+        const newUniqueID = saveData.uploadedUser && saveData.uploadedUser.uniqueID;
+        const editLink = newUniqueID ? `/UserData.html?uniqueID=${encodeURIComponent(newUniqueID)}` : '/learnersList.html';
+        const nameNote = nameMissing
+          ? ' Name wasn\'t scanned - please set the correct name from the certificate.'
+          : '';
+        setQrScanStatus('success', `Learner <b>${payload.name}</b> added successfully.${nameNote} <a href="${editLink}">Edit full details</a> (Name, Employee ID, Department, Mobile, Photo, etc.)`);
+        qrScannedData = {};
+        qrLastDecodedRaw = '';
+        renderQrScannedFields();
+        loadUsers(currentPage);
+      } catch (error) {
+        setQrScanStatus('error', 'Could not add this learner. Please try again.');
+      } finally {
+        qrScanAddUserBtn.disabled = false;
+      }
+    });
+
+    loadUsers();
+  </script>
+</body>
+
+</html>

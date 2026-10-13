@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <script src="js/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f7fb; background-image: radial-gradient(circle at 10% 15%, rgba(8,149,76,.10), transparent 45%), radial-gradient(circle at 88% 90%, rgba(8,149,76,.08), transparent 40%); background-attachment: fixed; color: #172033; }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { max-width: 1100px; margin: 28px auto; padding: 0 20px 112px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    .dashboard-title-row { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .report-btn { display: inline-block; padding: 11px 18px; border-radius: 7px; background: #08954c; color: #fff; text-decoration: none; font-weight: 700; }
+    .report-btn:hover { background: #067a3e; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #b42318; }
+    .summary-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 22px; }
+    .summary-card { background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 16px; text-align: center; }
+    .summary-card .num { font-size: 28px; font-weight: 800; color: #08954c; }
+    .summary-card .lbl { font-size: 12px; font-weight: 700; color: #44526b; margin-top: 4px; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(340px, .82fr); gap: 18px; align-items: stretch; }
+    .chart-panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 24px; }
+    .chart-panel h2 { margin: 0 0 18px; font-size: 18px; }
+    .panel-head { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .panel-head h2 { margin: 0 0 4px; }
+    .panel-note { margin: 0; color: #667085; font-size: 12px; font-weight: 700; }
+    .month-controls { display: flex; gap: 8px; align-items: center; }
+    .month-controls select, .month-controls input { border: 1px solid #b7c7dc; border-radius: 6px; padding: 8px 10px; font: inherit; min-height: 38px; }
+    .month-controls input { width: 86px; }
+    .refresher-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 18px; }
+    .mini-card { background: #f6faf7; border: 1px solid #d7eadf; border-radius: 8px; padding: 12px; }
+    .mini-card .num { color: #08954c; font-size: 24px; font-weight: 800; }
+    .mini-card .lbl { color: #44526b; font-size: 12px; font-weight: 700; margin-top: 3px; }
+    canvas { max-width: 100%; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: #e8eef6; color: #172033; font-weight: 700; cursor: pointer; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 20px 0; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+    footer p { margin: 0; }
+    @media (max-width: 1100px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 900px) { .summary-cards { grid-template-columns: repeat(2, 1fr); } .panel-head { flex-direction: column; } }
+    @media (max-width: 560px) { .refresher-cards { grid-template-columns: 1fr; } .month-controls { flex-wrap: wrap; } }
+
+    /* ===================================================================
+       DOJO Analytics section (below) - ported from the Harman ARS reference
+       build's demo-dojo-dashbaord.html, recolored to this app's green
+       palette. Fully additive: none of the CSS/HTML/JS above this point
+       (summary cards, Enrollment chart, mini Refresher widget) was touched.
+       =================================================================== */
+    .dojo-section-title { margin: 40px 0 4px; font-size: 24px; }
+    .dojo-section-sub { color: #667085; margin: 0 0 20px; font-size: 13px; font-weight: 700; }
+
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px rgba(8,149,76,0.08); border: 1px solid #d9e1ec; position: relative; overflow: hidden; width: 100%; }
+    .card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px; background: linear-gradient(90deg, #2f9e44, #08954c); transform: scaleX(0); transform-origin: left; transition: transform .4s; }
+    .card:hover::before { transform: scaleX(1); }
+
+    .download-btn { height: 32px; border-radius: 8px; border: 1px solid rgba(15,23,42,.16); background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); color: #fff; padding: 0 12px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-size: 13px; margin-top: 10px; }
+    .download-btn:hover { transform: translateY(-2px); opacity: .95; }
+    .card-header-with-download { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .pdf-mode .dropdown-menu, .pdf-mode .category-label, .pdf-mode .download-btn { display: none !important; }
+    .bar, .scorecard-bar { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    .pdf-mode .bar, .pdf-mode .scorecard-bar { opacity: 1 !important; visibility: visible !important; display: block !important; }
+    .pdf-mode * { animation: none !important; transition: none !important; }
+
+    .dojo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 1100px) { .dojo-grid { grid-template-columns: 1fr; } }
+
+    .dropdown-container { margin-bottom: 20px; position: relative; z-index: 10; }
+    .custom-dropdown { position: relative; width: 100%; max-width: 300px; }
+    .dropdown-trigger { width: 100%; padding: 10px 14px; background: #fff; border: 2px solid #d9e1ec; border-radius: 8px; font-weight: 600; color: #172033; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+    .dropdown-trigger.active { border-color: #08954c; box-shadow: 0 0 0 3px rgba(8,149,76,.12); }
+    .dropdown-arrow { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #172033; transition: transform .3s; }
+    .dropdown-trigger.active .dropdown-arrow { transform: rotate(180deg); }
+    .dropdown-menu { position: absolute; top: calc(100% + 8px); left: 0; width: 100%; background: #fff; border: 2px solid #d9e1ec; border-radius: 8px; box-shadow: 0 4px 16px rgba(8,149,76,0.12); opacity: 0; visibility: hidden; transform: translateY(-10px); transition: all .3s; overflow: hidden; z-index: 20; }
+    .dropdown-menu.active { opacity: 1; visibility: visible; transform: translateY(0); }
+    .dropdown-option { padding: 10px 14px; cursor: pointer; font-weight: 600; color: #172033; border-bottom: 1px solid #eef2f6; }
+    .dropdown-option:last-child { border-bottom: none; }
+    .dropdown-option:hover { background: #f0f9f3; }
+    .dropdown-option.selected { background: #e6f6ec; color: #08954c; }
+
+    .chart-container { margin-top: 20px; position: relative; }
+    .chart-title { text-align: right; margin-bottom: 14px; }
+    .chart-legend { font-size: 16px; font-weight: 700; color: #172033; }
+    .bar-chart { display: flex; align-items: flex-end; justify-content: space-between; height: 320px; padding: 0 10px; }
+    .bar-group { display: flex; flex-direction: column; align-items: center; flex: 1 1 auto; max-width: 80px; }
+    .bar-wrapper { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    .bar-value { font-size: 15px; font-weight: 700; color: #172033; margin-bottom: 6px; min-height: 20px; }
+    .bar { width: 40px; background: linear-gradient(180deg, #08954c 0%, #2f9e44 100%); border-radius: 6px 6px 0 0; }
+    .bar-label { margin-top: 10px; text-align: center; font-size: 11px; font-weight: 600; color: #667085; max-width: 80px; }
+    .category-label { margin-top: 8px; padding: 3px 6px; background: rgba(8,149,76,0.08); border-radius: 6px; font-size: 10px; font-weight: 700; color: #172033; text-transform: uppercase; }
+    .chart-divider { width: 2px; height: 320px; background: #d9e1ec; margin: 0 16px; align-self: flex-end; }
+
+    .dept-buttons { display: flex; gap: 16px; margin: 16px 0 24px; flex-wrap: wrap; }
+    .dept-btn { padding: 16px 24px; border-radius: 12px; border: none; background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); color: #fff; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 170px; min-height: 90px; box-shadow: 0 6px 16px rgba(8,149,76,0.30); transition: all .2s; }
+    .dept-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(8,149,76,0.4); }
+    .dept-name { font-size: 15px; font-weight: 700; }
+    .dept-btn .count { font-size: 24px; font-weight: 800; margin-top: 6px; }
+
+    .dept-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.55); z-index: 1000; align-items: center; justify-content: center; }
+    .dept-modal-overlay.active { display: flex; }
+    .dept-modal { background: #fff; border-radius: 16px; padding: 28px; width: 92%; max-width: 720px; max-height: 90vh; overflow-y: auto; }
+    .refresher-modal-inner { background: #fff; border-radius: 16px; padding: 26px 22px; width: 96vw; max-width: 1200px; max-height: 92vh; overflow-y: auto; }
+    .dept-modal-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+    .dept-modal-badge { display: inline-block; background: #e1f5ee; color: #0f6e56; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; margin-bottom: 6px; text-transform: uppercase; }
+    .dept-modal-title { font-size: 20px; font-weight: 700; color: #08954c; margin: 0 0 2px; }
+    .dept-modal-sub { font-size: 13px; color: #667085; margin: 0; }
+    .dept-modal-close { background: #f1f5f9; border: none; border-radius: 8px; width: 32px; height: 32px; font-size: 15px; cursor: pointer; color: #667085; }
+    .dept-modal-close:hover { background: #e2e8f0; }
+    .dept-stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 20px; }
+    .dept-stat-card { background: #f8fafc; border-radius: 10px; padding: 12px 10px; text-align: center; border: 1px solid #e8edf2; }
+    .dept-stat-card.highlight { background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); border-color: transparent; }
+    .dept-stat-card.highlight .dept-stat-label { color: rgba(255,255,255,.8); }
+    .dept-stat-card.highlight .dept-stat-value { color: #fff; }
+    .dept-stat-label { font-size: 10px; color: #94a3b8; margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
+    .dept-stat-value { font-size: 22px; font-weight: 700; color: #08954c; }
+    .dept-legend-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 14px; }
+    .dept-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #667085; }
+    .dept-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
+    .dept-modal-footer { display: flex; justify-content: flex-end; margin-top: 18px; padding-top: 14px; border-top: 1px solid #e8edf2; }
+
+    .scorecard-section { margin-top: 24px; }
+    .scorecard-card { background: #fff; border-radius: 12px; padding: 26px; box-shadow: 0 4px 16px rgba(8,149,76,0.08); border: 1px solid #d9e1ec; }
+    .scorecard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+    .scorecard-header h2 { font-size: 20px; font-weight: 700; color: #08954c; margin: 0; }
+    .year-dropdown-container { position: relative; }
+    .scorecard-chart-wrapper { display: flex; gap: 14px; margin-bottom: 18px; }
+    .scorecard-y-axis { width: 46px; height: 320px; position: relative; display: flex; flex-direction: column; justify-content: space-between; padding-right: 8px; }
+    .scorecard-y-axis span { position: absolute; right: 0; font-size: 11px; color: #94a3b8; text-align: right; width: 100%; transform: translateY(50%); }
+    .scorecard-chart-container { flex: 1; position: relative; }
+    .scorecard-bars { display: flex; align-items: flex-end; justify-content: space-between; height: 320px; padding: 0 8px; gap: 6px; border-left: 2px solid #e2e8f0; border-bottom: 2px solid #e2e8f0; }
+    .scorecard-month-group { flex: 1; display: flex; justify-content: center; align-items: flex-end; gap: 4px; }
+    .scorecard-bar-wrapper { display: flex; flex-direction: column; align-items: center; }
+    .scorecard-bar { width: 26px; border-radius: 4px 4px 0 0; }
+    .scorecard-bar.active { background: linear-gradient(180deg, #08954c 0%, #2f9e44 100%); }
+    .scorecard-bar.deleted { background: linear-gradient(180deg, #F97316 0%, #ea580c 100%); }
+    .scorecard-x-axis { display: flex; justify-content: space-between; padding: 12px 8px 0; border-top: 2px solid #e2e8f0; margin-top: 8px; }
+    .scorecard-x-axis span { flex: 1; text-align: center; font-size: 11px; font-weight: 700; color: #94a3b8; }
+    .scorecard-legend { display: flex; justify-content: center; gap: 32px; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e8edf2; flex-wrap: wrap; }
+    .scorecard-legend .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #44526b; }
+    .scorecard-legend .legend-color { width: 16px; height: 16px; border-radius: 4px; }
+    .scorecard-legend .legend-color.active { background: linear-gradient(180deg, #08954c 0%, #2f9e44 100%); }
+    .scorecard-legend .legend-color.deleted { background: linear-gradient(135deg, #F97316 0%, #ea580c 100%); }
+
+    .ns-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(8,149,76,0.10); }
+    .ns-table thead tr { background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); color: #fff; }
+    .ns-table thead th { padding: 12px 16px; text-align: center; font-size: 13px; font-weight: 700; white-space: nowrap; border: none; }
+    .ns-table thead th:first-child { text-align: left; }
+    .ns-table tbody tr:nth-child(even) { background: #f8fafc; }
+    .ns-table tbody tr:nth-child(odd) { background: #fff; }
+    .ns-table tbody tr:hover { background: #eaf6ee; }
+    .ns-table tbody tr.ns-highlighted { background: #d6f3e0 !important; font-weight: 700; border-left: 4px solid #08954c; }
+    .ns-table tbody td { padding: 11px 16px; text-align: center; color: #1e293b; border-bottom: 1px solid #f1f5f9; }
+    .ns-table tbody td:first-child { text-align: left; font-weight: 700; color: #08954c; }
+    .ns-table td.ns-disc { color: #D85A30; font-weight: 700; }
+    .ns-table td.ns-disc.zero { color: #1D9E75; }
+    .ns-table td.ns-pct { font-weight: 700; }
+    .ns-table td.ns-pct.high { color: #1D9E75; }
+    .ns-table td.ns-pct.mid { color: #EF9F27; }
+    .ns-table td.ns-pct.low { color: #D85A30; }
+    .ns-table tfoot tr { background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); color: #fff; }
+    .ns-table tfoot td { padding: 12px 16px; text-align: center; font-weight: 700; color: #fff; border: none; }
+    .ns-table tfoot td:first-child { text-align: left; }
+
+    #refresherPlanTable th { background: #123a24; color: #fff; padding: 7px 5px; text-align: center; font-size: 11px; font-weight: 700; white-space: nowrap; border: 1px solid #1c5236; }
+    #refresherPlanTable th:first-child { text-align: left; min-width: 110px; }
+    #refresherPlanTable td { padding: 4px 3px; text-align: center; border: 1px solid #e2e8f0; vertical-align: middle; }
+    #refresherPlanTable td:first-child { text-align: left; font-weight: 700; color: #08954c; padding: 6px 10px; background: #f8fafc; font-size: 12px; }
+    #refresherPlanTable tbody tr:hover td { background: #eefaf1; }
+    #refresherPlanTable tfoot td { background: linear-gradient(135deg, #0b3320 0%, #08954c 100%); color: #fff; font-weight: 700; padding: 7px 5px; border: 1px solid #0b3320; text-align: center; }
+    #refresherPlanTable tfoot td:first-child { text-align: left; padding-left: 10px; }
+    .ref-plan { background: #3b82f6; color: #fff; border-radius: 4px; padding: 2px 5px; font-size: 11px; font-weight: 700; min-width: 24px; text-align: center; display: inline-block; }
+    .ref-actual { background: #08954c; color: #fff; border-radius: 4px; padding: 2px 5px; font-size: 11px; font-weight: 700; min-width: 24px; text-align: center; display: inline-block; }
+    .ref-zero { opacity: .3; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <!-- <a href="/enrollment.html">Enrollment</a> -->
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="dashboard-title-row">
+      <h1>Dashboard</h1>
+      <a class="report-btn" href="/masterTrainingReport.html">Master Training Report</a>
+    </div>
+    <p class="lead">Total registered (enrolled) users next to how many have been acknowledged Pass for Level 1, Level 2, Level 3 and Level 4.</p>
+    <div class="status" id="status"></div>
+
+    <div class="summary-cards">
+      <div class="summary-card"><div class="num" id="cardTotal">-</div><div class="lbl">Enrolled Users</div></div>
+      <div class="summary-card"><div class="num" id="cardL1">-</div><div class="lbl">Level 1 Completed</div></div>
+      <div class="summary-card"><div class="num" id="cardL2">-</div><div class="lbl">Level 2 Completed</div></div>
+      <div class="summary-card"><div class="num" id="cardL3">-</div><div class="lbl">Level 3 Completed</div></div>
+      <div class="summary-card"><div class="num" id="cardL4">-</div><div class="lbl">Level 4 Completed</div></div>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="chart-panel">
+        <h2>Enrollment &amp; Level Completion</h2>
+        <canvas id="statsChart" height="120"></canvas>
+      </div>
+
+      <div class="chart-panel">
+        <div class="panel-head">
+          <div>
+            <h2>Refresher Dashboard</h2>
+            <p class="panel-note" id="refresherPeriod">-</p>
+          </div>
+          <div class="month-controls">
+            <select id="refresherMonth" aria-label="Refresher month">
+              <option value="1">Jan</option>
+              <option value="2">Feb</option>
+              <option value="3">Mar</option>
+              <option value="4">Apr</option>
+              <option value="5">May</option>
+              <option value="6">Jun</option>
+              <option value="7">Jul</option>
+              <option value="8">Aug</option>
+              <option value="9">Sep</option>
+              <option value="10">Oct</option>
+              <option value="11">Nov</option>
+              <option value="12">Dec</option>
+            </select>
+            <input id="refresherYear" type="number" min="2000" aria-label="Refresher year">
+          </div>
+        </div>
+
+        <div class="refresher-cards">
+          <div class="mini-card"><div class="num" id="refPlannedUsers">-</div><div class="lbl">Planned Users</div></div>
+          <div class="mini-card"><div class="num" id="refCourses">-</div><div class="lbl">Refresher Courses</div></div>
+          <div class="mini-card"><div class="num" id="refCompleted">-</div><div class="lbl">Completed Items</div></div>
+          <div class="mini-card"><div class="num" id="refPending">-</div><div class="lbl">Pending Items</div></div>
+        </div>
+
+        <canvas id="refresherChart" height="150"></canvas>
+        <p class="panel-note" id="refresherEmptyNote" style="display:none; text-align:center; margin-top:10px;">No refresher plan data for this period.</p>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <button id="refreshBtn">Refresh</button>
+    </div>
+
+    <!-- ===================================================================
+         DOJO Analytics - additive section, ported from the Harman ARS
+         reference build. Nothing above this point was changed.
+         =================================================================== -->
+    <h2 class="dojo-section-title">DOJO Analytics</h2>
+    <p class="dojo-section-sub">Operator demographics, department skill matrix, monthly scorecards and the refresher training plan.</p>
+
+    <!-- Department Buttons -->
+    <div class="dept-buttons" id="deptButtonsContainer"></div>
+
+    <!-- Refresher Training Plan Button -->
+    <div style="margin: 0 0 24px 0;">
+      <button class="dept-btn" id="refresherPlanBtn" style="background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%); min-width:220px;">
+        <span class="dept-name">Refresher Training Plan</span>
+        <span style="font-size:12px; margin-top:4px; opacity:0.9;">Click to view</span>
+      </button>
+    </div>
+
+    <!-- Skill Matrix + Demographics - hidden per admin request (markup/data kept intact, just not shown) -->
+    <div class="dojo-grid" style="display:none;">
+      <div class="card" id="skillMatrixCard">
+        <div class="card-header-with-download">
+          <div class="chart-title"><span class="chart-legend">Skill Matrix</span></div>
+          <button class="download-btn" id="downloadSkillMatrix">Download</button>
+        </div>
+        <div class="chart-container"><div class="bar-chart" id="skillBarChart"></div></div>
+      </div>
+
+      <div class="card" id="demographicsCard">
+        <div class="card-header-with-download">
+          <div></div>
+          <button class="download-btn" id="downloadDemographics">Download</button>
+        </div>
+        <div class="dropdown-container">
+          <div class="custom-dropdown">
+            <div class="dropdown-trigger" id="dojoDropdownTrigger">
+              <span id="dojoSelectedOption">Education - wise</span>
+              <div class="dropdown-arrow"></div>
+            </div>
+            <div class="dropdown-menu" id="dojoDropdownMenu">
+              <div class="dropdown-option" data-value="overall">Overall</div>
+              <div class="dropdown-option" data-value="experience">Contract - wise</div>
+              <div class="dropdown-option selected" data-value="education">Education - wise</div>
+              <div class="dropdown-option" data-value="dateOfJoining">DateOfJoining - wise</div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <div class="chart-title"><span class="chart-legend" id="dojoChartLegend">Education - wise</span></div>
+          <div class="bar-chart" id="dojoBarChart"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DOJO Scorecard -->
+    <div class="scorecard-section">
+      <div class="scorecard-card" id="dojoScorecardCard">
+        <div class="scorecard-header">
+          <h2>DOJO Scorecard</h2>
+          <div style="display: flex; gap: 15px; align-items: center;">
+            <div class="year-dropdown-container" style="margin-right: 16px;">
+              <div class="custom-dropdown">
+                <div class="dropdown-trigger" id="dojoYearDropdownTrigger">
+                  <span id="dojoSelectedYear">2026</span>
+                  <div class="dropdown-arrow"></div>
+                </div>
+                <div class="dropdown-menu" id="dojoYearDropdownMenu">
+                  <div class="dropdown-option" data-year="2022">2022</div>
+                  <div class="dropdown-option" data-year="2023">2023</div>
+                  <div class="dropdown-option" data-year="2024">2024</div>
+                  <div class="dropdown-option" data-year="2025">2025</div>
+                  <div class="dropdown-option selected" data-year="2026">2026</div>
+                </div>
+              </div>
+            </div>
+            <button class="download-btn" id="downloadDojoScorecard">Download</button>
+          </div>
+        </div>
+
+        <div class="scorecard-chart-wrapper">
+          <div class="scorecard-y-axis" id="dojoScorecardYAxis"></div>
+          <div class="scorecard-chart-container">
+            <div class="scorecard-bars" id="dojoScorecardBars"></div>
+            <div class="scorecard-x-axis">
+              <span>JAN</span><span>FEB</span><span>MAR</span><span>APR</span>
+              <span>MAY</span><span>JUN</span><span>JUL</span><span>AUG</span>
+              <span>SEP</span><span>OCT</span><span>NOV</span><span>DEC</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="scorecard-legend">
+          <div class="legend-item"><span class="legend-color active"></span><span>Registered Users</span></div>
+          <div class="legend-item"><span class="legend-color deleted"></span><span>Deleted Users</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Numeric Scorecard Table - hidden per admin request (data/markup kept intact, just not shown) -->
+    <div class="scorecard-section" style="display:none;">
+      <div class="scorecard-card" id="numericScorecardCard">
+        <div class="scorecard-header">
+          <h2>DOJO Numeric Scorecard</h2>
+          <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
+            <div class="year-dropdown-container">
+              <div class="custom-dropdown">
+                <div class="dropdown-trigger" id="nsYearTrigger">
+                  <span id="nsSelectedYear">2026</span>
+                  <div class="dropdown-arrow"></div>
+                </div>
+                <div class="dropdown-menu" id="nsYearMenu">
+                  <div class="dropdown-option" data-year="2022">2022</div>
+                  <div class="dropdown-option" data-year="2023">2023</div>
+                  <div class="dropdown-option" data-year="2024">2024</div>
+                  <div class="dropdown-option" data-year="2025">2025</div>
+                  <div class="dropdown-option selected" data-year="2026">2026</div>
+                </div>
+              </div>
+            </div>
+            <div class="year-dropdown-container">
+              <div class="custom-dropdown">
+                <div class="dropdown-trigger" id="nsMonthTrigger">
+                  <span id="nsSelectedMonth">All Months</span>
+                  <div class="dropdown-arrow"></div>
+                </div>
+                <div class="dropdown-menu" id="nsMonthMenu">
+                  <div class="dropdown-option selected" data-month="">All Months</div>
+                  <div class="dropdown-option" data-month="1">January</div>
+                  <div class="dropdown-option" data-month="2">February</div>
+                  <div class="dropdown-option" data-month="3">March</div>
+                  <div class="dropdown-option" data-month="4">April</div>
+                  <div class="dropdown-option" data-month="5">May</div>
+                  <div class="dropdown-option" data-month="6">June</div>
+                  <div class="dropdown-option" data-month="7">July</div>
+                  <div class="dropdown-option" data-month="8">August</div>
+                  <div class="dropdown-option" data-month="9">September</div>
+                  <div class="dropdown-option" data-month="10">October</div>
+                  <div class="dropdown-option" data-month="11">November</div>
+                  <div class="dropdown-option" data-month="12">December</div>
+                </div>
+              </div>
+            </div>
+            <button class="download-btn" id="downloadNumericScorecard">Download</button>
+          </div>
+        </div>
+
+        <div style="overflow-x:auto; margin-top:20px;">
+          <table class="ns-table" id="nsTable">
+            <thead>
+              <tr>
+                <th>Month</th>
+                <th>No. of Operators Joined</th>
+                <th>Operators Trained in DOJO</th>
+                <th>No. of Operators Discontinued or Abs.</th>
+                <th>% of Operators Trained</th>
+              </tr>
+            </thead>
+            <tbody id="nsTableBody"><tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">Loading data...</td></tr></tbody>
+            <tfoot id="nsTableFoot"></tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Department Modal -->
+    <div class="dept-modal-overlay" id="deptModalOverlay">
+      <div class="dept-modal" id="deptModalCard">
+        <div class="dept-modal-top">
+          <div>
+            <div class="dept-modal-badge" id="deptModalBadge">Department</div>
+            <h2 class="dept-modal-title" id="deptModalTitle">—</h2>
+            <p class="dept-modal-sub">Level-wise completion breakdown</p>
+          </div>
+          <button class="dept-modal-close" id="deptModalClose">&#10005;</button>
+        </div>
+
+        <div class="dept-stat-row" id="deptStatRow">
+          <div class="dept-stat-card highlight"><div class="dept-stat-label">Total Strength</div><div class="dept-stat-value" id="dsc0">—</div></div>
+          <div class="dept-stat-card"><div class="dept-stat-label">Level 1</div><div class="dept-stat-value" id="dsc1">—</div></div>
+          <div class="dept-stat-card"><div class="dept-stat-label">Level 2</div><div class="dept-stat-value" id="dsc2">—</div></div>
+          <div class="dept-stat-card"><div class="dept-stat-label">Level 3</div><div class="dept-stat-value" id="dsc3">—</div></div>
+          <div class="dept-stat-card"><div class="dept-stat-label">Level 4</div><div class="dept-stat-value" id="dsc4">—</div></div>
+        </div>
+
+        <div id="deptModalBody">
+          <div style="position:relative; width:100%; height:280px;"><canvas id="deptModalChart"></canvas></div>
+        </div>
+
+        <div class="dept-legend-row">
+          <div class="dept-legend-item"><span class="dept-legend-dot" style="background:#1D9E75"></span>Total Strength</div>
+          <div class="dept-legend-item"><span class="dept-legend-dot" style="background:#378ADD"></span>Level 1</div>
+          <div class="dept-legend-item"><span class="dept-legend-dot" style="background:#7F77DD"></span>Level 2</div>
+          <div class="dept-legend-item"><span class="dept-legend-dot" style="background:#EF9F27"></span>Level 3</div>
+          <div class="dept-legend-item"><span class="dept-legend-dot" style="background:#D85A30"></span>Level 4</div>
+        </div>
+
+        <div class="dept-modal-footer"><button class="download-btn" id="downloadDeptModal">Download PDF</button></div>
+      </div>
+    </div>
+
+    <!-- Refresher Training Plan Modal -->
+    <div class="dept-modal-overlay" id="refresherPlanOverlay">
+      <div class="refresher-modal-inner">
+        <div class="dept-modal-top">
+          <div>
+            <div class="dept-modal-badge" style="background:#dcfce7; color:#166534;">Refresher</div>
+            <h2 class="dept-modal-title">Refresher Training Plan</h2>
+            <p class="dept-modal-sub">Department-wise monthly eligible vs completed</p>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <select id="refresherPlanYearSelect" style="padding:7px 12px; border:1px solid #cbd5e1; border-radius:8px; font-size:13px; font-weight:700; outline:none; cursor:pointer; color:#08954c;">
+              <option value="2023">2023</option>
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+            </select>
+            <button class="dept-modal-close" id="refresherPlanClose">&#10005;</button>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:16px; margin-bottom:14px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#667085;">
+            <span style="width:16px; height:16px; background:#3b82f6; border-radius:3px; display:inline-block;"></span> Plan (Eligible)
+          </div>
+          <div style="display:flex; align-items:center; gap:6px; font-size:12px; color:#667085;">
+            <span style="width:16px; height:16px; background:#08954c; border-radius:3px; display:inline-block;"></span> Actual (Completed)
+          </div>
+        </div>
+
+        <div id="refresherPlanLoading" style="text-align:center; padding:40px; color:#667085; font-size:15px;">Loading…</div>
+
+        <div id="refresherPlanTableWrap" style="display:none; overflow-x:auto;">
+          <table id="refresherPlanTable" style="width:100%; border-collapse:collapse; font-size:11px; min-width:1000px;">
+            <thead id="refresherPlanThead"></thead>
+            <tbody id="refresherPlanTbody"></tbody>
+            <tfoot id="refresherPlanTfoot"></tfoot>
+          </table>
+        </div>
+
+        <div class="dept-modal-footer"><button class="download-btn" id="downloadRefresherPlan">Download PDF</button></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    let statsChart = null;
+    let refresherChart = null;
+
+    function setStatus(message) {
+      statusEl.textContent = message || '';
+    }
+
+    async function loadStats() {
+      setStatus('');
+      try {
+        const response = await fetch('/api/admin/dashboardStats');
+        const data = await response.json();
+        if (!response.ok || data.success === false) {
+          throw new Error(data.error || 'Could not load dashboard stats');
+        }
+
+        document.getElementById('cardTotal').textContent = data.totalUsers;
+        document.getElementById('cardL1').textContent = data.level1Completed;
+        document.getElementById('cardL2').textContent = data.level2Completed;
+        document.getElementById('cardL3').textContent = data.level3Completed;
+        document.getElementById('cardL4').textContent = data.level4Completed;
+
+        const labels = ['Enrolled Users', 'Level 1 Completed', 'Level 2 Completed', 'Level 3 Completed', 'Level 4 Completed'];
+        const values = [data.totalUsers, data.level1Completed, data.level2Completed, data.level3Completed, data.level4Completed];
+        const colors = ['#172033', '#08954c', '#2f9e44', '#4fae63', '#7fc79a'];
+
+        const ctx = document.getElementById('statsChart').getContext('2d');
+        if (statsChart) {
+          statsChart.data.labels = labels;
+          statsChart.data.datasets[0].data = values;
+          statsChart.update();
+        } else {
+          statsChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+              labels: labels,
+              datasets: [{
+                label: 'Users',
+                data: values,
+                backgroundColor: colors,
+                borderRadius: 6
+              }]
+            },
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: { display: false }
+              },
+              scales: {
+                y: {
+                  beginAtZero: true,
+                  ticks: { precision: 0 }
+                }
+              }
+            }
+          });
+        }
+      } catch (error) {
+        setStatus(error.message);
+      }
+    }
+
+    async function loadRefresherStats() {
+      const month = Number(document.getElementById('refresherMonth').value);
+      const year = Number(document.getElementById('refresherYear').value);
+
+      try {
+        const response = await fetch(`/api/admin/refresherDashboardStats?month=${encodeURIComponent(month)}&year=${encodeURIComponent(year)}`);
+        const data = await response.json();
+        if (!response.ok || data.success === false) {
+          throw new Error(data.error || 'Could not load refresher dashboard stats');
+        }
+
+        document.getElementById('refresherPeriod').textContent = `${monthNames[month - 1]} ${year}`;
+        document.getElementById('refPlannedUsers').textContent = data.plannedUsers;
+        document.getElementById('refCourses').textContent = data.totalCourses;
+        document.getElementById('refCompleted').textContent = data.completedCourses;
+        document.getElementById('refPending').textContent = data.pendingCourses;
+
+        const canvasEl = document.getElementById('refresherChart');
+        const emptyNoteEl = document.getElementById('refresherEmptyNote');
+        const hasData = (Number(data.completedCourses) + Number(data.pendingCourses)) > 0;
+
+        if (!hasData) {
+          // Nothing planned/assigned for this period - a doughnut chart with
+          // all-zero values draws an invisible ring, which reads as "broken".
+          // Show an explicit empty-state note instead.
+          if (refresherChart) {
+            refresherChart.destroy();
+            refresherChart = null;
+          }
+          canvasEl.style.display = 'none';
+          emptyNoteEl.style.display = '';
+          return;
+        }
+
+        canvasEl.style.display = '';
+        emptyNoteEl.style.display = 'none';
+
+        const labels = ['Completed', 'Pending'];
+        const values = [data.completedCourses, data.pendingCourses];
+        const ctx = canvasEl.getContext('2d');
+
+        if (refresherChart) {
+          refresherChart.data.datasets[0].data = values;
+          refresherChart.update();
+        } else {
+          refresherChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels,
+              datasets: [{
+                data: values,
+                backgroundColor: ['#08954c', '#f3ba00'],
+                borderColor: ['#ffffff', '#ffffff'],
+                borderWidth: 3
+              }]
+            },
+            options: {
+              responsive: true,
+              cutout: '62%',
+              plugins: {
+                legend: { position: 'bottom' },
+                title: {
+                  display: true,
+                  text: `${data.completionPercent}% complete`
+                }
+              }
+            }
+          });
+        }
+
+        refresherChart.options.plugins.title.text = `${data.completionPercent}% complete`;
+        refresherChart.update();
+      } catch (error) {
+        setStatus(error.message);
+      }
+    }
+
+    function loadDashboard() {
+      loadStats();
+      loadRefresherStats();
+    }
+
+    const today = new Date();
+    document.getElementById('refresherMonth').value = String(today.getMonth() + 1);
+    document.getElementById('refresherYear').value = String(today.getFullYear());
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+    document.getElementById('refresherMonth').addEventListener('change', loadRefresherStats);
+    document.getElementById('refresherYear').addEventListener('change', loadRefresherStats);
+    loadStats();
+    loadRefresherStats();
+
+    // ===================================================================
+    // DOJO Analytics - additive, ported from the Harman ARS reference
+    // build's demo-dojo-dashbaord.html. All new names below (chartData,
+    // renderChart, currentYear, etc.) are distinct from the existing
+    // dashboard code above (statsChart, refresherChart, loadStats, ...) -
+    // nothing above this point is referenced or modified.
+    // ===================================================================
+
+    // ---- Demographics + Skill Matrix bar charts ----
+    const dojoChartData = {
+      overall: { title: 'Overall', categories: [] },
+      experience: { title: 'Contract - wise', categories: [] },
+      education: { title: 'Education - wise', categories: [] },
+      dateOfJoining: { title: 'DateOfJoining - wise', categories: [] }
+    };
+    let dojoSkillMatrixData = { categories: [] };
+
+    function renderBarChart(containerEl, categories, withDividers) {
+      containerEl.innerHTML = '';
+      if (!categories.length) return;
+      const maxValue = Math.max(...categories.map(c => c.value), 1);
+      const maxHeight = 300;
+      let lastCategory = null;
+      categories.forEach(category => {
+        if (withDividers && lastCategory && lastCategory !== category.category) {
+          containerEl.appendChild(Object.assign(document.createElement('div'), { className: 'chart-divider' }));
+        }
+        lastCategory = category.category;
+        const barGroup = document.createElement('div');
+        barGroup.className = 'bar-group';
+        const barWrapper = document.createElement('div');
+        barWrapper.className = 'bar-wrapper';
+        const barValue = document.createElement('div');
+        barValue.className = 'bar-value';
+        barValue.textContent = category.value;
+        const bar = document.createElement('div');
+        bar.className = 'bar';
+        bar.style.height = `${(category.value / maxValue) * maxHeight}px`;
+        const barLabel = document.createElement('div');
+        barLabel.className = 'bar-label';
+        barLabel.textContent = category.label;
+        const categoryLabel = document.createElement('div');
+        categoryLabel.className = 'category-label';
+        categoryLabel.textContent = category.category;
+        barWrapper.appendChild(barValue);
+        barWrapper.appendChild(bar);
+        barGroup.appendChild(barWrapper);
+        barGroup.appendChild(barLabel);
+        barGroup.appendChild(categoryLabel);
+        containerEl.appendChild(barGroup);
+      });
+    }
+
+    function renderSkillMatrixChart() {
+      renderBarChart(document.getElementById('skillBarChart'), dojoSkillMatrixData.categories, false);
+    }
+
+    function renderDojoChart(dataKey) {
+      const data = dojoChartData[dataKey];
+      if (!data) return;
+      document.getElementById('dojoChartLegend').textContent = data.title;
+      renderBarChart(document.getElementById('dojoBarChart'), data.categories, true);
+    }
+
+    const dojoDropdownTrigger = document.getElementById('dojoDropdownTrigger');
+    const dojoDropdownMenu = document.getElementById('dojoDropdownMenu');
+    const dojoSelectedOption = document.getElementById('dojoSelectedOption');
+
+    dojoDropdownTrigger.addEventListener('click', () => {
+      dojoDropdownTrigger.classList.toggle('active');
+      dojoDropdownMenu.classList.toggle('active');
+    });
+    dojoDropdownMenu.querySelectorAll('.dropdown-option').forEach(option => {
+      option.addEventListener('click', () => {
+        dojoSelectedOption.textContent = option.textContent;
+        dojoDropdownMenu.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        dojoDropdownTrigger.classList.remove('active');
+        dojoDropdownMenu.classList.remove('active');
+        renderDojoChart(option.getAttribute('data-value'));
+      });
+    });
+
+    async function fetchDojoDashboardData() {
+      try {
+        const response = await fetch('/api/dojo/dashboard-stats');
+        const data = await response.json();
+        dojoChartData.overall.categories = data.overall || [];
+        dojoChartData.experience.categories = data.experience || [];
+        dojoChartData.education.categories = data.education || [];
+        dojoChartData.dateOfJoining.categories = data.dateOfJoining || [];
+        if (Array.isArray(data.skillMatrix)) {
+          dojoSkillMatrixData.categories = data.skillMatrix;
+          renderSkillMatrixChart();
+        }
+        const sel = dojoDropdownMenu.querySelector('.dropdown-option.selected');
+        renderDojoChart(sel ? sel.getAttribute('data-value') : 'education');
+      } catch (error) {
+        console.error('Error fetching DOJO dashboard data:', error);
+      }
+    }
+    fetchDojoDashboardData();
+
+    // ---- DOJO Scorecard (registered vs deleted, by month) ----
+    let dojoScorecardYear = 2026;
+
+    function getNiceStep(maxValue) {
+      if (maxValue <= 10) return 2;
+      if (maxValue <= 25) return 5;
+      if (maxValue <= 50) return 10;
+      if (maxValue <= 100) return 20;
+      if (maxValue <= 200) return 25;
+      if (maxValue <= 500) return 50;
+      return 100;
+    }
+
+    function renderDojoScorecardYAxis(maxValue) {
+      const yAxis = document.getElementById('dojoScorecardYAxis');
+      yAxis.innerHTML = '';
+      const step = getNiceStep(maxValue);
+      const roundedMax = Math.ceil(maxValue / step) * step;
+      for (let val = 0; val <= roundedMax; val += step) {
+        const label = document.createElement('span');
+        label.textContent = val;
+        label.style.bottom = `${(val / roundedMax) * 320}px`;
+        yAxis.appendChild(label);
+      }
+      return roundedMax;
+    }
+
+    function renderDojoScorecardChart(data) {
+      const chartContainer = document.getElementById('dojoScorecardBars');
+      chartContainer.innerHTML = '';
+      const maxValue = Math.max(...data.flatMap(m => [m.activeUsers, m.deletedUsers]), 10);
+      const scaledMax = renderDojoScorecardYAxis(maxValue);
+      data.forEach(monthData => {
+        const monthGroup = document.createElement('div');
+        monthGroup.className = 'scorecard-month-group';
+        ['active', 'deleted'].forEach(type => {
+          const wrapper = document.createElement('div');
+          wrapper.className = 'scorecard-bar-wrapper';
+          const bar = document.createElement('div');
+          bar.className = `scorecard-bar ${type}`;
+          bar.style.height = `${(monthData[type === 'active' ? 'activeUsers' : 'deletedUsers'] / scaledMax) * 320}px`;
+          wrapper.appendChild(bar);
+          monthGroup.appendChild(wrapper);
+        });
+        chartContainer.appendChild(monthGroup);
+      });
+    }
+
+    async function fetchDojoScorecardData(year) {
+      try {
+        const response = await fetch(`/api/dojo/scorecard?year=${year}`);
+        renderDojoScorecardChart(await response.json());
+      } catch (error) {
+        console.error('Error fetching DOJO scorecard data:', error);
+      }
+    }
+    fetchDojoScorecardData(dojoScorecardYear);
+
+    const dojoYearDropdownTrigger = document.getElementById('dojoYearDropdownTrigger');
+    const dojoYearDropdownMenu = document.getElementById('dojoYearDropdownMenu');
+    dojoYearDropdownTrigger.addEventListener('click', () => {
+      dojoYearDropdownTrigger.classList.toggle('active');
+      dojoYearDropdownMenu.classList.toggle('active');
+    });
+    dojoYearDropdownMenu.querySelectorAll('.dropdown-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.getElementById('dojoSelectedYear').textContent = option.getAttribute('data-year');
+        dojoYearDropdownMenu.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        dojoYearDropdownTrigger.classList.remove('active');
+        dojoYearDropdownMenu.classList.remove('active');
+        dojoScorecardYear = option.getAttribute('data-year');
+        fetchDojoScorecardData(dojoScorecardYear);
+      });
+    });
+
+    // ---- Shared PDF download helper (DOJO cards/modals only) ----
+    function downloadDojoPDF(elementId, filename, opts) {
+      const element = document.getElementById(elementId);
+      element.classList.add('pdf-mode');
+      element.offsetHeight;
+      setTimeout(() => {
+        html2pdf().set(Object.assign({
+          margin: 0.5,
+          filename,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, logging: false, allowTaint: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        }, opts || {})).from(element).save()
+          .then(() => element.classList.remove('pdf-mode'))
+          .catch(() => element.classList.remove('pdf-mode'));
+      }, 300);
+    }
+
+    document.getElementById('downloadSkillMatrix').addEventListener('click', () => downloadDojoPDF('skillMatrixCard', 'SkillMatrix.pdf'));
+    document.getElementById('downloadDemographics').addEventListener('click', () => downloadDojoPDF('demographicsCard', 'Demographics.pdf'));
+    document.getElementById('downloadDojoScorecard').addEventListener('click', () => downloadDojoPDF('dojoScorecardCard', 'DOJOScorecard.pdf'));
+
+    // ---- Department buttons + Level 1-4 modal ----
+    const deptButtonsContainer = document.getElementById('deptButtonsContainer');
+    const deptModalOverlay = document.getElementById('deptModalOverlay');
+    const deptModalTitle = document.getElementById('deptModalTitle');
+    const deptModalBadge = document.getElementById('deptModalBadge');
+    const deptModalClose = document.getElementById('deptModalClose');
+    const DOJO_LEVEL_COLORS = ['#1D9E75', '#378ADD', '#7F77DD', '#EF9F27', '#D85A30'];
+    let deptChartInstance = null;
+
+    async function loadDepartmentButtons() {
+      try {
+        const res = await fetch('/api/hierarchy/departments');
+        const data = await res.json();
+        const depts = data.departments || [];
+        deptButtonsContainer.innerHTML = '';
+        depts.forEach(dept => {
+          const btn = document.createElement('button');
+          btn.className = 'dept-btn';
+          btn.dataset.dept = dept.deptID;
+          btn.innerHTML = `<span class="dept-name">${dept.deptName}</span><span class="count" id="deptCount_${dept.deptID}">...</span>`;
+          fetch(`/api/dojo/department-stats?dept=${dept.deptID}`)
+            .then(r => r.json())
+            .then(data => {
+              const el = document.getElementById(`deptCount_${dept.deptID}`);
+              if (el) el.textContent = data.totalStrength;
+            })
+            .catch(() => {
+              const el = document.getElementById(`deptCount_${dept.deptID}`);
+              if (el) el.textContent = '—';
+            });
+          btn.addEventListener('click', () => openDeptModal(dept.deptID, dept.deptName));
+          deptButtonsContainer.appendChild(btn);
+        });
+      } catch (err) {
+        console.error('Failed to load departments:', err);
+        deptButtonsContainer.innerHTML = '<p style="color:red">Failed to load departments.</p>';
+      }
+    }
+
+    async function openDeptModal(deptID, deptName) {
+      deptModalTitle.textContent = `${deptName} — Skill Matrix`;
+      deptModalBadge.textContent = deptName;
+      ['dsc0', 'dsc1', 'dsc2', 'dsc3', 'dsc4'].forEach(id => document.getElementById(id).textContent = '...');
+      if (deptChartInstance) { deptChartInstance.destroy(); deptChartInstance = null; }
+      deptModalOverlay.classList.add('active');
+      try {
+        const res = await fetch(`/api/dojo/department-stats?dept=${deptID}`);
+        const data = await res.json();
+        const vals = [data.totalStrength, data.level1, data.level2, data.level3, data.level4];
+        vals.forEach((v, i) => document.getElementById(`dsc${i}`).textContent = v);
+        const countEl = document.getElementById(`deptCount_${deptID}`);
+        if (countEl) countEl.textContent = data.totalStrength;
+        const ctx = document.getElementById('deptModalChart').getContext('2d');
+        deptChartInstance = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: ['Total Strength', 'Level 1', 'Level 2', 'Level 3', 'Level 4'],
+            datasets: [{ data: vals, backgroundColor: DOJO_LEVEL_COLORS, borderRadius: 8, borderSkipped: false, barPercentage: 0.55 }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} operators` } } },
+            scales: {
+              x: { grid: { display: false } },
+              y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' } }
+            }
+          }
+        });
+      } catch (err) {
+        ['dsc0', 'dsc1', 'dsc2', 'dsc3', 'dsc4'].forEach(id => document.getElementById(id).textContent = '—');
+        console.error('Dept modal error:', err);
+      }
+    }
+
+    deptModalClose.addEventListener('click', () => deptModalOverlay.classList.remove('active'));
+    deptModalOverlay.addEventListener('click', e => { if (e.target === deptModalOverlay) deptModalOverlay.classList.remove('active'); });
+
+    document.getElementById('downloadDeptModal').addEventListener('click', () => {
+      const deptName = deptModalTitle.textContent.replace(/[\s—]/g, '_');
+      downloadDojoPDF('deptModalCard', `${deptName}.pdf`, { margin: 0.4 });
+    });
+
+    loadDepartmentButtons();
+
+    // ---- Numeric Scorecard table ----
+    let nsYear = 2026;
+    let nsMonth = null;
+
+    async function fetchNumericScorecard() {
+      const tbody = document.getElementById('nsTableBody');
+      const tfoot = document.getElementById('nsTableFoot');
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#94a3b8;">Loading...</td></tr>`;
+      tfoot.innerHTML = '';
+      try {
+        const url = `/api/dojo/numeric-scorecard?year=${nsYear}${nsMonth ? '&month=' + nsMonth : ''}`;
+        const json = await (await fetch(url)).json();
+        renderNumericTable(json.data, json.month);
+      } catch (err) {
+        console.error('Numeric scorecard fetch error:', err);
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:30px;color:#D85A30;">Failed to load data.</td></tr>`;
+      }
+    }
+
+    function getPctClass(pct) {
+      if (pct >= 75) return 'high';
+      if (pct >= 40) return 'mid';
+      return 'low';
+    }
+
+    function renderNumericTable(data, selectedMonth) {
+      const tbody = document.getElementById('nsTableBody');
+      const tfoot = document.getElementById('nsTableFoot');
+      tbody.innerHTML = '';
+      let totalJoined = 0, totalTrained = 0, totalDisc = 0;
+      data.forEach(row => {
+        const isHighlighted = selectedMonth && row.monthIndex === parseInt(selectedMonth);
+        const tr = document.createElement('tr');
+        if (isHighlighted) tr.classList.add('ns-highlighted');
+        tr.innerHTML = `
+          <td>${row.month}</td>
+          <td>${row.joined}</td>
+          <td>${row.trained}</td>
+          <td class="${row.discontinued === 0 ? 'ns-disc zero' : 'ns-disc'}">${row.discontinued}</td>
+          <td class="ns-pct ${getPctClass(row.percentage)}">${row.percentage}%</td>
+        `;
+        tbody.appendChild(tr);
+        totalJoined += row.joined;
+        totalTrained += row.trained;
+        totalDisc += row.discontinued;
+      });
+      const totalPct = totalJoined > 0 ? ((totalTrained / totalJoined) * 100).toFixed(1) : '0.0';
+      tfoot.innerHTML = `<tr><td>TOTAL</td><td>${totalJoined}</td><td>${totalTrained}</td><td>${totalDisc}</td><td>${totalPct}%</td></tr>`;
+    }
+
+    const nsYearTrigger = document.getElementById('nsYearTrigger');
+    const nsYearMenu = document.getElementById('nsYearMenu');
+    const nsMonthTrigger = document.getElementById('nsMonthTrigger');
+    const nsMonthMenu = document.getElementById('nsMonthMenu');
+
+    nsYearTrigger.addEventListener('click', () => { nsYearTrigger.classList.toggle('active'); nsYearMenu.classList.toggle('active'); });
+    nsYearMenu.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        nsYear = parseInt(opt.dataset.year);
+        document.getElementById('nsSelectedYear').textContent = nsYear;
+        nsYearMenu.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        nsYearTrigger.classList.remove('active'); nsYearMenu.classList.remove('active');
+        fetchNumericScorecard();
+      });
+    });
+
+    nsMonthTrigger.addEventListener('click', () => { nsMonthTrigger.classList.toggle('active'); nsMonthMenu.classList.toggle('active'); });
+    nsMonthMenu.querySelectorAll('.dropdown-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        nsMonth = opt.dataset.month || null;
+        document.getElementById('nsSelectedMonth').textContent = opt.textContent;
+        nsMonthMenu.querySelectorAll('.dropdown-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        nsMonthTrigger.classList.remove('active'); nsMonthMenu.classList.remove('active');
+        fetchNumericScorecard();
+      });
+    });
+
+    document.addEventListener('click', e => {
+      if (!dojoDropdownTrigger.contains(e.target) && !dojoDropdownMenu.contains(e.target)) { dojoDropdownTrigger.classList.remove('active'); dojoDropdownMenu.classList.remove('active'); }
+      if (!dojoYearDropdownTrigger.contains(e.target) && !dojoYearDropdownMenu.contains(e.target)) { dojoYearDropdownTrigger.classList.remove('active'); dojoYearDropdownMenu.classList.remove('active'); }
+      if (!nsYearTrigger.contains(e.target) && !nsYearMenu.contains(e.target)) { nsYearTrigger.classList.remove('active'); nsYearMenu.classList.remove('active'); }
+      if (!nsMonthTrigger.contains(e.target) && !nsMonthMenu.contains(e.target)) { nsMonthTrigger.classList.remove('active'); nsMonthMenu.classList.remove('active'); }
+    });
+
+    document.getElementById('downloadNumericScorecard').addEventListener('click', () => {
+      downloadDojoPDF('numericScorecardCard', `DOJO_Numeric_Scorecard_${nsYear}.pdf`);
+    });
+
+    fetchNumericScorecard();
+
+    // ---- Refresher Training Plan modal ----
+    const refresherPlanOverlay = document.getElementById('refresherPlanOverlay');
+    const refresherPlanYearSelect = document.getElementById('refresherPlanYearSelect');
+    const DOJO_MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+    document.getElementById('refresherPlanBtn').addEventListener('click', () => {
+      refresherPlanOverlay.classList.add('active');
+      loadRefresherPlan();
+    });
+    document.getElementById('refresherPlanClose').addEventListener('click', () => {
+      refresherPlanOverlay.classList.remove('active');
+    });
+    refresherPlanOverlay.addEventListener('click', e => {
+      if (e.target === refresherPlanOverlay) refresherPlanOverlay.classList.remove('active');
+    });
+    refresherPlanYearSelect.addEventListener('change', loadRefresherPlan);
+
+    async function loadRefresherPlan() {
+      const year = refresherPlanYearSelect.value;
+      const loading = document.getElementById('refresherPlanLoading');
+      const wrap = document.getElementById('refresherPlanTableWrap');
+      loading.style.display = 'block';
+      loading.textContent = 'Loading…';
+      wrap.style.display = 'none';
+      try {
+        const res = await fetch(`/api/refresher/training-plan?year=${year}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed');
+        renderRefresherPlanTable(data);
+        loading.style.display = 'none';
+        wrap.style.display = 'block';
+      } catch (e) {
+        loading.textContent = 'Failed to load: ' + e.message;
+      }
+    }
+
+    function renderRefresherPlanTable(data) {
+      const thead = document.getElementById('refresherPlanThead');
+      const tbody = document.getElementById('refresherPlanTbody');
+      const tfoot = document.getElementById('refresherPlanTfoot');
+
+      let hRow1 = `<tr><th rowspan="2" style="vertical-align:middle; text-align:left;">Department</th>`;
+      DOJO_MONTH_SHORT.forEach(m => { hRow1 += `<th colspan="2">${m}</th>`; });
+      hRow1 += `<th colspan="2">Total</th></tr>`;
+
+      let hRow2 = `<tr>`;
+      for (let i = 0; i < 13; i++) {
+        hRow2 += `<th style="background:#3b82f6; font-size:10px; padding:5px 4px;">Plan</th><th style="background:#08954c; font-size:10px; padding:5px 4px;">Actual</th>`;
+      }
+      hRow2 += `</tr>`;
+      thead.innerHTML = hRow1 + hRow2;
+
+      tbody.innerHTML = '';
+      data.departments.forEach(dept => {
+        let row = `<tr><td>${dept.deptName}</td>`;
+        dept.months.forEach(m => {
+          row += `
+            <td style="padding:3px;"><span class="ref-plan ${m.eligible === 0 ? 'ref-zero' : ''}">${m.eligible}</span></td>
+            <td style="padding:3px;"><span class="ref-actual ${m.completed === 0 ? 'ref-zero' : ''}">${m.completed}</span></td>
+          `;
+        });
+        row += `
+          <td style="padding:3px;"><span class="ref-plan">${dept.totalEligible}</span></td>
+          <td style="padding:3px;"><span class="ref-actual">${dept.totalCompleted}</span></td>
+        </tr>`;
+        tbody.innerHTML += row;
+      });
+
+      let foot = `<tr><td>Total</td>`;
+      data.grandTotal.months.forEach(m => { foot += `<td>${m.eligible}</td><td>${m.completed}</td>`; });
+      foot += `<td>${data.grandTotal.totalEligible}</td><td>${data.grandTotal.totalCompleted}</td></tr>`;
+      tfoot.innerHTML = foot;
+    }
+
+    document.getElementById('downloadRefresherPlan').addEventListener('click', () => {
+      const card = document.querySelector('#refresherPlanOverlay .refresher-modal-inner');
+      const year = refresherPlanYearSelect.value;
+      card.classList.add('pdf-mode');
+      card.offsetHeight;
+      setTimeout(() => {
+        html2pdf().set({
+          margin: 0.3,
+          filename: `Refresher_Training_Plan_${year}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' },
+          jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
+        }).from(card).save().then(() => card.classList.remove('pdf-mode'));
+      }, 300);
+    });
+  </script>
+</body>
+
+</html>

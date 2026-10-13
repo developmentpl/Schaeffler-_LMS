@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practical Evaluation</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f7fb; background-image: radial-gradient(circle at 10% 15%, rgba(8,149,76,.10), transparent 45%), radial-gradient(circle at 88% 90%, rgba(8,149,76,.08), transparent 40%); background-attachment: fixed; color: #172033; }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { max-width: 1100px; margin: 28px auto; padding: 0 20px 112px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .toolbar { display: flex; justify-content: flex-end; margin-bottom: 14px; }
+    .btn { border: 0; border-radius: 6px; padding: 10px 16px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; }
+    .tabs { display: flex; gap: 8px; margin-bottom: 18px; border-bottom: 1px solid #d9e1ec; }
+    .tab { padding: 12px 20px; cursor: pointer; font-weight: 700; color: #6b7a90; border-bottom: 3px solid transparent; }
+    .tab.active { color: #08954c; border-bottom-color: #08954c; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 22px; }
+    .panel.hidden { display: none; }
+    .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+    select { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; font-size: 14px; }
+    th { background: #f7f9fc; color: #44526b; }
+    .courseCard { display: flex; justify-content: space-between; align-items: center; padding: 14px; border: 1px solid #e6edf5; border-radius: 8px; margin-bottom: 10px; cursor: pointer; }
+    .courseCard:hover { background: #eef5fc; }
+    .courseCard .name { font-weight: 700; }
+    .courseCard .level { font-size: 12px; color: #6b7a90; }
+    .empty { color: #6b7a90; font-style: italic; padding: 20px; text-align: center; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 20px 0; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+    footer p { margin: 0; }
+    @media (max-width: 800px) { .filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Practical Evaluation</h1>
+    <p class="lead">Pick a Practical course to see its eligible users, then click a user to fill in their OJT Observance &amp; Evaluation form.</p>
+    <div class="toolbar"><a class="btn" href="/uploadPracticalCourse.html">+ Add Practical Course</a></div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="level1">Level 1 Practical</div>
+      <div class="tab" data-tab="level2plus">Level 2 and Above Practical</div>
+    </div>
+
+    <div class="panel" id="panel-level1">
+      <table>
+        <thead><tr><th>Course Name</th><th>Date Added</th><th></th></tr></thead>
+        <tbody id="level1Rows"><tr><td colspan="3" class="empty">Loading...</td></tr></tbody>
+      </table>
+    </div>
+
+    <div class="panel hidden" id="panel-level2plus">
+      <div class="filters">
+        <div>
+          <label for="deptSelect">Department</label>
+          <select id="deptSelect"><option value="">Select department</option></select>
+        </div>
+        <div>
+          <label for="areaSelect">Segment / Area</label>
+          <select id="areaSelect" disabled><option value="">Select department first</option></select>
+        </div>
+        <div>
+          <label for="processSelect">Process / Line</label>
+          <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Course Name</th><th>Level</th><th>Date Added</th><th></th></tr></thead>
+        <tbody id="level2Rows"><tr><td colspan="4" class="empty">Select a Department, Segment/Area and Process/Line above.</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function openCourse(course, level) {
+      const params = new URLSearchParams({
+        subCourseID: course.subCourseID,
+        courseName: course.subCourseName,
+        level: course.subCourseLevel || level,
+      });
+      window.location.href = `/practicalEligibleUsers.html?${params.toString()}`;
+    }
+
+    // ---- Tabs ----
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById('panel-level1').classList.toggle('hidden', tab.dataset.tab !== 'level1');
+        document.getElementById('panel-level2plus').classList.toggle('hidden', tab.dataset.tab !== 'level2plus');
+      });
+    });
+
+    // ---- Level 1 ----
+    async function loadLevel1() {
+      const rowsEl = document.getElementById('level1Rows');
+      try {
+        const data = await requestJson('/api/practical/courses?level=' + encodeURIComponent('Level 1'));
+        const courses = data.courses || [];
+        if (!courses.length) {
+          rowsEl.innerHTML = '<tr><td colspan="3" class="empty">No Level 1 practical courses yet. Add one above.</td></tr>';
+          return;
+        }
+        rowsEl.innerHTML = '';
+        courses.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.innerHTML = `<td>${c.subCourseName}</td><td>${c.subCourseDate ? String(c.subCourseDate).slice(0, 10) : ''}</td><td><a class="btn" style="padding:6px 12px;">Open</a></td>`;
+          tr.addEventListener('click', () => openCourse(c, 'Level 1'));
+          rowsEl.appendChild(tr);
+        });
+      } catch (error) {
+        rowsEl.innerHTML = `<tr><td colspan="3" class="empty">${error.message}</td></tr>`;
+      }
+    }
+
+    // ---- Level 2+ ----
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const level2Rows = document.getElementById('level2Rows');
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      level2Rows.innerHTML = '<tr><td colspan="4" class="empty">Select a Department, Segment/Area and Process/Line above.</td></tr>';
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      level2Rows.innerHTML = '<tr><td colspan="4" class="empty">Select a Department, Segment/Area and Process/Line above.</td></tr>';
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    async function loadLevel2Courses(mCourseID) {
+      level2Rows.innerHTML = '<tr><td colspan="4" class="empty">Loading...</td></tr>';
+      try {
+        const data = await requestJson(`/api/practical/courses?level=Level2Plus&mCourseID=${encodeURIComponent(mCourseID)}`);
+        const courses = data.courses || [];
+        if (!courses.length) {
+          level2Rows.innerHTML = '<tr><td colspan="4" class="empty">No practical courses on this line yet. Add one above.</td></tr>';
+          return;
+        }
+        level2Rows.innerHTML = '';
+        courses.forEach(c => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.innerHTML = `<td>${c.subCourseName}</td><td>${c.subCourseLevel}</td><td>${c.subCourseDate ? String(c.subCourseDate).slice(0, 10) : ''}</td><td><a class="btn" style="padding:6px 12px;">Open</a></td>`;
+          tr.addEventListener('click', () => openCourse(c, c.subCourseLevel));
+          level2Rows.appendChild(tr);
+        });
+      } catch (error) {
+        level2Rows.innerHTML = `<tr><td colspan="4" class="empty">${error.message}</td></tr>`;
+      }
+    }
+
+    deptSelect.addEventListener('change', () => loadAreas(deptSelect.value).catch(e => console.error(e)));
+    areaSelect.addEventListener('change', () => loadProcesses(deptSelect.value, areaSelect.value).catch(e => console.error(e)));
+    processSelect.addEventListener('change', () => {
+      if (processSelect.value) loadLevel2Courses(processSelect.value).catch(e => console.error(e));
+    });
+
+    loadLevel1();
+    loadDepartments().catch(e => console.error(e));
+  </script>
+</body>
+
+</html>

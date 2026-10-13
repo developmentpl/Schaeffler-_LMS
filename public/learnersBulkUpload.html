@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bulk Learner Upload</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.12), transparent 45%),
+        radial-gradient(circle at 90% 25%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 85%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 88% 90%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    .container { flex: 1 0 auto; display: flex; justify-content: center; padding: 60px 20px; box-sizing: border-box; }
+    .FormClass {
+      background: #ffffff;
+      border: 1px solid #e4e7ec;
+      border-radius: 12px;
+      padding: 36px 40px;
+      max-width: 460px;
+      width: 100%;
+      height: fit-content;
+      box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+    }
+    .FormClass h1 { font-size: 1.5rem; color: #101828; margin: 0 0 24px; }
+    .userForm { display: flex; flex-direction: column; gap: 16px; }
+    #bulkUsersFile { border: 1px solid #d0d5dd; border-radius: 8px; padding: 10px; }
+    #previewBtn {
+      background: linear-gradient(135deg, #0b3320, #08954c);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    #previewBtn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(8, 149, 76, 0.3); }
+    #downloadTemplateBtn {
+      display: block;
+      box-sizing: border-box;
+      width: 100%;
+      text-align: center;
+      text-decoration: none;
+      background: #fff;
+      color: #08954c;
+      border: 1.5px solid #08954c;
+      border-radius: 8px;
+      padding: 11px 18px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      margin-bottom: 20px;
+    }
+    #downloadTemplateBtn:hover { background: #eaf7ef; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+    </div>
+    <div class="navbar">
+      <a href="/learnersManagement.html">Learners Management</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="FormClass">
+      <h1 style="text-align: center;">Bulk Learner Upload</h1>
+      <a id="downloadTemplateBtn" href="/final%20certificates/bulkUserUploadFormat.xlsx" download="bulkUserUploadFormat.xlsx">Download Upload Template</a>
+      <form id="bulkUserListUploadForm" class="userForm" method="POST" enctype="multipart/form-data">
+        <input type="file" id="bulkUsersFile" name="bulkUsersFile" accept=".xlsx, .xls" required>
+        <button type="button" id="previewBtn">Preview Bulk Learners</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    document.getElementById('previewBtn').addEventListener('click', () => {
+      const fileInput = document.getElementById('bulkUsersFile');
+      if (!fileInput.files.length) return alert('Select an Excel file');
+
+      const reader = new FileReader();
+      reader.onload = event => {
+        const base64 = btoa(
+          new Uint8Array(event.target.result)
+            .reduce((data, byte) => data + String.fromCharCode(byte), '')
+        );
+        sessionStorage.setItem('bulkUsersFile', base64);
+        window.location.href = '/bulkPreview.html';
+      };
+      reader.readAsArrayBuffer(fileInput.files[0]);
+    });
+  </script>
+</body>
+
+</html>

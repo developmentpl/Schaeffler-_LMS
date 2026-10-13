@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Segment / Area Management</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 95%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .brand-logo img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1100px; width: 100%; margin: 0 auto; padding: 28px 20px 112px; box-sizing: border-box; }
+    .toolbar { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+    .toolbar a { background: #fff; border: 1px solid #d9e1ec; color: #172033; text-decoration: none; padding: 10px 14px; border-radius: 6px; font-weight: 700; transition: background .15s ease; }
+    .toolbar a:hover { background: #e6f5ec; color: #08954c; }
+    .layout { display: grid; grid-template-columns: 1fr; gap: 20px; align-items: start; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 18px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+    .panel-head h2 { margin: 0; }
+    #openAddBtn { width: auto; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(16, 24, 40, 0.45); z-index: 50; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.open { display: flex; }
+    .modal-card { background: #fff; border-radius: 10px; padding: 20px; max-width: 420px; width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(16, 24, 40, 0.25); position: relative; }
+    .modal-close { position: absolute; top: 10px; right: 10px; width: auto; background: transparent; color: #6b7a90; font-size: 20px; line-height: 1; padding: 4px 10px; box-shadow: none; }
+    .modal-close:hover { color: #101828; background: #f0f5fb; transform: none; box-shadow: none; }
+    h1 { margin: 0 0 16px; font-size: 30px; color: #101828; }
+    h2 { margin: 0 0 14px; font-size: 18px; color: #101828; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 12px 0 6px; }
+    input, textarea, select { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    textarea { min-height: 82px; resize: vertical; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    button:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    button.delete { background: #b42318; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: #f0f5fb; }
+    form button { width: 100%; margin-top: 14px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: top; }
+    th { background: #f7f9fc; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04); }
+    footer p { margin: 0; }
+    @media (max-width: 820px) { .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand-logo"><img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo"></div>
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseManagement.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Segment / Area Management</h1>
+    <div class="toolbar">
+      <a href="/departmentManagement.html">Department</a>
+      <a href="/processManagement.html">Process / Line</a>
+      <a href="/stationManagement.html">Station</a>
+      <!-- <a href="/createCourse.html">Create Course</a> -->
+    </div>
+    <div class="status" id="status"></div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-head">
+          <h2>Segments / Areas</h2>
+          <button type="button" id="openAddBtn">+ Add Segment / Area</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Department</th><th>Description</th><th>Action</th></tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <div class="modal-overlay" id="formModal">
+    <div class="modal-card">
+      <button type="button" class="modal-close" id="modalCloseBtn" title="Close">&times;</button>
+      <h2 id="formTitle">Add Segment / Area</h2>
+      <form id="form">
+        <input type="hidden" id="editingAreaID" value="">
+        <label for="deptID">Department</label>
+        <select id="deptID" required></select>
+        <label for="areaName">Segment / Area Name</label>
+        <input id="areaName" required>
+        <label for="areaDescription">Description</label>
+        <textarea id="areaDescription"></textarea>
+        <label for="areaDate">Date</label>
+        <input id="areaDate" type="date">
+        <button type="submit" id="submitBtn">Save Segment / Area</button>
+        <button type="button" id="cancelEditBtn" style="display:none; background:#6b7a90; margin-top:8px;">Cancel Edit</button>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const status = document.getElementById('status');
+    const rows = document.getElementById('rows');
+    const deptSelect = document.getElementById('deptID');
+    const params = new URLSearchParams(window.location.search);
+    const selectedDeptID = params.get('deptID');
+    const formTitle = document.getElementById('formTitle');
+    const submitBtn = document.getElementById('submitBtn');
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
+    const editingAreaIDInput = document.getElementById('editingAreaID');
+    const formModal = document.getElementById('formModal');
+    const openAddBtn = document.getElementById('openAddBtn');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    let departments = [];
+    let cachedAreas = [];
+
+    function openModal() { formModal.classList.add('open'); }
+    function closeModal() { formModal.classList.remove('open'); }
+
+    function setStatus(message) { status.textContent = message || ''; }
+
+    function resetForm() {
+      editingAreaIDInput.value = '';
+      document.getElementById('form').reset();
+      if (selectedDeptID) deptSelect.value = selectedDeptID;
+      formTitle.textContent = 'Add Segment / Area';
+      submitBtn.textContent = 'Save Segment / Area';
+      cancelEditBtn.style.display = 'none';
+    }
+
+    function startEdit(areaID) {
+      const row = cachedAreas.find(a => String(a.areaID) === String(areaID));
+      if (!row) return;
+      editingAreaIDInput.value = row.areaID;
+      deptSelect.value = row.deptID;
+      document.getElementById('areaName').value = row.areaName || '';
+      document.getElementById('areaDescription').value = row.areaDescription || '';
+      document.getElementById('areaDate').value = row.areaDate ? String(row.areaDate).slice(0, 10) : '';
+      formTitle.textContent = `Edit Segment / Area #${row.areaID}`;
+      submitBtn.textContent = 'Update Segment / Area';
+      cancelEditBtn.style.display = '';
+      openModal();
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json();
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function departmentName(id) {
+      const dept = departments.find(row => String(row.deptID) === String(id));
+      return dept ? dept.deptName : id;
+    }
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      departments = data.departments || [];
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      departments.forEach(row => {
+        const option = document.createElement('option');
+        option.value = row.deptID;
+        option.textContent = row.deptName;
+        deptSelect.appendChild(option);
+      });
+      if (selectedDeptID) deptSelect.value = selectedDeptID;
+    }
+
+    async function loadAreas() {
+      const url = selectedDeptID ? `/api/hierarchy/areas?deptID=${encodeURIComponent(selectedDeptID)}` : '/api/hierarchy/areas';
+      const data = await requestJson(url);
+      cachedAreas = data.areas || [];
+      rows.innerHTML = '';
+      cachedAreas.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.className = 'clickable';
+        tr.dataset.deptId = row.deptID;
+        tr.dataset.areaId = row.areaID;
+        tr.innerHTML = `
+          <td>${row.areaName || ''}</td>
+          <td>${departmentName(row.deptID)}</td>
+          <td>${row.areaDescription || ''}</td>
+          <td>
+            <button class="edit" data-id="${row.areaID}" style="background:#0b5cab;">Edit</button>
+            <button class="delete" data-id="${row.areaID}">Delete</button>
+          </td>
+        `;
+        rows.appendChild(tr);
+      });
+      if (!rows.children.length) rows.innerHTML = '<tr><td colspan="4">No segments / areas added yet</td></tr>';
+    }
+
+    document.getElementById('form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const editingAreaID = editingAreaIDInput.value;
+      try {
+        const payload = {
+          deptID: deptSelect.value,
+          areaName: document.getElementById('areaName').value,
+          areaDescription: document.getElementById('areaDescription').value,
+          areaDate: document.getElementById('areaDate').value || null
+        };
+        if (editingAreaID) {
+          await requestJson(`/api/hierarchy/areas/${editingAreaID}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          setStatus('Segment / Area updated');
+        } else {
+          await requestJson('/api/hierarchy/areas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          setStatus('Segment / Area saved');
+        }
+        resetForm();
+        closeModal();
+        await loadAreas();
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+
+    cancelEditBtn.addEventListener('click', () => { resetForm(); closeModal(); });
+    openAddBtn.addEventListener('click', () => { resetForm(); openModal(); });
+    modalCloseBtn.addEventListener('click', () => { resetForm(); closeModal(); });
+    formModal.addEventListener('click', event => { if (event.target === formModal) { resetForm(); closeModal(); } });
+
+    rows.addEventListener('click', async event => {
+      if (event.target.matches('button.edit')) {
+        startEdit(event.target.dataset.id);
+        return;
+      }
+      if (!event.target.matches('button.delete')) {
+        const tr = event.target.closest('tr[data-area-id]');
+        if (tr) {
+          window.location.href = `/processManagement.html?deptID=${encodeURIComponent(tr.dataset.deptId)}&areaID=${encodeURIComponent(tr.dataset.areaId)}`;
+        }
+        return;
+      }
+      if (!confirm('Delete this segment / area?')) return;
+      try {
+        await requestJson(`/api/hierarchy/areas/${event.target.dataset.id}`, { method: 'DELETE' });
+        setStatus('Segment / Area deleted');
+        await loadAreas();
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+
+    Promise.all([loadDepartments(), loadAreas()]).catch(error => setStatus(error.message));
+  </script>
+</body>
+
+</html>

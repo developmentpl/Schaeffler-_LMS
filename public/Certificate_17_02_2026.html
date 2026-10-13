@@ -1,0 +1,204 @@
+
+<head>
+    <title>LMS / LMS Card</title>
+    <link rel="stylesheet" href="/styles/Certificate.css">
+    <style>
+      @media print {
+  
+        .home-button,
+        .container {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  
+  <body>
+  
+    <div class="bg_img_div"></div>
+  
+    <div class="header">
+
+      <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+      <div class="navbar">
+          <a href="/gradesManagement.html">Grades Management</a>
+          <a href="/logout" class="logout login-btn">Log Out</a>
+      </div>
+      
+      
+  </div>
+  
+    <div id="printable-area">
+      <div>
+  
+      </div>
+      <div class="card">
+        <div class="user-details">
+          <!-- <h1>Visitor Card</h1> -->
+          <!-- <h3>
+            <%= user.name %>
+          </h3> -->
+          <!-- <h4>
+            <%= user.email %>
+          </h4> -->
+          <div class="other_details">
+            <div class="levelClass" id="levelClass">
+              
+            </div>
+            <div>
+              <table class="listed_data">
+                <tr>
+  
+                  <td class="td_Row_Distance Row1" id="username">
+                   
+                  </td>
+                </tr>
+                <tr>
+  
+                  <td class="td_Row_Distance Row2" id="dateofJoining">
+                   
+                  </td>
+                </tr>
+                <tr >
+  
+                  <td class="td_Row_Distance Row3"  id="Qualification" >
+                    
+                  </td>
+                </tr>
+                <tr>
+                  <!-- <td><img src="/images/date_icon.png" class="card_icons" alt="Date:"> -->
+  
+                  <td class="td_Row_Distance Row4" id="LisenceIssueDate">
+                   
+                  </td>
+                </tr>
+              </table>
+  
+            </div>
+  
+          </div>
+          <div class="Row5" id="Contract" >
+            <%= user.contract %>
+          </div>
+        </div>
+  
+        <div class="user-photo-container">
+          <img src="" alt="User Photo" class="user-photo" id="photo">
+        </div>
+      </div>
+  
+    </div>
+    <div class="print_btn_div">
+      <button onclick="printArea()" class="print-button">Print</button>
+    </div>
+  
+  
+    <script>
+
+    function getQueryParams(name){
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(name);
+    }
+    const uid=getQueryParams("uid");
+    console.log(uid);
+    
+    fetch(`/getCertificate?id=${uid}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.log(data.error);
+                    // document.getElementById("certificate").innerHTML = "<h2>Certificate Not Found</h2>";
+                } else {
+                    // document.getElementById("studentId").textContent = data.id;
+                    // document.getElementById("name").textContent = data.name;
+                    console.log(data);
+                    document.getElementById("levelClass").textContent=data.Level;
+                    document.getElementById("username").textContent=data.name;
+                    document.getElementById("Qualification").textContent=data.Qualification;
+                    document.getElementById("dateofJoining").textContent=data.dateOfJoining;
+                    document.getElementById("LisenceIssueDate").textContent=data.LisenceIssueDate;
+                    document.getElementById("Contract").textContent=data.Contract;
+                    document.getElementById("photo").src="/photos/"+data.photo;
+
+                    // document.getElementById("course").textContent = data.;
+                    // document.getElementById("date").textContent = data.date;
+                }
+            })
+            .catch(error => console.error("Error fetching data:", error));
+
+
+
+      // Get the current date and time
+      var currentDate = new Date();
+      var currentDateString = currentDate.toDateString();
+      var currentTimeString = currentDate.toLocaleTimeString();
+  
+      // Set the current date and time in the respective HTML elements
+      document.getElementById("current-date").innerText = currentDateString;
+      document.getElementById("current-time").innerText = currentTimeString;
+  
+      function printArea() {
+        // Create a new window or tab for printing
+        var printWindow = window.open('', '_blank');
+  
+        // Get the HTML content of the printable area
+        var printableContent = document.getElementById('printable-area').innerHTML;
+  
+        // Get the CSS stylesheets of the page
+        var stylesheets = Array.from(document.getElementsByTagName('link'));
+  
+        // Count the number of loaded stylesheets
+        var loadedStylesheets = 0;
+  
+        // Create a new document in the print window
+        var printDocument = printWindow.document.open();
+        printDocument.write('<html><head>');
+  
+        // Add custom CSS for the printable-content element
+        printDocument.write('<style>#printable-content { position: absolute; top: 0; left: 0; background-color: white; margin: 0; color: #5F5F5F; }</style>');
+  
+  
+        // Copy the CSS stylesheets to the print document
+        stylesheets.forEach(function (stylesheet) {
+          var linkTag = printDocument.createElement('link');
+          linkTag.rel = 'stylesheet';
+          linkTag.href = stylesheet.href;
+          linkTag.onload = function () {
+            loadedStylesheets++;
+  
+            // Check if all stylesheets have been loaded
+            if (loadedStylesheets === stylesheets.length) {
+              // Copy the printable content to the print document
+              printDocument.write('</head><body>');
+              printDocument.write('<div id="printable-content">' + printableContent + '</div>');
+              printDocument.write('</body></html>');
+  
+              printDocument.close();
+  
+              // Print the document
+              printWindow.print();
+              printWindow.close();
+            }
+          };
+  
+          printDocument.head.appendChild(linkTag);
+        });
+  
+        // If no stylesheets are present, proceed with printing
+        if (stylesheets.length === 0) {
+          // Copy the printable content to the print document
+          printDocument.write('</head><body>');
+          printDocument.write('<div id="printable-content">' + printableContent + '</div>');
+          printDocument.write('</body></html>');
+  
+          printDocument.close();
+  
+          // Print the document
+          printWindow.print();
+          printWindow.close();
+        }
+      }
+    </script>
+  </body>

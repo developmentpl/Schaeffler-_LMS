@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bulk Users Preview</title>
+  <link rel="stylesheet" href="/styles/bulkPreview.css">
+  <style>
+    body { font-family: Arial; margin: 20px; }
+
+    #bulkStats {
+      font-weight: 700;
+      color: #0b4b6b;
+      margin: 10px 0;
+    }
+
+    #bulkPreviewTable {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 13px;
+    }
+
+    #bulkPreviewTable th, #bulkPreviewTable td {
+      border-bottom: 1px solid #eee;
+      padding: 6px;
+      text-align: left;
+    }
+
+    #bulkPreviewTable th {
+      background-color: #f2f2f2;
+      border-bottom: 1px solid #ccc;
+    }
+
+    #bulkPreviewTable input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 4px;
+      border: 1px solid #d1d5db;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    /* orange highlight for blocked rows (invalid / duplicate / can't be inserted) */
+    #bulkPreviewTable tr.blocked {
+      background: #FFA50033;
+    }
+
+    #bulkPreviewTable tr {
+      transition: background-color 120ms ease-in;
+    }
+
+    td.notes {
+      color: #b42318;
+      font-weight: 600;
+    }
+
+    button {
+      margin-top: 15px;
+      margin-right: 10px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    #confirmBulkBtn {
+      color: #fff;
+      background: linear-gradient(135deg, #0b4b6b 0%, #06b6d4 100%);
+    }
+
+    #cancelBulkBtn {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1px solid #d1d5db;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="navbar">
+      <a href="/addUser.html">⬅ Back to Add User</a>
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>Bulk Users Preview</h1>
+    <p id="bulkStats"></p>
+    <p><em>Orange rows are invalid or duplicate and will be skipped on upload. Edit any cell to fix a row in place.</em></p>
+
+    <div style="overflow:auto; max-height:480px; border:1px solid #ddd;">
+      <table id="bulkPreviewTable">
+        <thead></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <button id="confirmBulkBtn">Confirm &amp; Upload</button>
+    <button id="cancelBulkBtn">Cancel</button>
+  </div>
+
+<script>
+// ------------------------------------------------------------------
+// Load the Excel file the user selected on addUser.html, send it to
+// /upload-bulk-users for parsing + validation, then render an
+// editable preview (Harman-style) before the final confirm step.
+// ------------------------------------------------------------------
+
+let __bulkPreviewRows = [];
+let __presentCols = [];
+let __dbUNameSet = new Set();
+let __dbPairSet = new Set();
+let __uNameFreq = new Map();
+
+const REQUIRED = ['name', 'uName', 'uPass'];
+
+const base64 = sessionStorage.getItem('bulkUsersFile');
+if (!base64) {
+  alert('No file found! Go back and select a file.');
+  window.location.href = '/addUser.html';
+} else {
+  const binary = atob(base64);
+  const len = binary.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+  const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const formData = new FormData();
+  formData.append('bulkUsersFile', blob, 'bulkUsers.xlsx');
+
+  fetch('/upload-bulk-users', { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) throw new Error(data.message || 'Failed to parse file');
+      initBulkPreview(data.preview, data.stats, data.presentColumns, data.dbUNameList, data.dbPairList);
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Bulk preview failed: ' + err.message);
+    });
+}
+
+function str(v) { return (v ?? '').toString().trim(); }
+
+function humanize(k) {
+  return ({
+    name: 'Name',
+    emailID: 'Email',
+    employeeID: 'Employee ID',
+    uName: 'Username',
+    uPass: 'Password',
+    dateOfJoining: 'Date of Joining',
+    dateOfBirth: 'Date of Birth',
+    address: 'Address',
+    mobileNo: 'Mobile No',
+    department: 'Department',
+    uRole: 'Role',
+    qualification: 'Qualification',
+    contract: 'Contract',
+    userTags: 'Course Tags'
+  })[k] || k;
+}
+
+function buildUNameFreq() {
+  __uNameFreq = new Map();
+  __bulkPreviewRows.forEach(r => {
+    const un = str(r.uName);
+    if (!un) return;
+    __uNameFreq.set(un, (__uNameFreq.get(un) || 0) + 1);
+  });
+}
+
+function addNote(r, note) {
+  r.blockReason = (r.blockReason ? r.blockReason + '; ' : '') + note;
+}
+
+function validateRow(i) {
+  const r = __bulkPreviewRows[i];
+  r.invalid = false; r.duplicateInSheet = false; r.duplicateInDB = false;
+  r.blockReason = ''; r.isBlocked = false;
+
+  if (!str(r.name) || !str(r.uName) || !str(r.uPass)) {
+    r.invalid = true;
+    addNote(r, 'Missing required (name/uName/uPass)');
+  }
+  if (!str(r.uRole)) r.uRole = 'Employee';
+
+  const un = str(r.uName);
+  if (un && (__uNameFreq.get(un) || 0) > 1) {
+    r.duplicateInSheet = true;
+    addNote(r, 'Duplicate uName in sheet');
+  }
+
+  const pair = `${str(r.name)}||${un}`;
+  if (un && __dbUNameSet.has(un)) {
+    r.duplicateInDB = true;
+    addNote(r, 'uName exists in DB');
+  } else if (str(r.name) && un && __dbPairSet.has(pair)) {
+    r.duplicateInDB = true;
+    addNote(r, 'name+uName exists in DB');
+  }
+
+  r.isBlocked = !!(r.invalid || r.duplicateInSheet || r.duplicateInDB);
+  updateRowDom(i);
+}
+
+function updateRowDom(i) {
+  const tbody = document.querySelector('#bulkPreviewTable tbody');
+  const tr = tbody.rows[i];
+  if (!tr) return;
+  tr.classList.toggle('blocked', !!__bulkPreviewRows[i].isBlocked);
+  const notesCell = tr.querySelector('td.notes');
+  if (notesCell) notesCell.textContent = __bulkPreviewRows[i].blockReason || '';
+}
+
+function recalcAggregateStats() {
+  const statsEl = document.getElementById('bulkStats');
+  const rows = __bulkPreviewRows;
+  const total = rows.length;
+  const invalid = rows.filter(r => r.invalid).length;
+  const dupSheet = rows.filter(r => r.duplicateInSheet).length;
+  const dupDB = rows.filter(r => r.duplicateInDB).length;
+  const insertable = rows.filter(r => !r.isBlocked).length;
+  statsEl.textContent = `Total: ${total} | Insertable: ${insertable} | Invalid: ${invalid} | Duplicates (Sheet): ${dupSheet} | Duplicates (DB): ${dupDB}`;
+}
+
+function initBulkPreview(rows, stats, presentColumns, dbUNameList, dbPairList) {
+  __bulkPreviewRows = (rows || []).map(r => ({ ...r }));
+  __presentCols = presentColumns && presentColumns.length ? presentColumns.slice() : ['name', 'uName', 'uPass'];
+  __dbUNameSet = new Set(dbUNameList || []);
+  __dbPairSet = new Set(dbPairList || []);
+
+  renderBulkTable(stats);
+  buildUNameFreq();
+  __bulkPreviewRows.forEach((_, i) => validateRow(i));
+  recalcAggregateStats();
+}
+
+function renderBulkTable(stats) {
+  const statsEl = document.getElementById('bulkStats');
+  statsEl.textContent =
+    `Total: ${stats.total} | Insertable: ${stats.insertable} | Invalid: ${stats.invalid} | Duplicates (Sheet): ${stats.duplicatesInSheet} | Duplicates (DB): ${stats.duplicatesInDB}`;
+
+  const table = document.getElementById('bulkPreviewTable');
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  thead.innerHTML = '';
+  tbody.innerHTML = '';
+
+  const thRow = document.createElement('tr');
+  const thIdx = document.createElement('th');
+  thIdx.textContent = '#';
+  thRow.appendChild(thIdx);
+
+  __presentCols.forEach(col => {
+    const th = document.createElement('th');
+    th.textContent = humanize(col);
+    thRow.appendChild(th);
+  });
+
+  const thNotes = document.createElement('th');
+  thNotes.textContent = 'Notes';
+  thRow.appendChild(thNotes);
+  thead.appendChild(thRow);
+
+  __bulkPreviewRows.forEach((r, idx) => {
+    const tr = document.createElement('tr');
+    const tdIdx = document.createElement('td');
+    tdIdx.textContent = r.idx ?? (idx + 1);
+    tr.appendChild(tdIdx);
+
+    __presentCols.forEach(col => {
+      const td = document.createElement('td');
+      const input = document.createElement('input');
+      input.type = (col === 'uPass') ? 'password' : 'text';
+      input.value = r[col] ?? (col === 'uRole' ? 'Employee' : '');
+      input.placeholder = REQUIRED.includes(col) ? `${humanize(col)} *` : humanize(col);
+      input.dataset.row = String(idx);
+      input.dataset.col = col;
+      input.addEventListener('input', onCellEdit);
+      td.appendChild(input);
+      tr.appendChild(td);
+    });
+
+    const tdNotes = document.createElement('td');
+    tdNotes.className = 'notes';
+    tdNotes.textContent = r.blockReason || '';
+    tr.appendChild(tdNotes);
+
+    tbody.appendChild(tr);
+  });
+}
+
+function onCellEdit(e) {
+  const el = e.target;
+  const i = Number(el.dataset.row);
+  const colKey = el.dataset.col;
+  const prevU = str(__bulkPreviewRows[i].uName);
+
+  const val = (el.value || '').trim();
+  __bulkPreviewRows[i][colKey] = (colKey === 'uRole' && !val) ? 'Employee' : val;
+
+  if (colKey === 'uName') {
+    const newU = str(val);
+    if (prevU) __uNameFreq.set(prevU, Math.max(0, (__uNameFreq.get(prevU) || 0) - 1));
+    if (newU) __uNameFreq.set(newU, (__uNameFreq.get(newU) || 0) + 1);
+
+    const impacted = [];
+    __bulkPreviewRows.forEach((r, idx) => {
+      const un = str(r.uName);
+      if (un === prevU || un === newU) impacted.push(idx);
+    });
+    impacted.forEach(validateRow);
+  } else {
+    validateRow(i);
+  }
+
+  recalcAggregateStats();
+}
+
+function validateAll() {
+  __bulkPreviewRows.forEach(r => {
+    r.invalid = false; r.duplicateInSheet = false; r.duplicateInDB = false;
+    r.blockReason = ''; r.isBlocked = false;
+  });
+
+  __bulkPreviewRows.forEach(r => {
+    if (!str(r.name) || !str(r.uName) || !str(r.uPass)) {
+      r.invalid = true;
+      addNote(r, 'Missing required (name/uName/uPass)');
+    }
+    if (!str(r.uRole)) r.uRole = 'Employee';
+  });
+
+  const seen = new Map();
+  __bulkPreviewRows.forEach(r => {
+    const key = str(r.uName);
+    if (!key) return;
+    if (seen.has(key)) {
+      r.duplicateInSheet = true; addNote(r, 'Duplicate uName in sheet');
+      const first = seen.get(key);
+      first.duplicateInSheet = true; addNote(first, 'Duplicate uName in sheet');
+    } else {
+      seen.set(key, r);
+    }
+  });
+
+  __bulkPreviewRows.forEach(r => {
+    const un = str(r.uName);
+    const pair = `${str(r.name)}||${un}`;
+    if (un && __dbUNameSet.has(un)) {
+      r.duplicateInDB = true; addNote(r, 'uName exists in DB');
+    } else if (str(r.name) && un && __dbPairSet.has(pair)) {
+      r.duplicateInDB = true; addNote(r, 'name+uName exists in DB');
+    }
+  });
+
+  __bulkPreviewRows.forEach(r => {
+    r.isBlocked = !!(r.invalid || r.duplicateInSheet || r.duplicateInDB);
+  });
+
+  const tbody = document.querySelector('#bulkPreviewTable tbody');
+  Array.from(tbody.rows).forEach((tr, i) => {
+    const row = __bulkPreviewRows[i];
+    tr.classList.toggle('blocked', !!row.isBlocked);
+    const notesCell = tr.querySelector('td.notes');
+    if (notesCell) notesCell.textContent = row.blockReason || '';
+  });
+
+  recalcAggregateStats();
+}
+
+document.getElementById('confirmBulkBtn').addEventListener('click', () => {
+  if (!__bulkPreviewRows.length) return alert('Nothing to upload.');
+  if (!confirm('Are you sure you want to upload bulk users?')) return;
+
+  validateAll();
+
+  const payload = {
+    rows: __bulkPreviewRows.filter(r => !r.isBlocked).map(r => ({
+      name: str(r.name),
+      emailID: str(r.emailID),
+      employeeID: str(r.employeeID),
+      uName: str(r.uName),
+      uPass: str(r.uPass),
+      dateOfJoining: str(r.dateOfJoining),
+      dateOfBirth: str(r.dateOfBirth),
+      address: str(r.address),
+      mobileNo: str(r.mobileNo),
+      department: str(r.department),
+      uRole: str(r.uRole) || 'Employee',
+      qualification: str(r.qualification),
+      contract: str(r.contract),
+      userTags: str(r.userTags)
+    }))
+  };
+
+  if (!payload.rows.length) return alert('No valid (non-blocked) users to upload.');
+
+  fetch('/confirm-bulk-users', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) throw new Error(data.message || 'Insert failed');
+      alert(`${data.inserted} users uploaded successfully.`);
+      sessionStorage.removeItem('bulkUsersFile');
+      window.location.href = '/addUser.html';
+    })
+    .catch(err => {
+      console.error(err);
+      alert('Bulk upload failed: ' + err.message);
+    });
+});
+
+document.getElementById('cancelBulkBtn').addEventListener('click', () => {
+  sessionStorage.removeItem('bulkUsersFile');
+  window.location.href = '/addUser.html';
+});
+</script>
+</body>
+</html>

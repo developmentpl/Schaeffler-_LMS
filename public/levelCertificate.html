@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Level Certificate</title>
+  <style>
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 112px 24px 112px;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at 8% 20%, rgba(29, 136, 80, 0.12), transparent 28%),
+        radial-gradient(circle at 88% 18%, rgba(48, 166, 106, 0.11), transparent 26%),
+        linear-gradient(115deg, #eef7f3 0%, #f6f9fc 46%, #eef5f1 100%);
+      color: #071936;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      width: 100%;
+      min-height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 50px;
+      background: #fff;
+      border-bottom: 1px solid #dce6df;
+      box-shadow: 0 4px 14px rgba(7, 25, 54, 0.12);
+      box-sizing: border-box;
+    }
+
+    .header img {
+      width: 280px;
+      max-width: 34vw;
+      height: auto;
+      display: block;
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .navbar a {
+      color: #071936;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    .navbar a:hover {
+      color: #2f9b57;
+    }
+
+    /* ===== Certificate card ===== */
+    .card {
+      width: 500px;
+      aspect-ratio: 433 / 612;
+      margin: 0 auto 16px;
+      position: relative;
+      background-image: url('/Images/home/Schaeffler_Level cards-01-qr-layout.png?v=2');
+      background-repeat: no-repeat;
+      background-size: 100% 100%;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    .card .field {
+      position: absolute;
+      font-weight: bold;
+      color: #000;
+      font-size: 15px;
+      line-height: 1.2;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    #fld-name { top: 12.8%; left: 28%; width: 38%; }
+    #fld-doj { top: 20.3%; left: 36%; width: 30%; }
+    #fld-qualification { top: 27.8%; left: 36%; width: 30%; }
+    #fld-issuedate { top: 34.8%; left: 36%; width: 30%; }
+    #fld-contract { top: 46.5%; left: 19%; width: 32%; }
+    #fld-supervisor { top: 46.5%; left: 67%; width: 30%; }
+
+    #fld-levelBadge {
+      position: absolute;
+      top: 1.6%;
+      right: 3%;
+      background: #172033;
+      color: #fff;
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-size: 13px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .photoBox {
+      position: absolute;
+      top: 10.5%;
+      left: 69%;
+      width: 27%;
+      height: 26%;
+      overflow: hidden;
+      background: #f4f4f4;
+    }
+
+    .photoBox img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* QR code inside the lower-right work-instruction area marked by the
+       client. Percentages keep it locked to the same certificate position
+       at every screen and print size. */
+    #fld-certQr {
+      position: absolute;
+      top: 66%;
+      left: 65%;
+      width: 33%;
+      height: 31.5%;
+      background: #fff;
+      z-index: 3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #fld-certQr svg {
+      display: block;
+      width: 94%;
+      height: auto;
+      max-height: 94%;
+    }
+
+    /* ===== Barcode card (shown only when "Print Barcode" is used) =====
+       IMPORTANT: barcode bar width must never be squeezed to fit a fixed
+       box - that's what made the previous version unscannable (bars ended
+       up ~0.15-0.2mm wide on paper, below what most laser/CCD scanners can
+       resolve). renderCode128Barcode() below now computes real module width
+       from an actual target pixel budget and renders the SVG at that exact
+       intrinsic size (explicit width/height attributes, no CSS stretch) -
+       these panels are sized wide enough (and print at 100% scale via the
+       @page rule further down) to give it room. */
+    .certificateBarcodePanel {
+      width: min(96vw, 500px);
+      min-height: 170px;
+      margin: 0 auto 24px;
+      padding: 9px 14px;
+      background: #fff;
+      border: 1px solid #cfd8e3;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .certificateBarcodePanel.barcodes-enabled { width: min(96vw, 760px); }
+
+    .certificateBarcodePanel .barcodeRow {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .certificateBarcodePanel .barcodeTitle {
+      font-size: 11px;
+      font-weight: 800;
+      color: #172033;
+      text-align: right;
+    }
+
+    .certificateBarcodePanel .barcodeLine {
+      width: 100%;
+      height: 66px;
+      background: #fff;
+      overflow: visible;
+    }
+
+    .certificateBarcodePanel .barcodeLine svg {
+      display: block;
+      /* No forced width/height here on purpose - the SVG carries its own
+         explicit pixel width/height from renderCode128Barcode(), computed
+         from real available print space, so 1 SVG unit = 1 real printed px
+         and bars are never stretched or compressed. max-width/height:auto
+         below is only a safety net for unusually long names/IDs that still
+         exceed the target width even at the minimum safe module width - it
+         keeps the layout from breaking, at the cost of that one barcode
+         needing a higher-resolution scanner. */
+      max-width: 100%;
+      height: auto;
+    }
+
+    .barcode-print-note {
+      width: min(96vw, 760px);
+      margin: 0 auto 12px;
+      font-size: 11px;
+      color: #8a5a0b;
+      background: #fff4e5;
+      border: 1px solid #fbe3c0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      box-sizing: border-box;
+    }
+
+    .barcodeCard {
+      width: min(96vw, 780px);
+      margin: 40px auto;
+      padding: 28px;
+      background: #fff;
+      border: 2px solid #172033;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .barcodeCard svg {
+      margin: 0 auto 18px;
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .barcodeCard .row {
+      text-align: left;
+      font-size: 14px;
+      margin: 6px 0;
+      border-bottom: 1px solid #e6edf5;
+      padding-bottom: 4px;
+    }
+
+    .barcodeCard .row b {
+      display: inline-block;
+      width: 150px;
+    }
+
+    /* ===== Dedicated large certificate-barcode printout =====
+       This prints the SAME two barcodes embedded on the certificate itself
+       (USER identity + LOGIN) but on their own full page, at the largest
+       size the page allows - not squeezed to share space with the photo
+       card. This is the "guaranteed to scan" option. */
+    .certBarcodesLargeCard {
+      width: min(96vw, 760px);
+      margin: 40px auto;
+      padding: 28px;
+      background: #fff;
+      border: 2px solid #172033;
+      border-radius: 10px;
+    }
+
+    .certBarcodesLargeCard h2 {
+      margin: 0 0 18px;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    .certBarcodesLargeCard .largeBarcodeBlock {
+      margin-bottom: 26px;
+    }
+
+    .certBarcodesLargeCard .largeBarcodeTitle {
+      font-size: 13px;
+      font-weight: 800;
+      color: #172033;
+      margin-bottom: 8px;
+    }
+
+    .certBarcodesLargeCard .largeBarcodeLine {
+      width: 100%;
+    }
+
+    .certBarcodesLargeCard .largeBarcodeLine svg {
+      display: block;
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* ===== Action buttons ===== */
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
+      margin-top: 10px;
+      margin-bottom: 18px;
+    }
+
+    .actions button {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #fff;
+    }
+
+    #printCertBtn { background: #0b5cab; }
+    #printCertBtn:hover { background: #09478a; }
+    #printQrBtn { background: #258b45; }
+    #printQrBtn:hover { background: #14612e; }
+    #printQrBtn:disabled { background: #c7d0dc; cursor: not-allowed; }
+
+    /* ===== QR code card (shown only when "Print QR Code" is used) =====
+       Generated fully offline via the vendored kazuhikoarase/qrcode-generator
+       library at /js/qrcode.js (no CDN, no server round trip, no internet
+       needed at runtime) - see the printQrBtn click handler below. */
+    .qrCard svg { margin: 0 auto 18px; display: block; }
+
+    .status { text-align: center; color: #6b7a90; font-style: italic; margin-top: 8px; }
+
+    footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      z-index: 5;
+      width: 100%;
+      background: #ffffff;
+      color: #111111;
+      text-align: center;
+      padding: 20px 0;
+      border-top: 1px solid #dce6df;
+      box-shadow: 0 -3px 14px rgba(7, 25, 54, 0.10);
+    }
+
+    @media (max-width: 720px) {
+      body {
+        padding: 96px 12px 112px;
+      }
+
+      .header {
+        padding: 0 18px;
+      }
+
+      .header img {
+        width: 210px;
+      }
+
+      .navbar {
+        gap: 14px;
+      }
+
+      .card,
+      .certificateBarcodePanel {
+        width: min(500px, 100%);
+      }
+    }
+
+    /* Hints the browser to print at true scale instead of "Fit to page" -
+       shrink-to-fit would undo the bar-width fix above. Most browsers still
+       let the user override this in the print dialog, so the on-screen note
+       (.barcode-print-note) tells the operator to double check "Actual
+       size / 100%" is selected before printing. */
+    @page {
+      margin: 10mm;
+    }
+
+    @media print {
+      /* The on-screen layout reserves 112px top/bottom body padding for the
+         fixed header/footer bars, and body has min-height:100vh. Neither is
+         cleared here, so without this reset the body's box is ~224px +
+         100vh tall - taller than one physical page - and the barcode/
+         certificate view spills onto a mostly-blank second sheet even
+         though the header/footer/etc. are already hidden below. */
+      body { padding: 0 !important; min-height: 0 !important; }
+
+      body * { visibility: hidden; }
+      .header, .actions, .status, .barcode-print-note, footer { display: none !important; }
+
+      #certView.visible, #certView.visible * { visibility: visible; }
+      #qrView.visible, #qrView.visible * { visibility: visible; }
+      #certBarcodesLargeView.visible, #certBarcodesLargeView.visible * { visibility: visible; }
+
+      #certView.visible, #qrView.visible, #certBarcodesLargeView.visible {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        width: 100%;
+      }
+
+      .card, .barcodeCard, .certBarcodesLargeCard {
+        margin: 0 auto !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+
+      .certificateBarcodePanel {
+        margin: 10px auto 0 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/gradesReport.html">Grades Report</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <div class="barcode-print-note" id="barcodePrintNote" style="display:none;">
+    ⚠️ When printing: in the print dialog, set scale to <b>"Actual size" / 100%</b> (not "Fit to page" /
+    "Shrink to fit"). Shrinking the page also shrinks the barcode bars below what most scanners can read.
+  </div>
+
+  <div id="certView" class="visible">
+    <div class="card">
+      <div id="fld-levelBadge"></div>
+      <div class="photoBox"><img id="fld-photo" src="" alt="User Photo"></div>
+      <div class="field" id="fld-name"></div>
+      <div class="field" id="fld-doj"></div>
+      <div class="field" id="fld-qualification"></div>
+      <div class="field" id="fld-issuedate"></div>
+      <div class="field" id="fld-contract"></div>
+      <div class="field" id="fld-supervisor"></div>
+      <div id="fld-certQr"></div>
+    </div>
+    <div class="certificateBarcodePanel" id="certBarcodePanel" style="display:none;"></div>
+  </div>
+
+  <div id="qrView" style="display:none;">
+    <div class="barcodeCard qrCard">
+      <div id="qrImage"></div>
+      <div class="row"><b>Name:</b> <span id="qrName"></span></div>
+      <div class="row"><b>Username:</b> <span id="qrUsername"></span></div>
+      <div class="row"><b>Password:</b> <span id="qrPassword"></span></div>
+      <div class="row"><b>License Issue Date:</b> <span id="qrIssueDate"></span></div>
+      <div class="row"><b>Date of Joining:</b> <span id="qrDoj"></span></div>
+    </div>
+  </div>
+
+  <!-- Large, dedicated printout of the SAME USER + LOGIN barcodes embedded
+       on the certificate itself - printed full-size on their own page
+       instead of sharing space with the certificate photo card, so the bars
+       are as wide as the page allows. This is the "guaranteed to scan"
+       option for the certificate's own barcodes. -->
+  <div id="certBarcodesLargeView" style="display:none;">
+    <div class="certBarcodesLargeCard">
+      <h2>Certificate Barcodes - Large Print</h2>
+      <div class="largeBarcodeBlock">
+        <div class="largeBarcodeTitle">USER (Name / Level / License Date / Date of Joining)</div>
+        <div class="largeBarcodeLine" id="largeBarcodeIdentity"></div>
+      </div>
+      <div class="largeBarcodeBlock">
+        <div class="largeBarcodeTitle">LOGIN (Username / Password)</div>
+        <div class="largeBarcodeLine" id="largeBarcodeLogin"></div>
+      </div>
+      <div class="largeBarcodeBlock" id="largeBarcodeAssignmentBlock" style="display:none;">
+        <div class="largeBarcodeTitle">ASSIGNMENT (Department / Segment / Line / Station)</div>
+        <div class="largeBarcodeLine" id="largeBarcodeAssignment"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="status" id="statusMsg"></div>
+
+  <div class="actions">
+    <button type="button" id="printCertBtn">Print Certificate</button>
+    <button type="button" id="printCertBarcodesLargeBtn" disabled style="display:none;">Print Certificate Barcodes (Large)</button>
+    <button type="button" id="printQrBtn" disabled>Print QR Code</button>
+  </div>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <!-- Vendored locally (no CDN) so QR generation works with zero internet
+       access at runtime - see public/js/qrcode.js. -->
+  <script src="/js/qrcode.js"></script>
+  <script>
+    function getQueryParam(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    const uid = getQueryParam('uid');
+    const level = getQueryParam('level');
+    const mCourseID = getQueryParam('mCourseID');
+    const contSupervisorOverride = getQueryParam('contSupervisor');
+    // Level 2/3/4 certificates print 3 barcodes (Login, Course marks, License
+    // issue date) instead of Level 1's existing 2 (User identity, Login) -
+    // Level 1 is untouched.
+    const isLevel2Plus = ['2', '3', '4'].includes(String(level));
+    // Keep all barcode generation code available. Change this one flag to
+    // true whenever certificate barcodes are required again.
+    const SHOW_CERTIFICATE_BARCODES = false;
+
+    const certView = document.getElementById('certView');
+    const qrView = document.getElementById('qrView');
+    const certBarcodesLargeView = document.getElementById('certBarcodesLargeView');
+    const statusMsg = document.getElementById('statusMsg');
+    const printCertBtn = document.getElementById('printCertBtn');
+    const printQrBtn = document.getElementById('printQrBtn');
+    const printCertBarcodesLargeBtn = document.getElementById('printCertBarcodesLargeBtn');
+    document.getElementById('barcodePrintNote').style.display = SHOW_CERTIFICATE_BARCODES ? '' : 'none';
+    printCertBarcodesLargeBtn.style.display = SHOW_CERTIFICATE_BARCODES ? '' : 'none';
+
+    const code128Patterns = [
+      '212222','222122','222221','121223','121322','131222','122213','122312','132212','221213',
+      '221312','231212','112232','122132','122231','113222','123122','123221','223211','221132',
+      '221231','213212','223112','312131','311222','321122','321221','312212','322112','322211',
+      '212123','212321','232121','111323','131123','131321','112313','132113','132311','211313',
+      '231113','231311','112133','112331','132131','113123','113321','133121','313121','211331',
+      '231131','213113','213311','213131','311123','311321','331121','312113','312311','332111',
+      '314111','221411','431111','111224','111422','121124','121421','141122','141221','112214',
+      '112412','122114','122411','142112','142211','241211','221114','413111','241112','134111',
+      '111242','121142','121241','114212','124112','124211','411212','421112','421211','212141',
+      '214121','412121','111143','111341','131141','114113','114311','411113','411311','113141',
+      '114131','311141','411131','211412','211214','211232','2331112'
+    ];
+
+    function sanitizeCode128Value(value) {
+      return String(value || '').replace(/[^\x20-\x7E]/g, ' ').replace(/\s+/g, ' ').trim() || 'LICENSE';
+    }
+
+    // Barcode-only date format: DDMMYYYY (no separators). Every character
+    // costs 11 print modules in Code128, so dropping the two "-" per date
+    // shaves ~44 modules off the identity barcode - real room freed up for
+    // wider (more scannable) bars at a given print width. The on-screen
+    // certificate fields still use the normal DD-MM-YYYY via
+    // formatDateForDisplay(); this compact form is only for what's encoded.
+    function compactDateForBarcode(value) {
+      const display = formatDateForDisplay(value);
+      const match = display.match(/^(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})$/);
+      return match ? `${match[1]}${match[2]}${match[3]}` : display.replace(/-/g, '');
+    }
+
+    // QR payload for the standalone "Print QR Code" button. Unlike Code128
+    // barcodes (limited to ~20-30 chars before bars get too thin to scan
+    // reliably at print size), a QR code at error-correction level 'M' can
+    // hold all 5 requested fields in one readable code with no splitting:
+    // Name, Username, Password, License Issue Date, Date of Joining.
+    function compactQrDate(value) {
+      const display = formatDateForDisplay(value);
+      const match = display.match(/^(\d{2})[\/.\-](\d{2})[\/.\-](\d{4})$/);
+      return match ? `${match[3]}${match[2]}${match[1]}` : String(value || '').replace(/\D/g, '').slice(0, 8);
+    }
+    function compactQrText(value) {
+      return String(value || '').replace(/%/g, '%25').replace(/\|/g, '%7C');
+    }
+    function compactQrNumber(value) {
+      const number = Number(value || 0);
+      return Number.isFinite(number) && number >= 0 ? Math.trunc(number).toString(36) : '0';
+    }
+
+    // Compact Level 1 identity QR. Segment PCs still accept the legacy
+    // multiline payload, so certificates printed earlier remain usable.
+    function qrIdentityPayload(data) {
+      return [
+        'SC1I',
+        compactQrNumber(data.uniqueID || uid),
+        compactQrText(data.name),
+        compactQrText(data.uName),
+        compactQrText(data.uPass),
+        compactQrDate(data.dateOfJoining),
+        compactQrDate(data.licenseIssueDate || data.LisenceIssueDate)
+      ].join('|');
+    }
+
+    // Renders a QR code as an SVG using the vendored, dependency-free
+    // qrcode-generator library (public/js/qrcode.js, loaded via a local
+    // <script> tag above - no CDN, works fully offline). typeNumber 0 lets
+    // the library auto-pick the smallest QR version that fits the payload;
+    // error-correction level 'M' (~15% recovery) is a good default for a
+    // printed/scanned code.
+    function renderQrSvg(text, cellSize) {
+      const qr = qrcode(0, 'M');
+      qr.addData(text || ' ');
+      qr.make();
+      return qr.createSvgTag({ cellSize: cellSize || 6, margin: 4 });
+    }
+
+    function certificateBarcodePayload(data) {
+      return sanitizeCode128Value(`WL-${data.uniqueID || uid || ''}-L${level || ''}`);
+    }
+
+    function certificateBarcodePayloads(data) {
+      const issueDate = compactDateForBarcode(data.licenseIssueDate || data.LisenceIssueDate);
+      return {
+        // Confirmed by hands-on scan testing: the LOGIN barcode (Username +
+        // Password, ~20 chars) scans fine; this identity barcode previously
+        // carried Name + Level + License Date + DOJ (~40+ chars) and did
+        // not. More characters = more Code128 modules packed into the same
+        // printed width = thinner bars, even after the encoder bug fix -
+        // there's a real physical limit to how much a given print/screen
+        // width can hold at a reliably scannable module size. Dropping
+        // License Date and DOJ here (they're still shown as plain text on
+        // the certificate/barcode-view pages, just not double-encoded)
+        // brings this down to roughly the same length as the already-
+        // working LOGIN barcode.
+        identity: [
+          `N:${data.name || ''}`,
+          `L:${level || ''}`
+        ].join('|'),
+        login: [
+          `U:${data.uName || ''}`,
+          `P:${data.uPass || ''}`
+        ].join('|'),
+        // Level 2/3/4 only: "<subCourseID>_<mark>" pairs for every course in
+        // this Level, e.g. "12_80_13_90_14_90" - populated server-side by
+        // /getCertificate when level+mCourseID are passed.
+        courses: data.levelCourseMarks || '',
+        license: `LI:${issueDate}`,
+        // Level 1 only: the Department/Segment(Area)/Line/Station this user
+        // has been assigned to on the Main PC (see /api/enrollstatus/assignProcess
+        // + assignStation on the Enrollment page). Carries hierarchy IDs for
+        // the scanner flow. Empty string if no assignment has been made yet.
+        assignment: data.assignment ? [
+          `DP:${data.assignment.deptID || ''}`,
+          `AR:${data.assignment.areaID || ''}`,
+          `LN:${data.assignment.mCourseID || ''}`,
+          `ST:${data.assignment.stationID || ''}`
+        ].join('|') : ''
+      };
+    }
+
+    // Builds the 2 or 3 barcode rows shown on the printed certificate itself.
+    // Level 1: USER identity + LOGIN (unchanged). Level 2/3/4: LOGIN, this
+    // user's COURSES (id_mark pairs), then LICENSE issue date.
+    //
+    // BARCODE_TARGET_WIDTH_PX is the pixel budget renderCode128Barcode() has
+    // to work with for the bars themselves (the .certificateBarcodePanel is
+    // min(96vw, 760px) wide; subtract the 64px label column + grid gap +
+    // panel padding to get what's actually left for bars). Handing this in
+    // explicitly - instead of letting CSS stretch/squeeze the SVG to fit -
+    // is what fixes the "barcode won't scan" problem: module width is now
+    // computed from real available print space, clamped to a safe minimum,
+    // rather than being crushed to fit a box that was too small for the
+    // amount of data encoded.
+    const BARCODE_TARGET_WIDTH_PX = 620;
+
+    function renderCertificateBarcodePanel(data) {
+      const panel = document.getElementById('certBarcodePanel');
+      panel.classList.toggle('barcodes-enabled', SHOW_CERTIFICATE_BARCODES);
+      if (!SHOW_CERTIFICATE_BARCODES) {
+        panel.innerHTML = '';
+        panel.style.display = 'none';
+        return;
+      }
+      panel.style.display = 'flex';
+      const payloads = certificateBarcodePayloads(data);
+      const rowOpts = { barHeight: 58, showText: false, targetWidth: BARCODE_TARGET_WIDTH_PX };
+
+      if (isLevel2Plus) {
+        panel.innerHTML = `
+          <div class="barcodeRow">
+            <div class="barcodeTitle">LOGIN</div>
+            <div class="barcodeLine" id="certBarcodeLogin"></div>
+          </div>
+          <div class="barcodeRow">
+            <div class="barcodeTitle">COURSES</div>
+            <div class="barcodeLine" id="certBarcodeCourses"></div>
+          </div>
+          <div class="barcodeRow">
+            <div class="barcodeTitle">LICENSE</div>
+            <div class="barcodeLine" id="certBarcodeLicense"></div>
+          </div>
+        `;
+        document.getElementById('certBarcodeLogin').innerHTML = renderCode128Barcode(payloads.login, rowOpts);
+        document.getElementById('certBarcodeCourses').innerHTML = renderCode128Barcode(payloads.courses, rowOpts);
+        document.getElementById('certBarcodeLicense').innerHTML = renderCode128Barcode(payloads.license, rowOpts);
+      } else {
+        const hasAssignment = !!payloads.assignment;
+        panel.innerHTML = `
+          <div class="barcodeRow">
+            <div class="barcodeTitle">USER</div>
+            <div class="barcodeLine" id="certBarcodeIdentity"></div>
+          </div>
+          <div class="barcodeRow">
+            <div class="barcodeTitle">LOGIN</div>
+            <div class="barcodeLine" id="certBarcodeLogin"></div>
+          </div>
+          <div class="barcodeRow">
+            <div class="barcodeTitle">ASSIGNMENT</div>
+            ${hasAssignment
+              ? '<div class="barcodeLine" id="certBarcodeAssignment"></div>'
+              : '<div class="barcodeLine" style="font-size:12px;color:#6b7a90;font-style:italic;">Not yet assigned to a Department/Segment/Line/Station.</div>'}
+          </div>
+        `;
+        document.getElementById('certBarcodeIdentity').innerHTML = renderCode128Barcode(payloads.identity, rowOpts);
+        document.getElementById('certBarcodeLogin').innerHTML = renderCode128Barcode(payloads.login, rowOpts);
+        if (hasAssignment) {
+          document.getElementById('certBarcodeAssignment').innerHTML = renderCode128Barcode(payloads.assignment, rowOpts);
+        }
+      }
+    }
+
+    // Renders a Code128 (Set B) barcode as an SVG with an EXPLICIT pixel
+    // width/height (no viewBox-stretch, no CSS width:100% squeeze) so what
+    // gets drawn is exactly what prints.
+    //
+    // Module width ("narrow") is derived from options.targetWidth: given the
+    // pixel budget available on the page, and knowing exactly how many
+    // modules this payload needs (11 per start/data/checksum symbol, 13 for
+    // the stop symbol), we solve for the largest module width that still
+    // fits - then clamp it into [MIN_NARROW, MAX_NARROW] so short payloads
+    // don't balloon absurdly wide and long payloads never collapse below a
+    // physically scannable size. At 96 CSS px/inch, MIN_NARROW (1.4px) is
+    // ~0.37mm/module - comfortably above the ~0.25mm floor most 1D laser/CCD
+    // scanners need for a reliable read; MAX_NARROW (3.4px) is ~0.9mm.
+    // If options.narrow is passed explicitly (legacy callers), that fixed
+    // value is used instead and targetWidth is ignored.
+    const MIN_NARROW_PX = 1.6;
+    const MAX_NARROW_PX = 3.6;
+    const QUIET_MULTIPLIER = 10;
+    // Target width for the dedicated large-print view (#certBarcodesLargeView)
+    // - its own full page, not sharing space with the certificate photo card,
+    // so it gets noticeably more room than BARCODE_TARGET_WIDTH_PX (620).
+    const LARGE_BARCODE_TARGET_WIDTH_PX = 700;
+
+    function renderCode128Barcode(value, options = {}) {
+      const text = sanitizeCode128Value(value);
+      const barHeight = options.barHeight || 56;
+      const showText = options.showText !== false;
+      const textHeight = showText ? 30 : 0;
+      const codes = [104];
+
+      for (const char of text) {
+        const code = char.charCodeAt(0) - 32;
+        if (code >= 0 && code <= 95) codes.push(code);
+      }
+
+      let checksum = codes[0];
+      for (let i = 1; i < codes.length; i += 1) {
+        checksum += codes[i] * i;
+      }
+      codes.push(checksum % 103, 106);
+
+      // Every symbol is 11 modules wide except the final STOP symbol, which
+      // is 13 - this lets us solve for module width analytically instead of
+      // guessing-and-checking against a fixed box.
+      const totalModules = (codes.length - 1) * 11 + 13;
+
+      let narrow = options.narrow;
+      if (!narrow) {
+        const target = options.targetWidth || 400;
+        narrow = target / (totalModules + 2 * QUIET_MULTIPLIER);
+        narrow = Math.max(MIN_NARROW_PX, Math.min(MAX_NARROW_PX, narrow));
+      }
+      const quiet = options.quiet || narrow * QUIET_MULTIPLIER;
+
+      let x = quiet;
+      const bars = [];
+
+      // Code128 is a CONTINUOUS symbology - symbols pack directly against
+      // each other with zero gap between them (unlike Code39, which does
+      // have inter-character gaps). Each pattern's 6 digits (7 for STOP)
+      // already sum to the symbol's full width (11 or 13 modules) INCLUDING
+      // its own trailing space, so nothing should be added between symbols.
+      // A previous version of this function added an extra `narrow`-wide
+      // gap after every symbol here - that's a real decode-breaking bug, not
+      // a cosmetic one: it silently inserts a spurious blank module between
+      // every character, which desyncs any scanner trying to read it. This
+      // is almost certainly why the barcode failed to scan at ANY size,
+      // print or on-screen - it was never a valid Code128 bit pattern.
+      for (const code of codes) {
+        const pattern = code128Patterns[code];
+        for (let i = 0; i < pattern.length; i += 1) {
+          const width = Number(pattern[i]) * narrow;
+          if (i % 2 === 0) {
+            bars.push(`<rect x="${x.toFixed(2)}" y="0" width="${width.toFixed(2)}" height="${barHeight}" fill="#000"/>`);
+          }
+          x += width;
+        }
+      }
+
+      const totalWidth = x + quiet;
+      const totalHeight = barHeight + textHeight;
+      const label = text.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+      const labelSvg = showText
+        ? `<text x="${totalWidth / 2}" y="${barHeight + 18}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#000">${label}</text>`
+        : '';
+
+      return `<svg xmlns="http://www.w3.org/2000/svg" width="${totalWidth.toFixed(2)}" height="${totalHeight}" viewBox="0 0 ${totalWidth.toFixed(2)} ${totalHeight}" role="img" aria-label="Barcode ${label}">${bars.join('')}${labelSvg}</svg>`;
+    }
+
+    function formatDateForDisplay(value) {
+      if (!value) return '';
+      // Some bulk-imported dateOfJoining values are stored as a raw Excel
+      // serial day number (e.g. "46050") instead of a real date string -
+      // detect that case and convert it rather than showing a garbage year.
+      if (/^\d{4,6}$/.test(String(value).trim())) {
+        const utcDays = Math.floor(Number(value) - 25569);
+        const excelDate = new Date(utcDays * 86400 * 1000);
+        if (!Number.isNaN(excelDate.getTime())) return excelDate.toLocaleDateString('en-GB');
+      }
+      const d = new Date(value);
+      if (Number.isNaN(d.getTime())) return String(value).split('T')[0];
+      return d.toLocaleDateString('en-GB');
+    }
+
+    function showCertView() {
+      certView.style.display = 'block';
+      certView.classList.add('visible');
+      qrView.style.display = 'none';
+      qrView.classList.remove('visible');
+      certBarcodesLargeView.style.display = 'none';
+      certBarcodesLargeView.classList.remove('visible');
+    }
+
+    function showQrView() {
+      qrView.style.display = 'block';
+      qrView.classList.add('visible');
+      certView.style.display = 'none';
+      certView.classList.remove('visible');
+      certBarcodesLargeView.style.display = 'none';
+      certBarcodesLargeView.classList.remove('visible');
+    }
+
+    function showCertBarcodesLargeView() {
+      certBarcodesLargeView.style.display = 'block';
+      certBarcodesLargeView.classList.add('visible');
+      certView.style.display = 'none';
+      certView.classList.remove('visible');
+      qrView.style.display = 'none';
+      qrView.classList.remove('visible');
+    }
+
+    let userData = null;
+
+    async function loadCertificate() {
+      if (!uid || !level) {
+        statusMsg.textContent = 'Missing uid or level in URL. Open this page from the Grades Report Certificate button.';
+        return;
+      }
+      try {
+        const certUrl = `/getCertificate?id=${encodeURIComponent(uid)}&level=${encodeURIComponent(level)}${mCourseID ? `&mCourseID=${encodeURIComponent(mCourseID)}` : ''}`;
+        const response = await fetch(certUrl);
+        const data = await response.json();
+        if (data.error) {
+          statusMsg.textContent = data.error;
+          return;
+        }
+        userData = data;
+
+        // Live `users` schema (post harman-architecture migration) uses
+        // lowercase column names; fall back to the legacy capitalized names
+        // in case an older schema is connected.
+        document.getElementById('fld-levelBadge').textContent = `LEVEL ${level}`;
+        document.getElementById('fld-name').textContent = data.name || '';
+        document.getElementById('fld-doj').textContent = formatDateForDisplay(data.dateOfJoining);
+        document.getElementById('fld-qualification').textContent = data.qualification || data.Qualification || '';
+        document.getElementById('fld-issuedate').textContent = formatDateForDisplay(data.licenseIssueDate || data.LisenceIssueDate);
+        document.getElementById('fld-contract').textContent = data.contract || data.Contract || '';
+        document.getElementById('fld-supervisor').textContent = contSupervisorOverride || '';
+        document.getElementById('fld-photo').src = `/photos/${data.photo || 'default.png'}`;
+        renderCertificateBarcodePanel(data);
+        // QR code is printed inside the lower-right work-instruction area.
+        document.getElementById('fld-certQr').innerHTML = renderQrSvg(qrIdentityPayload(data), 3);
+
+        printQrBtn.disabled = false;
+        printCertBarcodesLargeBtn.disabled = !SHOW_CERTIFICATE_BARCODES;
+      } catch (error) {
+        console.error('Error loading certificate data:', error);
+        statusMsg.textContent = 'Could not load certificate data.';
+      }
+    }
+
+    printCertBtn.addEventListener('click', () => {
+      showCertView();
+      setTimeout(() => window.print(), 50);
+    });
+
+    printCertBarcodesLargeBtn.addEventListener('click', () => {
+      if (!userData) return;
+      try {
+        statusMsg.textContent = 'Generating large barcodes...';
+        const payloads = certificateBarcodePayloads(userData);
+        const largeOpts = { barHeight: 90, showText: true, targetWidth: LARGE_BARCODE_TARGET_WIDTH_PX };
+        document.getElementById('largeBarcodeIdentity').innerHTML = renderCode128Barcode(payloads.identity, largeOpts);
+        document.getElementById('largeBarcodeLogin').innerHTML = renderCode128Barcode(payloads.login, largeOpts);
+        const assignmentBlock = document.getElementById('largeBarcodeAssignmentBlock');
+        if (payloads.assignment) {
+          document.getElementById('largeBarcodeAssignment').innerHTML = renderCode128Barcode(payloads.assignment, largeOpts);
+          assignmentBlock.style.display = '';
+        } else {
+          assignmentBlock.style.display = 'none';
+        }
+        statusMsg.textContent = '';
+        showCertBarcodesLargeView();
+        setTimeout(() => window.print(), 50);
+      } catch (error) {
+        console.error('Error generating large certificate barcodes:', error);
+        statusMsg.textContent = error.message;
+      }
+    });
+
+    printQrBtn.addEventListener('click', () => {
+      if (!userData) return;
+      try {
+        statusMsg.textContent = 'Generating QR code...';
+        const issueDateDisplay = formatDateForDisplay(userData.licenseIssueDate || userData.LisenceIssueDate);
+        const joiningDateDisplay = formatDateForDisplay(userData.dateOfJoining);
+        document.getElementById('qrImage').innerHTML = renderQrSvg(qrIdentityPayload(userData), 6);
+        document.getElementById('qrName').textContent = userData.name || '';
+        document.getElementById('qrUsername').textContent = userData.uName || '';
+        document.getElementById('qrPassword').textContent = userData.uPass || '';
+        document.getElementById('qrIssueDate').textContent = issueDateDisplay;
+        document.getElementById('qrDoj').textContent = joiningDateDisplay;
+
+        statusMsg.textContent = '';
+        showQrView();
+        setTimeout(() => window.print(), 50);
+      } catch (error) {
+        console.error('Error generating QR code:', error);
+        statusMsg.textContent = error.message;
+      }
+    });
+
+    window.addEventListener('afterprint', showCertView);
+
+    loadCertificate();
+  </script>
+</body>
+
+</html>
+
+
+
+
+

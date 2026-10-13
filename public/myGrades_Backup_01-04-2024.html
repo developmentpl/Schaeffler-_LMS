@@ -1,0 +1,214 @@
+<!-- mygrades.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grades</title>
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/styles/myGrades.css">
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+  <div class="header">        
+        <div class="navbar">
+            <a href="/lmshomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+  
+    <!-- <div class="navbar">
+        <div class="navbar-brand">Learning Management System</div>
+        <div class="nav-right">
+            <div><span id="usernamePlaceholder"></div>
+            <div class="logout"><a href="/logout">Logout</a></div>
+        </div>
+    </div> -->
+
+    <div class="container">
+        <div class="col">
+            <div id="userDetails"></div>
+            <button id="downloadButton" class="downloadClass">Download Data</button>
+        </div>
+
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Sr no</th>
+                    <th>Courselist</th>
+                    <th>Pretest</th>
+                    <th>Posttest</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table body will be populated dynamically -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <h2 class="h2-radar-text" style="color: rgb(43, 42, 42);">Radar Chart</h2>
+        <div class="radar-chart-container">
+            <canvas id="radarChart" class="radar-chart"></canvas>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript to fetch and display user's data and radar chart
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/getMyGrades');
+                const data = await response.json();
+                displayUserDetails(data.userDetails);
+                displayGrades(data.grades);
+                displayRadarChart(data.grades);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        });
+
+        // Function to display user details
+        function displayUserDetails(userDetails) {
+            const userDetailsDiv = document.getElementById('userDetails');
+            userDetailsDiv.innerHTML = `<p>Name: ${userDetails.name}</p><p>Username: ${userDetails.uName}</p>`;
+        }
+
+        // Function to display grades
+        function displayGrades(grades) {
+            const gradesTable = document.getElementById('gradesTable');
+            const tbody = gradesTable.getElementsByTagName('tbody')[0];
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            // Filter out grades with 'N/A' courseName
+            const filteredGrades = grades.filter(grade => grade.courseName !== 'N/A');
+
+            // Populate table with filtered grades data
+            filteredGrades.forEach((grade, index) => {
+                const row = `<tr>
+            <td>${index + 1}</td>
+            <td>${grade.courseName}</td>
+            <td>${grade.pretest}</td>
+            <td>${grade.posttest}</td>
+        </tr>`;
+                tbody.insertAdjacentHTML('beforeend', row);
+            });
+        }
+
+        // Function to display radar chart
+        function displayRadarChart(grades) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+
+            // Filter out courses with N/A values
+            const filteredGrades = grades.filter(grade => grade.pretest !== 'N/A' && grade.posttest !== 'N/A');
+            const courseNames = filteredGrades.map(grade => grade.courseName);
+            const pretestScores = filteredGrades.map(grade => grade.pretest);
+            const posttestScores = filteredGrades.map(grade => grade.posttest);
+
+            // Modify each label object to include class
+            // const labels = courseNames.map(courseName => {
+            //     return {
+            //         text: courseName,
+            //         className: 'course-name'
+            //     };
+            // });
+
+            const data = {
+                //labels: labels, // Using labels with spans containing course names
+                labels: courseNames,
+                datasets: [
+                    {
+                        label: 'Pretest',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        data: pretestScores
+                    },
+                    {
+                        label: 'Posttest',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: posttestScores
+                    }
+                ]
+            };
+
+            const options = {
+                scale: {
+
+                    ticks: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 100,
+                        stepSize: 5,
+
+                    }
+                }
+            };
+
+            const radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: options
+            });
+        }
+
+        // Add class to each label
+        /*const radarLabels = radarChart.data.labels;
+        radarLabels.forEach((label, index) => {
+            const labelElement = radarChart.getDatasetMeta(0).data[index]._model;
+            labelElement.className = 'course-name';
+        });
+
+        radarChart.update();*/ // Update the chart to reflect changes
+
+        // Function to download data in .xlsx format
+        function downloadData() {
+            const gradesTable = document.getElementById('gradesTable');
+            const tableData = [];
+
+            // Loop through table rows and cells to get data
+            for (let i = 0; i < gradesTable.rows.length; i++) {
+                const rowData = [];
+                const row = gradesTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+
+            // Convert data to CSV format
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+
+            // Create a Blob object containing the CSV data
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+
+            // Set the filename for the download
+            link.download = 'grades_data.csv';
+
+            // Trigger the download
+            link.click();
+        }
+        // Add event listener to the download button
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+
+
+    </script>
+</body>
+
+</html>

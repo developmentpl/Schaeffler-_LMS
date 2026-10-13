@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades Download Options</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"> -->
+    <link rel="stylesheet" href="/styles/downloadGradesData.css">
+
+</head>
+
+<body>
+    <div class="header">
+
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+    </div>
+    <div class="container">
+        <h1 class="h1class">Grades Download Options</h1>
+        <p style="text-align: center; color: #ffffff; margin-bottom: 20px;">
+            Select your preferred download option below.
+        </p>
+        <!-- Option 1: Download All Data -->
+        <h2 style="color: #ffffff; font-size: 24px; margin-bottom: 10px;">Download All Grades</h2>
+        <button id="downloadAllBtn" class="btnclass">
+            Download All Grades
+        </button>
+        <button id="downloadDateWise" class="btnclass"> Download Data Date Wise</button>
+        <div class="divider"></div>
+        <!-- Option 2: Download Monthly Data -->
+        <h2 style="color: #ffffff; font-size: 24px; margin-bottom: 10px;">Download by Month</h2>
+        <div class="form-group">
+            <label for="month">Select Month:</label>
+            <select id="month">
+                <option value="1">January</option>
+                <option value="2">February</option>
+                <option value="3">March</option>
+                <option value="4">April</option>
+                <option value="5">May</option>
+                <option value="6">June</option>
+                <option value="7">July</option>
+                <option value="8">August</option>
+                <option value="9">September</option>
+                <option value="10">October</option>
+                <option value="11">November</option>
+                <option value="12">December</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="year">Select Year:</label>
+            <select id="year"></select>
+        </div>
+        <button id="downloadMonthlyBtn" class="btnclass">
+            Download Monthly Data
+        </button>
+        <div id="statusMessage" class="status-message status-info">
+            Click a button to start the download.
+        </div>
+    </div>
+    <!-- Date Selection Modal -->
+    <div id="dateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+     background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index:1000;">
+        <div style="background:#fff; padding:20px; border-radius:10px; width:300px; text-align:center;">
+            <h3>Select Training Date</h3>
+            <input type="date" id="downloadDateInput" style="margin:10px 0; padding:5px; width:90%;">
+            <br>
+            <button id="confirmDownloadDate" class="btnclass">Download</button>
+            <button id="cancelDownloadDate" class="btnclass">Cancel</button>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+    <script>
+        // Populate the year dropdown with recent years
+        const yearSelect = document.getElementById('year');
+        const currentYear = new Date().getFullYear();
+        for (let i = currentYear; i >= currentYear - 30; i--) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = i;
+            yearSelect.appendChild(option);
+        }
+
+        // Handles the download logic
+        const handleDownload = async (endpoint, filename, method, data = null) => {
+            const statusMessage = document.getElementById('statusMessage');
+            statusMessage.textContent = 'Preparing download... please wait.';
+            statusMessage.className = 'status-message status-info';
+
+            try {
+                const fetchOptions = { method: method };
+                if (method === 'POST' && data) {
+                    fetchOptions.headers = { 'Content-Type': 'application/json' };
+                    fetchOptions.body = JSON.stringify(data);
+                }
+
+                const response = await fetch(endpoint, fetchOptions);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                statusMessage.textContent = `Download of "${filename}" initiated successfully!`;
+                statusMessage.className = 'status-message status-success';
+
+            } catch (error) {
+                console.error('Download failed:', error);
+                statusMessage.textContent = `Download failed. Check the console for errors.`;
+                statusMessage.className = 'status-message status-error';
+            }
+        };
+
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const downloadMonthlyBtn = document.getElementById('downloadMonthlyBtn');
+        const monthSelect = document.getElementById('month');
+        const dateColumn = 'Date Of Joining';
+
+        downloadAllBtn.addEventListener('click', () => {
+            const gradesData = JSON.parse(localStorage.getItem('gradesDataToDownload'));
+            if (gradesData) {
+                handleDownload('/api/grades/download/csv', 'all_grades.csv', 'POST', gradesData);
+            } else {
+                statusMessage.textContent = 'No grades data found. Please go back to Grades Management page and try again.';
+                statusMessage.className = 'status-message status-error';
+            }
+        });
+
+        downloadMonthlyBtn.addEventListener('click', () => {
+            const gradesData = JSON.parse(localStorage.getItem('gradesDataToDownload'));
+            if (!gradesData) {
+                statusMessage.textContent = 'No grades data found. Please go back to Grades Management page and try again.';
+                statusMessage.className = 'status-message status-error';
+                return;
+            }
+
+            const month = monthSelect.value;
+            const year = yearSelect.value;
+            const selectedMonthName = monthSelect.options[monthSelect.selectedIndex].textContent;
+            const filename = `grades_${selectedMonthName}_${year}.csv`;
+
+            const filteredData = gradesData.filter(row => {
+                const dateString = row[dateColumn.replace(/[^a-zA-Z0-9]/g, '')];
+                if (!dateString) return false;
+
+                const parts = dateString.includes('-') ? dateString.split('-') : dateString.split('/');
+                let rowDate = new Date(dateString);
+
+                // Handle DD/MM/YYYY format
+                if (dateString.includes('/')) {
+                    rowDate = new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+
+                if (isNaN(rowDate.getTime())) return false;
+
+                return rowDate.getMonth() + 1 == month && rowDate.getFullYear() == year;
+            });
+
+            if (filteredData.length === 0) {
+                statusMessage.textContent = 'No data found for the selected month.';
+                statusMessage.className = 'status-message status-error';
+                return;
+            }
+
+            handleDownload('/api/grades/monthly/csv', filename, 'POST', filteredData);
+        });
+
+
+
+
+        //-------------------------------------------code added on 04/10/25------------------------------
+        // Open modal on button click
+        document.getElementById('downloadDateWise').addEventListener('click', () => {
+            const modal = document.getElementById('dateModal');
+            modal.style.display = 'flex'; // show as flexbox
+        });
+
+        // Cancel button closes modal
+        document.getElementById('cancelDownloadDate').addEventListener('click', () => {
+            document.getElementById('dateModal').style.display = 'none';
+            console.log("I got clicked ");
+        });
+        // Confirm → call backend route
+        document.getElementById('confirmDownloadDate').addEventListener('click', () => {
+            const selectedDate = document.getElementById('downloadDateInput').value;
+            console.log("I am downloaded");
+
+            if (!selectedDate) {
+                alert("Please select a date!");
+                return;
+            }
+
+            // Build the download URL
+            const url = `/download-training-report?date=${selectedDate}`;
+
+            // Trigger file download
+            window.location.href = url;
+
+            // Close modal
+            document.getElementById('dateModal').style.display = 'none';
+        });
+
+
+        function BackPage() {
+            window.location.href = '/gradesManagement.html';
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Practical Evaluation Form</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 95%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .brand-logo img { display: block; width: 280px; max-width: 34vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1300px; width: 100%; margin: 0 auto; padding: 24px 20px 60px; box-sizing: border-box; }
+    h1 { margin: 0 0 4px; font-size: 26px; color: #101828; }
+    .docMeta { font-size: 12px; color: #6b7a90; margin-bottom: 14px; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 20px; margin-bottom: 18px; overflow-x: auto; }
+    .headerGrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    label { display: block; font-size: 12px; font-weight: 700; margin: 0 0 6px; color: #44526b; text-transform: uppercase; }
+    input, select { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 8px 10px; font: inherit; }
+    .readOnlyField { padding: 9px 10px; font-weight: 700; }
+    table.grid { width: 100%; border-collapse: collapse; min-width: 1100px; }
+    table.grid th, table.grid td { border: 1px solid #d9e1ec; padding: 6px 8px; font-size: 13px; text-align: center; vertical-align: middle; }
+    table.grid th { background: #f7f9fc; }
+    table.grid td.criteria, table.grid th.criteria { text-align: left; }
+    table.grid td.category { font-weight: 700; background: #fbfcfe; }
+    .groupObs { background: #e8f1fb !important; }
+    .groupMon { background: #fff6e5 !important; }
+    select.scoreSelect { padding: 5px; text-align: center; }
+    .footerLabel { text-align: right !important; font-weight: 700; background: #f7f9fc; }
+    .passRow td { background: #f0f2f6; font-weight: 700; }
+    .resultBox { display: flex; gap: 24px; margin-top: 16px; flex-wrap: wrap; }
+    .resultCard { border: 1px solid #d9e1ec; border-radius: 8px; padding: 14px 20px; min-width: 200px; }
+    .resultCard .k { font-size: 12px; color: #6b7a90; font-weight: 700; text-transform: uppercase; }
+    .resultCard .v { font-size: 20px; font-weight: 800; margin-top: 4px; }
+    .v.pass { color: #0a6b3b; }
+    .v.fail { color: #b42318; }
+    .v.pending { color: #6b7a90; }
+    .legend { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 6px; font-size: 13px; }
+    .legend table { width: 100%; border-collapse: collapse; }
+    .legend th, .legend td { border: 1px solid #e6edf5; padding: 6px 10px; text-align: left; }
+    .actions { display: flex; gap: 12px; margin-top: 18px; }
+    button { border: 0; border-radius: 6px; padding: 12px 20px; font-weight: 700; cursor: pointer; transition: transform .15s ease, box-shadow .15s ease; }
+    .saveBtn { background: #e8eef6; color: #172033; }
+    .saveBtn:hover { background: #dbe4f0; }
+    .submitBtn { background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; box-shadow: 0 2px 6px rgba(8, 149, 76, 0.25); }
+    .submitBtn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.35); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; margin-top: 20px; }
+    @media (max-width: 900px) { .headerGrid, .legend { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand-logo"><img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo"></div>
+    <div class="navbar">
+      <a href="#" id="backLink">Back to Eligible Users</a>
+      <a href="/practicalEvaluation.html">Practical Evaluation</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1 id="formTitle">Operator On the Job Training Observance &amp; Level 2 Evaluation - New Joinees</h1>
+    <div class="docMeta">Document No: FMT/DOJO/18/R00</div>
+    <div class="status" id="status">Loading...</div>
+
+    <div class="panel">
+      <div class="headerGrid">
+        <div>
+          <label>New Joinee Name</label>
+          <div class="readOnlyField" id="userName">-</div>
+        </div>
+        <div>
+          <label for="employeeCode">Employee Code / Contract</label>
+          <input id="employeeCode">
+        </div>
+        <div>
+          <label for="dateOfJoining">Date Of Joining</label>
+          <input id="dateOfJoining" type="date">
+        </div>
+        <div>
+          <label for="deptSegmentLine">Dept. / Segment / Line</label>
+          <input id="deptSegmentLine">
+        </div>
+        <div>
+          <label for="mcProcess">M/c / Process</label>
+          <input id="mcProcess">
+        </div>
+        <div>
+          <label for="ojtStartDate">OJT Start Date</label>
+          <input id="ojtStartDate" type="date">
+        </div>
+        <div>
+          <label for="ojtEndDate">OJT End Date</label>
+          <input id="ojtEndDate" type="date">
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th rowspan="2">S.No</th>
+            <th rowspan="2">Check Points</th>
+            <th rowspan="2" class="criteria">Observation Criteria</th>
+            <th rowspan="2">Max Score</th>
+            <th colspan="6" class="groupObs">Observation &amp; Evaluation</th>
+            <th colspan="2" class="groupMon">Monitoring</th>
+          </tr>
+          <tr id="dayHeaderRow"></tr>
+        </thead>
+        <tbody id="gridBody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="4" class="footerLabel">Total Marks of the day (Out of 30)</td>
+            <td id="totalCell-day10"></td><td id="totalCell-day11"></td><td id="totalCell-day12"></td>
+            <td id="totalCell-day13"></td><td id="totalCell-day14"></td><td id="totalCell-day15"></td>
+            <td id="totalCell-wk3"></td><td id="totalCell-wk4"></td>
+          </tr>
+          <tr>
+            <td colspan="4" class="footerLabel">% Score (Of the day)</td>
+            <td id="pctCell-day10"></td><td id="pctCell-day11"></td><td id="pctCell-day12"></td>
+            <td id="pctCell-day13"></td><td id="pctCell-day14"></td><td id="pctCell-day15"></td>
+            <td id="pctCell-wk3"></td><td id="pctCell-wk4"></td>
+          </tr>
+          <tr class="passRow">
+            <td colspan="4" class="footerLabel">Observation Passing Score % (minimum)</td>
+            <td></td><td></td><td></td><td></td>
+            <td id="passLabel-day14">70%</td><td id="passLabel-day15">70%</td><td id="passLabel-wk3">70%</td><td id="passLabel-wk4">70%</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="resultBox">
+        <div class="resultCard">
+          <div class="k">Result (Day14 &amp; Day15, min <span id="passPercentLabel1">70</span>% each)</div>
+          <div class="v pending" id="resultValue">Pending</div>
+        </div>
+        <div class="resultCard">
+          <div class="k">Monitoring Result (Wk3 &amp; Wk4, min <span id="passPercentLabel2">70</span>% each)</div>
+          <div class="v pending" id="monitoringResultValue">Pending</div>
+        </div>
+        <div class="resultCard">
+          <div class="k">Overall % (all entered cells)</div>
+          <div class="v pending" id="overallPercentValue">-</div>
+        </div>
+        <div class="resultCard">
+          <div class="k">Final Result (Day14+Day15+Wk3+Wk4 combined, out of 100) &mdash; this is what shows in Grades Report</div>
+          <div class="v pending" id="finalResultValue">Pending</div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <table>
+          <thead><tr><th colspan="2">Score Marking Criteria</th></tr></thead>
+          <tbody>
+            <tr><td>0</td><td>Not following standard</td></tr>
+            <tr><td>1</td><td>Following Standard Partially</td></tr>
+            <tr><td>2</td><td>Following standard Properly</td></tr>
+          </tbody>
+        </table>
+        <table>
+          <thead><tr><th>Passing Criteria</th></tr></thead>
+          <tbody>
+            <tr><td>To qualify this Level - minimum score <span id="passPercentLabel3">70</span>% in last 2 days during on job training observation - Pass. Less than criteria - Fail (* Fail - Retraining).</td></tr>
+            <tr><td>Monitoring (Pv Manager / Segment Head): observation score after qualification within 2 weeks - min <span id="passPercentLabel4">70</span>%.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="actions">
+        <button class="saveBtn" id="saveBtn">Save</button>
+        <button class="submitBtn" id="submitBtn">Submit</button>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const subCourseID = params.get('subCourseID');
+    const uniqueID = params.get('uniqueID');
+    const courseName = params.get('courseName') || '';
+    document.getElementById('backLink').href = `/practicalEligibleUsers.html?${new URLSearchParams({ subCourseID, courseName }).toString()}`;
+
+    const statusEl = document.getElementById('status');
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    let checklist = [];
+    let dayColumns = [];
+    let passPercent = 70;
+    let evaluationStatus = null;
+
+    function fmtDate(value) {
+      if (!value) return '';
+      return String(value).slice(0, 10);
+    }
+
+    function buildGrid() {
+      const dayHeaderRow = document.getElementById('dayHeaderRow');
+      dayHeaderRow.innerHTML = dayColumns.map(d => `<th class="${d.group === 'observation' ? 'groupObs' : 'groupMon'}">${d.label}</th>`).join('');
+
+      // Group checklist rows by category for rowspan-style category cells.
+      const categoryCounts = {};
+      checklist.forEach(c => { categoryCounts[c.category] = (categoryCounts[c.category] || 0) + 1; });
+      const seenCategory = new Set();
+
+      const body = document.getElementById('gridBody');
+      body.innerHTML = '';
+      checklist.forEach(item => {
+        const tr = document.createElement('tr');
+        let categoryCell = '';
+        if (!seenCategory.has(item.category)) {
+          seenCategory.add(item.category);
+          categoryCell = `<td class="category" rowspan="${categoryCounts[item.category]}">${item.category}</td>`;
+        }
+        const dayCells = dayColumns.map(d => `
+          <td>
+            <select class="scoreSelect" data-checkpoint="${item.checkpointNo}" data-day="${d.code}">
+              <option value="">-</option>
+              <option value="0">0</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+            </select>
+          </td>
+        `).join('');
+        tr.innerHTML = `
+          <td>${item.checkpointNo}</td>
+          ${categoryCell}
+          <td class="criteria">${item.criteria}</td>
+          <td>2</td>
+          ${dayCells}
+        `;
+        body.appendChild(tr);
+      });
+
+      body.addEventListener('change', recomputeLive);
+    }
+
+    function applyScores(scores) {
+      const map = new Map(scores.map(s => [`${s.checkpointNo}|${s.dayCode}`, s.score]));
+      document.querySelectorAll('.scoreSelect').forEach(sel => {
+        const key = `${sel.dataset.checkpoint}|${sel.dataset.day}`;
+        const value = map.get(key);
+        sel.value = (value === undefined || value === null) ? '' : String(value);
+      });
+      recomputeLive();
+    }
+
+    function recomputeLive() {
+      const perDay = {};
+      dayColumns.forEach(d => { perDay[d.code] = { total: 0, count: 0 }; });
+      document.querySelectorAll('.scoreSelect').forEach(sel => {
+        if (sel.value === '') return;
+        const day = sel.dataset.day;
+        perDay[day].total += Number(sel.value);
+        perDay[day].count += 1;
+      });
+      let grandTotal = 0, grandMax = 0;
+      dayColumns.forEach(d => {
+        const { total, count } = perDay[d.code];
+        const max = count * 2;
+        grandTotal += total; grandMax += max;
+        document.getElementById(`totalCell-${d.code}`).textContent = count ? `${total}/${max}` : '-';
+        document.getElementById(`pctCell-${d.code}`).textContent = count ? `${((total / max) * 100).toFixed(0)}%` : '-';
+      });
+
+      const day14 = perDay.day14, day15 = perDay.day15;
+      const resultEl = document.getElementById('resultValue');
+      if (day14.count && day15.count) {
+        const p14 = (day14.total / (day14.count * 2)) * 100;
+        const p15 = (day15.total / (day15.count * 2)) * 100;
+        const pass = p14 >= passPercent && p15 >= passPercent;
+        resultEl.textContent = pass ? 'Pass' : 'Fail';
+        resultEl.className = `v ${pass ? 'pass' : 'fail'}`;
+      } else {
+        resultEl.textContent = 'Pending';
+        resultEl.className = 'v pending';
+      }
+
+      const wk3 = perDay.wk3, wk4 = perDay.wk4;
+      const monEl = document.getElementById('monitoringResultValue');
+      if (wk3.count && wk4.count) {
+        const p3 = (wk3.total / (wk3.count * 2)) * 100;
+        const p4 = (wk4.total / (wk4.count * 2)) * 100;
+        const pass = p3 >= passPercent && p4 >= passPercent;
+        monEl.textContent = pass ? 'Pass' : 'Fail';
+        monEl.className = `v ${pass ? 'pass' : 'fail'}`;
+      } else {
+        monEl.textContent = 'Pending';
+        monEl.className = 'v pending';
+      }
+
+      const overallEl = document.getElementById('overallPercentValue');
+      overallEl.textContent = grandMax ? `${((grandTotal / grandMax) * 100).toFixed(1)}% (${grandTotal}/${grandMax})` : '-';
+
+      // Final Result mirrors the backend's grades-report calculation exactly:
+      // only day14, day15, wk3, wk4 count (day10-day13 are observation-only,
+      // never mandatory). Combine those 4 columns into one % out of 100, and
+      // pass only if that combined % AND each of the 4 columns individually
+      // clear this course's own passing % (passPercent, loaded from the
+      // server below - admin-configurable per course via courseView.html).
+      const finalEl = document.getElementById('finalResultValue');
+      const finalCodes = ['day14', 'day15', 'wk3', 'wk4'];
+      const finalCounted = finalCodes.every(c => perDay[c].count > 0);
+      if (finalCounted) {
+        const finalTotal = finalCodes.reduce((s, c) => s + perDay[c].total, 0);
+        const finalMax = finalCodes.reduce((s, c) => s + perDay[c].count * 2, 0);
+        const finalPercent = (finalTotal / finalMax) * 100;
+        const eachPasses = finalCodes.every(c => (perDay[c].total / (perDay[c].count * 2)) * 100 >= passPercent);
+        const pass = eachPasses && finalPercent >= passPercent;
+        finalEl.textContent = `${pass ? 'Pass' : 'Fail'} (${finalPercent.toFixed(1)}%)`;
+        finalEl.className = `v ${pass ? 'pass' : 'fail'}`;
+      } else {
+        finalEl.textContent = 'Pending';
+        finalEl.className = 'v pending';
+      }
+    }
+
+    function collectScores() {
+      const scores = [];
+      document.querySelectorAll('.scoreSelect').forEach(sel => {
+        scores.push({
+          checkpointNo: Number(sel.dataset.checkpoint),
+          dayCode: sel.dataset.day,
+          score: sel.value === '' ? null : Number(sel.value),
+        });
+      });
+      return scores;
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    async function load() {
+      if (!subCourseID || !uniqueID) {
+        setStatus('Missing course or user.', true);
+        return;
+      }
+      try {
+        const data = await requestJson(`/api/practical/evaluation?subCourseID=${encodeURIComponent(subCourseID)}&uniqueID=${encodeURIComponent(uniqueID)}`);
+        checklist = data.checklist;
+        dayColumns = data.dayColumns;
+        passPercent = data.passPercent;
+        // Sync every on-page "70%" label to this course's own passing %
+        // (subcourses.subCoursePassing, admin-configurable via
+        // courseView.html) so the printed/on-screen criteria never
+        // contradicts what actually gets computed as Pass/Fail below.
+        ['day14', 'day15', 'wk3', 'wk4'].forEach(code => {
+          const el = document.getElementById(`passLabel-${code}`);
+          if (el) el.textContent = `${passPercent}%`;
+        });
+        ['passPercentLabel1', 'passPercentLabel2', 'passPercentLabel3', 'passPercentLabel4'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = passPercent;
+        });
+
+        document.getElementById('formTitle').textContent =
+          `${data.course.subCourseName} - Operator OJT Observance & Evaluation`;
+        document.getElementById('userName').textContent = data.user.name || '';
+
+        const ev = data.evaluation;
+        evaluationStatus = ev ? ev.evaluationStatus : null;
+        document.getElementById('employeeCode').value = (ev && ev.employeeCode) || data.user.employeeID || '';
+        document.getElementById('dateOfJoining').value = fmtDate((ev && ev.dateOfJoining) || data.user.dateOfJoining);
+        document.getElementById('deptSegmentLine').value = (ev && ev.deptSegmentLine) ||
+          [data.course.deptName, data.course.areaName, data.course.mCourseName].filter(Boolean).join(' / ') || data.user.department || '';
+        document.getElementById('mcProcess').value = (ev && ev.mcProcess) || '';
+        document.getElementById('ojtStartDate').value = fmtDate(ev && ev.ojtStartDate);
+        document.getElementById('ojtEndDate').value = fmtDate(ev && ev.ojtEndDate);
+
+        buildGrid();
+        applyScores(data.scores || []);
+
+        setStatus(evaluationStatus === 'Submitted' ? 'Submitted. You can still update and re-submit if needed.' : (evaluationStatus === 'Draft' ? 'Draft in progress.' : 'Not started yet.'));
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function headerPayload(action) {
+      return {
+        subCourseID, uniqueID, action,
+        employeeCode: document.getElementById('employeeCode').value.trim() || null,
+        dateOfJoining: document.getElementById('dateOfJoining').value || null,
+        deptSegmentLine: document.getElementById('deptSegmentLine').value.trim() || null,
+        mcProcess: document.getElementById('mcProcess').value.trim() || null,
+        ojtStartDate: document.getElementById('ojtStartDate').value || null,
+        ojtEndDate: document.getElementById('ojtEndDate').value || null,
+        scores: collectScores(),
+      };
+    }
+
+    async function save(action) {
+      const saveBtn = document.getElementById('saveBtn');
+      const submitBtn = document.getElementById('submitBtn');
+      saveBtn.disabled = true; submitBtn.disabled = true;
+      setStatus(action === 'Submitted' ? 'Submitting...' : 'Saving...');
+      try {
+        const data = await requestJson('/api/practical/evaluation/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(headerPayload(action)),
+        });
+        evaluationStatus = data.evaluationStatus;
+        if (action === 'Submitted') {
+          setStatus('Submitted successfully. Returning to the eligible users list...');
+          setTimeout(() => { window.location.href = document.getElementById('backLink').href; }, 1000);
+        } else {
+          setStatus('Draft saved. This user stays on the eligible list until you click Submit.');
+        }
+      } catch (error) {
+        setStatus(error.message, true);
+      } finally {
+        saveBtn.disabled = false; submitBtn.disabled = false;
+      }
+    }
+
+    document.getElementById('saveBtn').addEventListener('click', () => save('Draft'));
+    document.getElementById('submitBtn').addEventListener('click', () => {
+      if (!confirm('Submit this evaluation? The user will be removed from the eligible list once submitted.')) return;
+      save('Submitted');
+    });
+
+    load();
+  </script>
+</body>
+
+</html>

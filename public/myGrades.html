@@ -1,0 +1,349 @@
+<!-- mygrades.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Grades</title>
+    <!-- Add Chart.js library -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/chart.js"></script>
+    <link rel="stylesheet" href="/styles/myGrades.css">
+
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div class="header">
+       
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+        <div class="navbar">
+            <a href="/lmshomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        
+    </div>
+  
+
+    <!-- <div class="navbar">
+        <div class="navbar-brand">Learning Management System</div>
+        <div class="nav-right">
+            <div><span id="usernamePlaceholder"></div>
+            <div class="logout"><a href="/logout">Logout</a></div>
+        </div>
+    </div> -->
+
+    <div class="container">
+        <div class="col">
+            <div id="userDetails"></div>
+            <button id="downloadButton" class="downloadClass">Download Data</button>
+        </div>
+
+        <table id="gradesTable">
+            <thead>
+                <tr>
+                    <th>Sr no</th>
+                    <th>Courselist</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Table body is populated dynamically, grouped level-wise -->
+            </tbody>
+        </table>
+    </div>
+
+    <div class="container">
+        <h2 class="h2-radar-text" style="color: #101828;">Radar Chart</h2>
+        <div class="radar-chart-container">
+            <canvas id="radarChart" class="radar-chart"></canvas>
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript to fetch and display user's data and radar chart
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/getMyGrades');
+                const data = await response.json();
+                displayUserDetails(data.userDetails);
+                displayGrades(data.grades);
+                displayRadarChart(data.grades);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        });
+
+        // Function to display user details
+        function displayUserDetails(userDetails) {
+            const userDetailsDiv = document.getElementById('userDetails');
+            userDetailsDiv.innerHTML = `<p>Name: ${userDetails.name}</p><p>Username: ${userDetails.uName}</p>`;
+        }
+
+    //     // Function to display grades
+    //     function displayGrades(grades) {
+    //         const gradesTable = document.getElementById('gradesTable');
+    //         const tbody = gradesTable.getElementsByTagName('tbody')[0];
+
+    //         // Clear existing rows
+    //         tbody.innerHTML = '';
+
+    //         // Filter out grades with 'N/A' courseName
+    //         const filteredGrades = grades.filter(grade => grade.courseName !== 'N/A');
+
+    //         // Populate table with filtered grades data
+    //         filteredGrades.forEach((grade, index) => {
+    //             const row = `<tr>
+    //         <td>${index + 1}</td>
+    //         <td>${grade.courseName}</td>
+    //         <td>${grade.posttest}</td>
+    //     </tr>`;
+    //             tbody.insertAdjacentHTML('beforeend', row);
+    //         });
+    //         // Calculate total posttest scores
+    //         let totalPosttest = 0;
+    //         filteredGrades.forEach(grade => {
+    //             totalPosttest += parseInt(grade.posttest);
+    //         });
+
+    //         // Calculate mean percentages
+    //         const meanPosttest = filteredGrades.length > 0 ? (totalPosttest / filteredGrades.length).toFixed(2) : 0;
+
+    //         // Calculate level based on mean percentage
+    //         let level = '';
+    //         if (meanPosttest <= 59) {
+    //             level = 'FAIL';
+    //         } else if (meanPosttest >= 60 && meanPosttest <= 69) {
+    //             level = 'PASS';
+    //         } else if (meanPosttest >= 70 && meanPosttest <= 79) {
+    //             level = 'PASS';
+    //         } else if (meanPosttest >= 80 && meanPosttest <= 89) {
+    //             level = 'PASS';
+    //         } else {
+    //             level = 'PASS';
+    //         }
+    //         // Add rows for total mean percentage and level
+    //         const totalRow = `<tr>
+    //     <td colspan="2">Total</td>
+    //     <td>${totalPosttest}</td>
+    // </tr>`;
+    //         const meanPercentageRow = `<tr>
+    //     <td colspan="2">Mean Percentage</td>
+    //     <td>${meanPosttest}%</td>
+    // </tr>`;
+    //         const levelRow = `<tr>
+    //     <td colspan="2">Results</td>
+    //     <td colspan="2">${level}</td>
+    // </tr>`;
+
+    //         // Insert rows into the table
+    //         tbody.insertAdjacentHTML('beforeend', totalRow);
+    //         tbody.insertAdjacentHTML('beforeend', meanPercentageRow);
+    //         tbody.insertAdjacentHTML('beforeend', levelRow);
+    //     }
+
+    function displayGrades(grades) {
+            const gradesTable = document.getElementById('gradesTable');
+            const tbody = gradesTable.getElementsByTagName('tbody')[0];
+            tbody.innerHTML = '';
+
+            const attemptedGrades = Array.isArray(grades) ? grades : [];
+
+            // Group course rows level-wise (Level 1, Level 2, Level 3, Level 4).
+            // Any course whose level doesn't match one of these known buckets
+            // still shows up under "Other" so nothing silently disappears.
+            const levelOrder = ['Level 1', 'Level 2', 'Level 3', 'Level 4'];
+            const groups = {};
+            attemptedGrades.forEach(grade => {
+                const key = levelOrder.includes(grade.courseLevel) ? grade.courseLevel : 'Other';
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(grade);
+            });
+
+            let srNo = 0;
+            const scoredValues = [];
+            let passCount = 0;
+            let attemptedCount = 0;
+            let incompleteCount = 0;
+
+            [...levelOrder, 'Other'].forEach(levelKey => {
+                const levelGrades = groups[levelKey];
+                if (!levelGrades || !levelGrades.length) return;
+
+                const headerRow = `<tr class="level-header-row"><td colspan="3">${levelKey}</td></tr>`;
+                tbody.insertAdjacentHTML('beforeend', headerRow);
+
+                levelGrades.forEach(grade => {
+                    srNo += 1;
+                    const hasScore = grade.score !== null && grade.score !== undefined && grade.score !== 'N/A';
+                    const scoreLabel = hasScore ? grade.score : (grade.status || 'No Attempt');
+                    const row = `<tr>
+                <td>${srNo}</td>
+                <td>${grade.courseName}</td>
+                <td>${scoreLabel}</td>
+            </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+
+                    const status = String(grade.status || '').trim();
+                    const hasAttempt = hasScore || ['Pass', 'Fail', 'Completed'].includes(status);
+                    if (hasAttempt) {
+                        attemptedCount += 1;
+                        if (hasScore) scoredValues.push(parseFloat(grade.score) || 0);
+                        if (status === 'Pass' || status === 'Completed') passCount += 1;
+                    } else {
+                        incompleteCount += 1;
+                    }
+                });
+            });
+
+            const totalScore = scoredValues.reduce((sum, v) => sum + v, 0);
+            const meanScore = scoredValues.length > 0 ? (totalScore / scoredValues.length).toFixed(2) : 0;
+            const overallResult = incompleteCount > 0
+                ? (attemptedCount > 0 ? 'INCOMPLETE' : 'No Attempts Yet')
+                : (attemptedCount > 0 && passCount === attemptedCount ? 'PASS' : (attemptedCount > 0 ? 'FAIL' : 'No Attempts Yet'));
+
+            const totalRow = `<tr>
+        <td colspan="2">Total</td>
+        <td>${totalScore}</td>
+    </tr>`;
+            const meanPercentageRow = `<tr>
+        <td colspan="2">Mean Percentage</td>
+        <td>${meanScore}%</td>
+    </tr>`;
+            const levelRow = `<tr>
+        <td colspan="2">Results</td>
+        <td colspan="2">${overallResult}</td>
+    </tr>`;
+
+            tbody.insertAdjacentHTML('beforeend', totalRow);
+            tbody.insertAdjacentHTML('beforeend', meanPercentageRow);
+            tbody.insertAdjacentHTML('beforeend', levelRow);
+        }
+
+        // Function to display radar chart
+        function displayRadarChart(grades) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+
+            // Filter out courses with N/A values
+            const filteredGrades = grades.filter(grade => grade.posttest !== 'N/A');
+            const courseNames = filteredGrades.map(grade => grade.courseName);
+            const posttestScores = filteredGrades.map(grade => grade.posttest);
+
+            // Modify each label object to include class
+            // const labels = courseNames.map(courseName => {
+            //     return {
+            //         text: courseName,
+            //         className: 'course-name'
+            //     };
+            // });
+
+            const data = {
+                //labels: labels, // Using labels with spans containing course names
+                labels: courseNames,
+                datasets: [
+                    {
+                        label: 'Score',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: posttestScores
+                    }
+                ]
+            };
+
+            const options = {
+                scales: {
+                    r: {
+                        type: 'radialLinear',
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10
+                        },
+                        angleLines: {
+                            display: true
+                        },
+                        grid: {
+                            //circular: true
+                        },
+                        pointLabels: {
+                            display: true,
+                            font: {
+                                size: 15
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            };
+
+            const radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: options
+            });
+        }
+
+        // Add class to each label
+        /*const radarLabels = radarChart.data.labels;
+        radarLabels.forEach((label, index) => {
+            const labelElement = radarChart.getDatasetMeta(0).data[index]._model;
+            labelElement.className = 'course-name';
+        });
+
+        radarChart.update();*/ // Update the chart to reflect changes
+
+        // Function to download data in .xlsx format
+        function downloadData() {
+            const gradesTable = document.getElementById('gradesTable');
+            const tableData = [];
+
+            // Loop through table rows and cells to get data
+            for (let i = 0; i < gradesTable.rows.length; i++) {
+                const rowData = [];
+                const row = gradesTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+
+            // Convert data to CSV format
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+
+            // Create a Blob object containing the CSV data
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+
+            // Set the filename for the download
+            link.download = 'grades_data.csv';
+
+            // Trigger the download
+            link.click();
+        }
+        // Add event listener to the download button
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+
+
+        function BackPage() {
+            window.location.href = '/lmshomepage.html'; // Navigate back to the index page
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1795 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades Management</title>
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <link rel="stylesheet" href="/styles/gradesManagement.css">
+    <style>
+        /* Existing styles remain unchanged... */
+        /* Compact table styling */
+        #gradesTable {
+            font-size: 12px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        #gradesTable th,
+        #gradesTable td {
+            padding: 8px 6px;
+            white-space: nowrap;
+            text-align: center;
+        }
+
+        /* Fixed left columns */
+        #gradesTable th:nth-child(1),
+        #gradesTable th:nth-child(2),
+        #gradesTable th:nth-child(3),
+        #gradesTable th:nth-child(4),
+        #gradesTable th:nth-child(5),
+        #gradesTable td:nth-child(1),
+        #gradesTable td:nth-child(2),
+        #gradesTable td:nth-child(3),
+        #gradesTable td:nth-child(4),
+        #gradesTable td:nth-child(5) {
+            position: sticky;
+            background: #1a1a2e;
+            z-index: 10;
+        }
+
+        #gradesTable th:nth-child(1),
+        #gradesTable td:nth-child(1) {
+            left: 0;
+        }
+
+        #gradesTable th:nth-child(2),
+        #gradesTable td:nth-child(2) {
+            left: 50px;
+            /* display: none; */
+        }
+
+        #gradesTable th:nth-child(3),
+        #gradesTable td:nth-child(3) {
+            left: 50px;
+            min-width: 150px;
+        }
+
+        #gradesTable th:nth-child(4),
+        #gradesTable td:nth-child(4) {
+            left: 200px;
+            min-width: 100px;
+        }
+
+        #gradesTable th:nth-child(5),
+        #gradesTable td:nth-child(5) {
+            left: 300px;
+            min-width: 100px;
+            cursor: pointer;
+            /* color: #4dabf7; */
+        }
+
+        /* Level group headers */
+        .level-group-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            font-size: 13px;
+            border: 2px solid #764ba2;
+        }
+
+        .level-I-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-color: #c82333;
+        }
+
+        .level-L-header {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            border-color: #e0a800;
+            color: #000;
+        }
+
+        .level-U-header {
+            background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+            border-color: #218838;
+        }
+
+        /* Course columns - more compact */
+        .course-score-cell {
+            text-align: center;
+            min-width: 50px;
+            max-width: 50px;
+        }
+
+        /* Hide course name columns, only show scores */
+        .hiddenColumn {
+            display: none;
+        }
+
+        /* Center align specific text columns but keep them left for readability */
+        /* #gradesTable td:nth-child(3),
+        #gradesTable td:nth-child(4) {
+            text-align: left;
+        } */
+
+        /* Summary columns at the end */
+        .summary-column {
+            position: sticky;
+            right: 0;
+            background: #1a1a2e;
+            z-index: 10;
+            font-weight: bold;
+        }
+
+        /* Certificate button styling */
+        .printclass {
+            font-size: 11px;
+            padding: 5px 8px;
+            white-space: nowrap;
+            display: inline-block;
+            text-align: center;
+            border-radius: 3px;
+            margin: 2px;
+        }
+
+        .printclass.disabled {
+            cursor: not-allowed;
+        }
+
+        .cert-level-I {
+            background: #dc3545;
+            color: white;
+        }
+
+        .cert-level-L {
+            background: #ffc107;
+            color: black;
+        }
+
+        .cert-level-U {
+            background: #28a745;
+            color: white;
+        }
+
+        /* View toggle buttons */
+        .view-toggle {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .view-toggle button {
+            padding: 8px 15px;
+            font-size: 12px;
+        }
+
+        .view-toggle button.active {
+            background: #28a745 !important;
+            color: white !important;
+        }
+
+        /* Expandable row details */
+        .row-expanded {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .expand-icon {
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 5px;
+        }
+
+        .course-details-row {
+    display: none;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+        .course-details-content {
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .course-detail-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 3px solid #4dabf7;
+            text-align: center;
+        }
+
+        .course-detail-item strong {
+            display: block;
+            color: #4dabf7;
+            font-size: 11px;
+            margin-bottom: 5px;
+        }
+
+        .course-detail-item .course-score {
+            font-size: 16px;
+            font-weight: bold;
+            display: inline-block;
+            min-width: 50px;
+            padding: 5px 10px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .course-detail-item .course-score[contenteditable="true"] {
+            background: rgba(74, 171, 247, 0.2);
+            border: 1px solid #4dabf7;
+            cursor: text;
+        }
+
+        .course-detail-item .course-score[contenteditable="true"]:focus {
+            outline: 2px solid #4dabf7;
+            background: rgba(74, 171, 247, 0.3);
+        }
+
+        /* Compact view - fewer visible columns */
+        .compact-view .detail-column {
+            display: none;
+        }
+
+        /* Level badges */
+        .level-cell {
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .level-L1 {
+            background: #dc3545;
+            color: white;
+        }
+
+        .level-L2 {
+            background: #ffc107;
+            color: black;
+        }
+
+        .level-L3 {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .level-L4 {
+            background: #28a745;
+            color: white;
+        }
+
+        /* Certificate column styling */
+        .certificate-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            align-items: center;
+        }
+
+        /* New styles for department filter (copied/adapted from Course Management) */
+        .controls-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            position: relative;
+            z-index: 50;
+        }
+
+        .filter-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 12px 24px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .filter-btn.active {
+            background: rgba(34, 197, 94, 0.3);
+            border-color: rgba(34, 197, 94, 0.5);
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+        }
+
+        .department-dropdown {
+            position: relative;
+            display: inline-block;
+            z-index: 100;
+        }
+
+        .dropdown-btn {
+            padding: 12px 24px;
+            background: rgba(30, 41, 59, 0.8);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .dropdown-btn:hover {
+            background: rgba(59, 130, 246, 0.3);
+            border-color: rgba(59, 130, 246, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            min-width: 220px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 99999;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-content.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dropdown-content a {
+            color: #ffffff;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .dropdown-content a:last-child {
+            border-bottom: none;
+        }
+
+        .dropdown-content a:hover {
+            background: rgba(59, 130, 246, 0.3);
+            padding-left: 25px;
+        }
+
+        .filter-info {
+            font-style: italic;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            padding: 8px 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        /* Adjust search and pagination to fit in controls-section */
+        .search-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-button,
+        .DropdownClass {
+            padding: 8px 12px;
+            font-size: 12px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+            color: #fff;
+        }
+
+        .date-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .date-controls input[type="date"] {
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(30, 41, 59, 0.8);
+            color: #fff;
+        }
+
+        .pagination-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/adminhomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+    </div>
+    <div class="container table-container">
+        <div class="container">
+            <div class="grid-item">
+                <div class="EnEdit">
+                    Enable Editing &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="editButton"
+                        class="btnclass1" />
+                    <label for="editButton" class="toggle"></label>
+                </div>
+                <!-- Level Criteria Configuration Section -->
+                <div class="criteria-config-section">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <h2 class="config-title" style="margin: 0; font-size: 16px;">Level Criteria</h2>
+                        <button id="toggleCriteriaBtn" class="btnclass"
+                            style="font-size: 12px; padding: 6px 12px;">Configure</button>
+                    </div>
+
+                    <!-- Compact Inline Display -->
+                    <div id="criteriaDisplay"
+                        style="display: flex; gap: 15px; flex-wrap: wrap; padding: 8px; background: rgba(255,255,255,0.1); border-radius: 5px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span
+                                style="background: #dc3545; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">L1</span>
+                            <span style="color: #fff; font-size: 11px;">0-<span id="displayL1Max">85</span>
+                                (FAIL)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span
+                                style="background: #ffc107; color: #000; padding: 3px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">L2</span>
+                            <span style="color: #fff; font-size: 11px;"><span id="displayL2Min">86</span>-<span
+                                    id="displayL2Max">90</span> (PASS)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span
+                                style="background: #17a2b8; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">L3</span>
+                            <span style="color: #fff; font-size: 11px;"><span id="displayL3Min">91</span>-<span
+                                    id="displayL3Max">95</span> (PASS)</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 5px;">
+                            <span
+                                style="background: #28a745; color: white; padding: 3px 6px; border-radius: 3px; font-size: 10px; font-weight: bold;">L4</span>
+                            <span style="color: #fff; font-size: 11px;"><span id="displayL4Min">96</span>-100
+                                (PASS)</span>
+                        </div>
+                    </div>
+
+                    <div id="criteriaConfigPanel" class="criteria-panel" style="display: none;">
+                        <div class="criteria-grid">
+                            <div class="criteria-item level-L1-bg">
+                                <label class="criteria-label">L1 (FAIL)</label>
+                                <div class="criteria-range">
+                                    <span>Score:</span>
+                                    <input type="number" id="l1Min" class="criteria-input" value="0" min="0" max="100"
+                                        readonly>
+                                    <span>to</span>
+                                    <input type="number" id="l1Max" class="criteria-input" value="85" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="criteria-item level-L2-bg">
+                                <label class="criteria-label">L2 (PASS)</label>
+                                <div class="criteria-range">
+                                    <span>Score:</span>
+                                    <input type="number" id="l2Min" class="criteria-input" value="86" min="0" max="100">
+                                    <span>to</span>
+                                    <input type="number" id="l2Max" class="criteria-input" value="90" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="criteria-item level-L3-bg">
+                                <label class="criteria-label">L3 (PASS)</label>
+                                <div class="criteria-range">
+                                    <span>Score:</span>
+                                    <input type="number" id="l3Min" class="criteria-input" value="91" min="0" max="100">
+                                    <span>to</span>
+                                    <input type="number" id="l3Max" class="criteria-input" value="95" min="0" max="100">
+                                </div>
+                            </div>
+                            <div class="criteria-item level-L4-bg">
+                                <label class="criteria-label">L4 (PASS)</label>
+                                <div class="criteria-range">
+                                    <span>Score:</span>
+                                    <input type="number" id="l4Min" class="criteria-input" value="96" min="0" max="100">
+                                    <span>to</span>
+                                    <input type="number" id="l4Max" class="criteria-input" value="100" min="0" max="100"
+                                        readonly>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="criteria-actions">
+                            <button id="applyCriteriaBtn" class="btnclass apply-btn">Apply Changes</button>
+                            <button id="resetCriteriaBtn" class="btnclass reset-btn">Reset to Default</button>
+                            <span id="criteriaMessage" class="criteria-message"></span>
+                        </div>
+                        <div class="criteria-summary">
+                            <h3>Current Criteria Summary:</h3>
+                            <div id="criteriaSummary" class="summary-content"></div>
+                        </div>
+                    </div>
+                </div>
+                <h1 class="h1class">Grades Management</h1>
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <span style="color: #fff; font-size: 12px;">View Mode:</span>
+                    <button id="compactViewBtn" class="btnclass active">Compact (Summary Only)</button>
+                    <button id="detailedViewBtn" class="btnclass">Detailed (All Courses)</button>
+                </div>
+                <button id="downloadButton" class="downloadClass btnclass">Download Data</button>
+                <button id="saveButton" class="btnclass" style="display: none;">Save Changes</button>
+
+                <!-- New Controls Section with Department Filter -->
+                <div class="controls-section">
+                    <div class="filter-container">
+                        <button onclick="showAllUsers()" class="filter-btn active" id="allUsersBtn">All
+                            Departments</button>
+
+                        <div class="department-dropdown">
+                            <button class="dropdown-btn" id="departmentBtn">Department ▼</button>
+                            <div class="dropdown-content" id="dropdownMenu">
+                                <!-- Departments will be loaded dynamically -->
+                            </div>
+                        </div>
+
+                        <span class="filter-info" id="filterInfo">Showing all users</span>
+                    </div>
+                    <div class="search-controls">
+                        <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Search..."
+                            class="search-button">
+                        <select id="searchColumn" class="DropdownClass">
+                            <option value="0">Search by</option>
+                            <option value="2">Name</option>
+                            <option value="3">Username</option>
+                            <option value="4">Employee ID</option>
+                        </select>
+                        <div class="date-controls">
+                            <input type="date" name="from_Date" id="From_Date">
+                            <input type="date" name="To_Date" id="To_Date">
+                            <button onclick="serchUserByDate()" class="DropdownClass">Filter</button>
+                        </div>
+                    </div>
+                    <div class="pagination-container">
+                        <button id="prevBtn" class="btnclass">Previous</button>
+                        <span class="pagination-info" id="pageInfo" style="color: #fff;">Page 1 of 1</span>
+                        <button id="nextBtn" class="btnclass">Next</button>
+                        <div class="rows-per-page">
+                            <label id="rowsPerPage"></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="scrolldiv">
+                    <table id="gradesTable">
+                        <thead>
+                            <tr id="mainHeaderRow">
+                                <th style="position: sticky;" rowspan="2">Sr No</th>
+                                <th style="display: none;" rowspan="2">UniqueID</th>
+                                <th style="position: sticky;" rowspan="2">Name</th>
+                                <th rowspan="2">Username</th>
+                                <th style="position: sticky;" rowspan="2">Employee ID</th>
+                                <th class="detail-column" rowspan="2">Date Of Joining</th>
+                                <th class="detail-column" rowspan="2">Department</th>
+                                <th class="detail-column" rowspan="2">Contract</th>
+                                <!-- Level group headers will be added here -->
+                                <th class="summary-column" rowspan="2">Total</th>
+                                <th class="summary-column" rowspan="2">Result</th>
+                                <th class="summary-column" rowspan="2">Level</th>
+                                <th class="summary-column" rowspan="2">Certificates</th>
+                                <th class="summary-column" rowspan="2">Save</th>
+                            </tr>
+                            <tr id="courseHeaderRow">
+                                <!-- Course headers will be added dynamically -->
+                            </tr>
+                        </thead>
+                        <tbody id="gradesData">
+                            <!-- Grades data will be inserted here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        let currentPage = 1;
+        let rowsPerPage = 100;
+        let allRows = [];
+        let filteredRows = [];
+        let numCourses = 0;
+        let isCompactView = true;
+        let courseNames = [];
+        let courseLevels = { I: [], L: [], U: [] }; // Store courses by level
+        // New filter variables
+        let currentDepartmentFilter = 'all';
+        let searchFilter = '';
+        let dateFilter = { from: null, to: null };
+        let levelCriteria = {
+            L1: { min: 0, max: 85, result: 'FAIL', class: 'level-L1' },
+            L2: { min: 86, max: 90, result: 'PASS', class: 'level-L2' },
+            L3: { min: 91, max: 95, result: 'PASS', class: 'level-L3' },
+            L4: { min: 96, max: 100, result: 'PASS', class: 'level-L4' }
+        };
+        // View Toggle Functions - Fixed
+        // View Toggle Functions - Fixed
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('compactViewBtn').addEventListener('click', function () {
+                isCompactView = true;
+                this.classList.add('active');
+                document.getElementById('detailedViewBtn').classList.remove('active');
+                document.getElementById('gradesTable').classList.add('compact-view');
+
+                // Hide course-related elements for compact view
+                document.querySelectorAll('.level-group-header').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('#courseHeaderRow th').forEach(el => el.style.display = 'none');
+                document.querySelectorAll('td.course-score-cell').forEach(el => el.style.display = 'none');
+
+                // Close all expanded rows when switching to compact view
+                document.querySelectorAll('.course-details-row').forEach(row => {
+                    row.style.display = 'none';
+                });
+                document.querySelectorAll('.row-expanded').forEach(row => {
+                    row.classList.remove('row-expanded');
+                    const icon = row.querySelector('.expand-icon');
+                    if (icon) icon.textContent = '▶';
+                });
+            });
+            document.getElementById('detailedViewBtn').addEventListener('click', function () {
+                isCompactView = false;
+                this.classList.add('active');
+                document.getElementById('compactViewBtn').classList.remove('active');
+                document.getElementById('gradesTable').classList.remove('compact-view');
+
+                // Show course-related elements for detailed view
+                document.querySelectorAll('.level-group-header').forEach(el => el.style.display = '');
+                document.querySelectorAll('#courseHeaderRow th').forEach(el => el.style.display = '');
+                document.querySelectorAll('td.course-score-cell').forEach(el => el.style.display = '');
+
+                // Close all expanded rows when switching to detailed view
+                document.querySelectorAll('.course-details-row').forEach(row => {
+                    row.style.display = 'none';
+                });
+                document.querySelectorAll('.row-expanded').forEach(row => {
+                    row.classList.remove('row-expanded');
+                    const icon = row.querySelector('.expand-icon');
+                    if (icon) icon.textContent = '▶';
+                });
+            });
+        });
+        // Updated toggle row expansion for course details
+        function toggleRowDetails(row) {
+            let detailsRow = row.nextElementSibling;
+
+            // If no details row exists, create it dynamically
+            if (!detailsRow || !detailsRow.classList.contains('course-details-row')) {
+                detailsRow = createDetailsRow(row);
+                // Insert after the main row
+                row.parentNode.insertBefore(detailsRow, row.nextSibling);
+            }
+
+            // Now toggle visibility
+            if (detailsRow.style.display === 'none' || !detailsRow.style.display) {
+                detailsRow.style.display = 'table-row';
+                row.classList.add('row-expanded');
+                row.querySelector('.expand-icon').textContent = '▼';
+
+                // In compact view, ensure course details are visible (override hide)
+                if (isCompactView) {
+                    detailsRow.querySelectorAll('.course-detail-item').forEach(item => {
+                        item.style.display = 'block';
+                    });
+                }
+            } else {
+                detailsRow.style.display = 'none';
+                row.classList.remove('row-expanded');
+                row.querySelector('.expand-icon').textContent = '▶';
+            }
+        }
+        // New helper function: Create the details row with course info
+        function createDetailsRow(mainRow) {
+            const detailsRow = document.createElement('tr');
+            detailsRow.classList.add('course-details-row');
+
+            // Create a single cell spanning all columns (for layout)
+            const detailsCell = document.createElement('td');
+            detailsCell.colSpan = mainRow.cells.length;  // Match main row's column count
+            detailsCell.classList.add('course-details-content');  // Use existing CSS grid
+
+            // Populate with course details from the main row's data
+            const courseCells = mainRow.querySelectorAll('td.course-score-cell');
+            let contentHTML = '<div class="course-details-content">';
+
+            courseCells.forEach((cell, index) => {
+                const courseName = cell.dataset.courseName || `Course ${index + 1}`;
+                const score = cell.textContent.trim() || 'Not Attempted';
+                const courseLevel = cell.dataset.courseLevel || 'I';
+                const courseID = cell.dataset.courseID || '';
+
+                contentHTML += `
+                    <div class="course-detail-item">
+                        <strong>${courseName}</strong>
+                        <span class="course-score" 
+                              data-column="course${index + 1}Posttest" 
+                              data-course-id="${courseID}"
+                              data-course-name="${courseName}"
+                              data-course-level="${courseLevel}"
+                              data-unique-id="${mainRow.querySelector('td[data-column="uniqueID"]').textContent}"
+                              contenteditable="false">${score}</span>
+                    </div>
+                `;
+            });
+
+            contentHTML += '</div>';
+            detailsCell.innerHTML = contentHTML;
+            detailsRow.appendChild(detailsCell);
+
+            return detailsRow;
+        }
+        document.getElementById('toggleCriteriaBtn').addEventListener('click', function () {
+            const panel = document.getElementById('criteriaConfigPanel');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                this.textContent = 'Hide';
+                updateCriteriaSummary();
+            } else {
+                panel.style.display = 'none';
+                this.textContent = 'Configure';
+            }
+        });
+        document.getElementById('applyCriteriaBtn').addEventListener('click', async function () {
+            if (validateCriteria()) {
+                updateLevelCriteria();
+                const saved = await saveCriteriaToBackend();
+                if (saved) {
+                    updateAllResults();
+                    updateCriteriaDisplay();
+                    showMessage('Criteria applied and saved successfully!', 'success');
+                    updateCriteriaSummary();
+                } else {
+                    showMessage('Criteria applied but failed to save.', 'error');
+                }
+            } else {
+                showMessage('Invalid criteria!', 'error');
+            }
+        });
+        document.getElementById('resetCriteriaBtn').addEventListener('click', async function () {
+            document.getElementById('l1Max').value = 85;
+            document.getElementById('l2Min').value = 86;
+            document.getElementById('l2Max').value = 90;
+            document.getElementById('l3Min').value = 91;
+            document.getElementById('l3Max').value = 95;
+            document.getElementById('l4Min').value = 96;
+
+            levelCriteria = {
+                L1: { min: 0, max: 85, result: 'FAIL', class: 'level-L1' },
+                L2: { min: 86, max: 90, result: 'PASS', class: 'level-L2' },
+                L3: { min: 91, max: 95, result: 'PASS', class: 'level-L3' },
+                L4: { min: 96, max: 100, result: 'PASS', class: 'level-L4' }
+            };
+
+            const saved = await saveCriteriaToBackend();
+            if (saved) {
+                updateAllResults();
+                updateCriteriaDisplay();
+                showMessage('Criteria reset to default.', 'success');
+                updateCriteriaSummary();
+            }
+        });
+        function updateCriteriaDisplay() {
+            document.getElementById('displayL1Max').textContent = levelCriteria.L1.max;
+            document.getElementById('displayL2Min').textContent = levelCriteria.L2.min;
+            document.getElementById('displayL2Max').textContent = levelCriteria.L2.max;
+            document.getElementById('displayL3Min').textContent = levelCriteria.L3.min;
+            document.getElementById('displayL3Max').textContent = levelCriteria.L3.max;
+            document.getElementById('displayL4Min').textContent = levelCriteria.L4.min;
+        }
+        function validateCriteria() {
+            const l1Max = parseInt(document.getElementById('l1Max').value);
+            const l2Min = parseInt(document.getElementById('l2Min').value);
+            const l2Max = parseInt(document.getElementById('l2Max').value);
+            const l3Min = parseInt(document.getElementById('l3Min').value);
+            const l3Max = parseInt(document.getElementById('l3Max').value);
+            const l4Min = parseInt(document.getElementById('l4Min').value);
+            if (l1Max >= l2Min || l2Max >= l3Min || l3Max >= l4Min) return false;
+            if (l2Min !== l1Max + 1 || l3Min !== l2Max + 1 || l4Min !== l3Max + 1) return false;
+            return true;
+        }
+        function updateLevelCriteria() {
+            levelCriteria = {
+                L1: { min: 0, max: parseInt(document.getElementById('l1Max').value), result: 'FAIL', class: 'level-L1' },
+                L2: { min: parseInt(document.getElementById('l2Min').value), max: parseInt(document.getElementById('l2Max').value), result: 'PASS', class: 'level-L2' },
+                L3: { min: parseInt(document.getElementById('l3Min').value), max: parseInt(document.getElementById('l3Max').value), result: 'PASS', class: 'level-L3' },
+                L4: { min: parseInt(document.getElementById('l4Min').value), max: 100, result: 'PASS', class: 'level-L4' }
+            };
+        }
+        function showMessage(message, type) {
+            const messageEl = document.getElementById('criteriaMessage');
+            messageEl.textContent = message;
+            messageEl.className = 'criteria-message ' + (type === 'success' ? 'success-message' : 'error-message');
+            setTimeout(() => {
+                messageEl.textContent = '';
+                messageEl.className = 'criteria-message';
+            }, 3000);
+        }
+        function updateCriteriaSummary() {
+            const summaryEl = document.getElementById('criteriaSummary');
+            summaryEl.innerHTML = `
+                <div class="summary-item"><span class="level-badge level-L1-bg">L1 (FAIL):</span> ${levelCriteria.L1.min}-${levelCriteria.L1.max}</div>
+                <div class="summary-item"><span class="level-badge level-L2-bg">L2 (PASS):</span> ${levelCriteria.L2.min}-${levelCriteria.L2.max}</div>
+                <div class="summary-item"><span class="level-badge level-L3-bg">L3 (PASS):</span> ${levelCriteria.L3.min}-${levelCriteria.L3.max}</div>
+                <div class="summary-item"><span class="level-badge level-L4-bg">L4 (PASS):</span> ${levelCriteria.L4.min}-${levelCriteria.L4.max}</div>
+            `;
+        }
+        async function loadSavedCriteria() {
+            try {
+                const response = await fetch('/getLevelCriteria');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data && data.criteria) {
+                        levelCriteria = data.criteria;
+                        document.getElementById('l1Max').value = levelCriteria.L1.max;
+                        document.getElementById('l2Min').value = levelCriteria.L2.min;
+                        document.getElementById('l2Max').value = levelCriteria.L2.max;
+                        document.getElementById('l3Min').value = levelCriteria.L3.min;
+                        document.getElementById('l3Max').value = levelCriteria.L3.max;
+                        document.getElementById('l4Min').value = levelCriteria.L4.min;
+                        updateCriteriaDisplay();
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading criteria:', error);
+            }
+        }
+        async function saveCriteriaToBackend() {
+            try {
+                const response = await fetch('/saveLevelCriteria', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ criteria: levelCriteria })
+                });
+                return response.ok;
+            } catch (error) {
+                console.error('Error saving criteria:', error);
+                return false;
+            }
+        }
+        function calculateLevel(averageScore) {
+            for (const [level, criteria] of Object.entries(levelCriteria)) {
+                if (averageScore >= criteria.min && averageScore <= criteria.max) {
+                    return { level: level, result: criteria.result, class: criteria.class };
+                }
+            }
+            return { level: 'L1', result: 'FAIL', class: 'level-L1' };
+        }
+        function areAllCoursesCompleted(row, levelType = null) {
+            let requiredCourses = [];
+
+            if (levelType) {
+                // Check specific level completion
+                requiredCourses = courseLevels[levelType] || [];
+            } else {
+                // Check all courses
+                requiredCourses = courseNames;
+            }
+
+            if (requiredCourses.length === 0) return false;
+
+            let completedCourses = 0;
+            requiredCourses.forEach(course => {
+                const courseIndex = courseNames.findIndex(c => c.courseID === course.courseID);
+                if (courseIndex >= 0) {
+                    const posttestCell = row.querySelector(`td[data-column="course${courseIndex + 1}Posttest"]`);
+                    if (posttestCell) {
+                        const posttestScore = posttestCell.textContent.trim();
+                        if (posttestScore !== '' && posttestScore !== null && posttestScore !== undefined && !isNaN(parseFloat(posttestScore))) {
+                            completedCourses++;
+                        }
+                    }
+                }
+            });
+
+            return completedCourses === requiredCourses.length;
+        }
+        function updateAllResults() {
+            const rows = document.querySelectorAll('#gradesData tr:not(.course-details-row)');
+            rows.forEach(row => {
+                updateRowResult(row);
+            });
+        }
+        function updateRowResult(row) {
+            const cells = row.querySelectorAll('td');
+            let totalPosttest = 0;
+            let numberOfPosttests = 0;
+            for (let i = 1; i <= numCourses; i++) {
+                const posttestCell = row.querySelector(`td[data-column="course${i}Posttest"]`);
+                if (posttestCell) {
+                    const posttestScore = parseFloat(posttestCell.textContent);
+                    if (!isNaN(posttestScore) && posttestCell.textContent.trim() !== '') {
+                        totalPosttest += posttestScore;
+                        numberOfPosttests++;
+                    }
+                }
+            }
+            const averageScore = numberOfPosttests > 0 ? (totalPosttest / numberOfPosttests) : 0;
+            const levelInfo = calculateLevel(averageScore);
+            const allCoursesCompleted = areAllCoursesCompleted(row);
+            const totalCell = row.querySelector('td[data-column="total"]');
+            if (totalCell) totalCell.textContent = totalPosttest.toFixed(0);
+            const resultCell = row.querySelector('td[data-column="result"]');
+            if (resultCell) resultCell.textContent = levelInfo.result;
+            const levelCell = row.querySelector('td[data-column="level"]');
+            if (levelCell) {
+                levelCell.textContent = levelInfo.level;
+                levelCell.className = 'level-cell ' + levelInfo.class;
+            }
+            // Update certificate buttons for each level
+            // Update certificate buttons for each level
+            const printCell = row.querySelector('td[data-column="certificate"]');
+            if (printCell) {
+                printCell.innerHTML = ''; // Clear existing buttons
+                const certContainer = document.createElement('div');
+                certContainer.className = 'certificate-cell';
+
+                const uniqueIDCell = row.querySelector('td[data-column="uniqueID"]');
+                const uniqueID = uniqueIDCell ? uniqueIDCell.textContent : '';
+
+                // Get the result status - certificate should only be enabled if result is PASS
+                const resultCell = row.querySelector('td[data-column="result"]');
+                const isPassed = resultCell && resultCell.textContent.trim() === 'PASS';
+
+                // Level I Certificate
+                const levelICompleted = areAllCoursesCompleted(row, 'I');
+                const btnI = document.createElement('a');
+                btnI.classList.add('printclass', 'cert-level-I');
+                btnI.textContent = 'Level I';
+                if (levelICompleted && isPassed && courseLevels.I.length > 0) {
+                    btnI.href = "LisenceIssue.html?uid=" + uniqueID + "&certLevel=I";
+                    btnI.title = "Print Level I Certificate";
+                } else {
+                    btnI.classList.add('disabled');
+                    btnI.href = "#";
+                    btnI.style.pointerEvents = 'none';
+                    btnI.style.opacity = '0.5';
+                    if (courseLevels.I.length === 0) {
+                        btnI.title = "No Level I courses";
+                    } else if (!levelICompleted) {
+                        btnI.title = "Complete all Level I courses";
+                    } else if (!isPassed) {
+                        btnI.title = "Result must be PASS to print certificate";
+                    }
+                }
+                if (courseLevels.I.length > 0) certContainer.appendChild(btnI);
+
+                // Level L Certificate
+                const levelLCompleted = areAllCoursesCompleted(row, 'L');
+                const btnL = document.createElement('a');
+                btnL.classList.add('printclass', 'cert-level-L');
+                btnL.textContent = 'Level L';
+                if (levelLCompleted && isPassed && courseLevels.L.length > 0) {
+                    btnL.href = "LisenceIssue.html?uid=" + uniqueID + "&certLevel=L";
+                    btnL.title = "Print Level L Certificate";
+                } else {
+                    btnL.classList.add('disabled');
+                    btnL.href = "#";
+                    btnL.style.pointerEvents = 'none';
+                    btnL.style.opacity = '0.5';
+                    if (courseLevels.L.length === 0) {
+                        btnL.title = "No Level L courses";
+                    } else if (!levelLCompleted) {
+                        btnL.title = "Complete all Level L courses";
+                    } else if (!isPassed) {
+                        btnL.title = "Result must be PASS to print certificate";
+                    }
+                }
+                if (courseLevels.L.length > 0) certContainer.appendChild(btnL);
+
+                // Level U Certificate
+                const levelUCompleted = areAllCoursesCompleted(row, 'U');
+                const btnU = document.createElement('a');
+                btnU.classList.add('printclass', 'cert-level-U');
+                btnU.textContent = 'Level U';
+                if (levelUCompleted && isPassed && courseLevels.U.length > 0) {
+                    btnU.href = "LisenceIssue.html?uid=" + uniqueID + "&certLevel=U";
+                    btnU.title = "Print Level U Certificate";
+                } else {
+                    btnU.classList.add('disabled');
+                    btnU.href = "#";
+                    btnU.style.pointerEvents = 'none';
+                    btnU.style.opacity = '0.5';
+                    if (courseLevels.U.length === 0) {
+                        btnU.title = "No Level U courses";
+                    } else if (!levelUCompleted) {
+                        btnU.title = "Complete all Level U courses";
+                    } else if (!isPassed) {
+                        btnU.title = "Result must be PASS to print certificate";
+                    }
+                }
+                if (courseLevels.U.length > 0) certContainer.appendChild(btnU);
+
+                printCell.appendChild(certContainer);
+            }
+            // Sync details row if expanded
+            const detailsRow = row.nextElementSibling;
+            if (detailsRow && detailsRow.classList.contains('course-details-row')) {
+                // Rebuild or update scores in details
+                const courseCells = row.querySelectorAll('td.course-score-cell');
+                courseCells.forEach((mainCell, index) => {
+                    const detailScore = detailsRow.querySelector(`.course-score:nth-child(${index + 1})`);
+                    if (detailScore) detailScore.textContent = mainCell.textContent;
+                });
+            }
+        }
+        // New department filter functions
+        function fetchDepartments() {
+            fetch('/getDepartments')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Departments from Backend:', data);
+                    const dropdownMenu = document.getElementById('dropdownMenu');
+                    dropdownMenu.innerHTML = '';
+
+                    const departmentsList = data.departments || [];
+
+                    departmentsList.forEach(dept => {
+                        const link = document.createElement('a');
+                        link.textContent = dept.name;
+                        link.onclick = function () {
+                            filterByDepartment(dept.name);
+                        };
+                        dropdownMenu.appendChild(link);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching departments:', error);
+                    const dropdownMenu = document.getElementById('dropdownMenu');
+                    dropdownMenu.innerHTML = `
+                <a onclick="filterByDepartment('Battery Pack Line')">Battery Pack Line</a>
+                <a onclick="filterByDepartment('Module Line')">Module Line</a>
+              `;
+                });
+        }
+        function showAllUsers() {
+            currentDepartmentFilter = 'all';
+            document.getElementById('allUsersBtn').classList.add('active');
+            applyAllFilters();
+        }
+        function filterByDepartment(department) {
+            currentDepartmentFilter = department;
+            applyAllFilters();
+            document.getElementById('allUsersBtn').classList.remove('active');
+            document.getElementById('dropdownMenu').classList.remove('show');
+        }
+        function updateFilterInfo() {
+            const filterInfo = document.getElementById('filterInfo');
+            const count = filteredRows.length;
+            if (currentDepartmentFilter === 'all') {
+                filterInfo.textContent = `Showing all users (${count})`;
+            } else {
+                filterInfo.textContent = `Showing ${currentDepartmentFilter} users (${count})`;
+            }
+        }
+        // Combined filter application
+        function applyAllFilters() {
+            let tempRows = [...allRows];
+            // Department filter - now index 6 is Department
+            if (currentDepartmentFilter !== 'all') {
+                tempRows = tempRows.filter(row => {
+                    const deptCell = row.cells[6]; // Department column index
+                    return deptCell && deptCell.textContent.trim() === currentDepartmentFilter;
+                });
+            }
+            // Search filter
+            if (searchFilter !== '') {
+                const column = document.getElementById('searchColumn').value;
+                tempRows = tempRows.filter(row => {
+                    const td = row.cells[column];
+                    if (td) {
+                        const txtValue = td.textContent || td.innerText;
+                        return txtValue.toUpperCase().indexOf(searchFilter.toUpperCase()) > -1;
+                    }
+                    return false;
+                });
+            }
+            // Date filter
+            if (dateFilter.from || dateFilter.to) {
+                tempRows = tempRows.filter(row => {
+                    const dateCell = row.cells[5]; // Date Of Joining column index
+                    const rowDate = new Date(dateCell.textContent);
+                    let pass = true;
+                    if (dateFilter.from && !isNaN(dateFilter.from) && rowDate < dateFilter.from) pass = false;
+                    if (dateFilter.to && !isNaN(dateFilter.to) && rowDate > dateFilter.to) pass = false;
+                    return pass;
+                });
+            }
+            filteredRows = tempRows;
+            currentPage = 1;
+            updatePagination();
+            updateFilterInfo();
+        }
+        function updatePagination() {
+            const rowsToDisplay = filteredRows.length > 0 ? filteredRows : allRows;
+            const totalPages = rowsPerPage === 'all' ? 1 : Math.ceil(rowsToDisplay.length / rowsPerPage);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+            displayCurrentPage();
+        }
+        function displayCurrentPage() {
+            const rowsToDisplay = filteredRows.length > 0 ? filteredRows : allRows;
+            allRows.forEach(row => row.style.display = 'none');
+            if (rowsPerPage === 'all') {
+                rowsToDisplay.forEach(row => row.style.display = '');
+            } else {
+                const startIndex = (currentPage - 1) * rowsPerPage;
+                const endIndex = startIndex + rowsPerPage;
+                for (let i = startIndex; i < endIndex && i < rowsToDisplay.length; i++) {
+                    rowsToDisplay[i].style.display = '';
+                }
+            }
+        }
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            if (currentPage > 1) {
+                currentPage--;
+                updatePagination();
+            }
+        });
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            const rowsToDisplay = filteredRows.length > 0 ? filteredRows : allRows;
+            const totalPages = Math.ceil(rowsToDisplay.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                updatePagination();
+            }
+        });
+        // Modified search function
+        function searchUsers() {
+            searchFilter = document.getElementById('searchInput').value;
+            applyAllFilters();
+        }
+        // Modified date search function
+        function serchUserByDate() {
+            const fromDate = document.getElementById('From_Date').value;
+            const toDate = document.getElementById('To_Date').value;
+            dateFilter.from = fromDate ? new Date(fromDate) : null;
+            dateFilter.to = toDate ? new Date(toDate) : null;
+            applyAllFilters();
+        }
+        // Department dropdown event listeners (adapted from Course Management)
+        document.addEventListener('DOMContentLoaded', function () {
+            const departmentBtn = document.getElementById('departmentBtn');
+            if (departmentBtn) {
+                departmentBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    const dropdown = document.getElementById('dropdownMenu');
+                    dropdown.classList.toggle('show');
+                });
+            }
+        });
+        // Close dropdown when clicking outside
+        window.onclick = function (event) {
+            if (!event.target.matches('.dropdown-btn')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadSavedCriteria();
+            fetchDepartments(); // New: Fetch departments on load
+
+            try {
+                const courseNamesResponse = await fetch('/courseNames');
+                const courseNamesData = await courseNamesResponse.json();
+                // Debug: Log raw course data
+                console.log('Raw course data from API:', courseNamesData);
+                courseNames = courseNamesData.map(course => {
+                    // Check multiple possible field names for level
+                    const level = course.courseLevel || course.level || course.Level ||
+                        course.course_level || course.CourseLevel || 'I';
+
+                    console.log(`Course: ${course.courseName}, Level: ${level}`);
+
+                    return {
+                        courseID: course.courseID,
+                        courseName: course.courseName,
+                        courseLevel: level
+                    };
+                });
+                // Organize courses by level
+                courseLevels = { I: [], L: [], U: [] };
+                courseNames.forEach(course => {
+                    const level = String(course.courseLevel || course.level || course.Level ||
+                        course.course_level || course.CourseLevel || 'default').toUpperCase().trim();
+
+                    console.log(`Course: ${course.courseName}, Raw Level: "${course.courseLevel || 'undefined'}", Normalized Level: "${level}"`);
+
+                    // More comprehensive level matching
+                    if (level === 'I' || level === 'LEVEL1' || level === 'LEVEL 1' ||
+                        level === '1' || level === 'LEVELI' || level === 'LEVEL I') {
+                        courseLevels.I.push(course);
+                        console.log(`Added ${course.courseName} to Level I`);
+                    } else if (level === 'L' || level === 'LEVEL2' || level === 'LEVEL 2' ||
+                        level === '2' || level === 'LEVELL' || level === 'LEVEL L') {
+                        courseLevels.L.push(course);
+                        console.log(`Added ${course.courseName} to Level L`);
+                    } else if (level === 'U' || level === 'LEVEL3' || level === 'LEVEL 3' ||
+                        level === '3' || level === 'LEVELU' || level === 'LEVEL U') {
+                        courseLevels.U.push(course);
+                        console.log(`Added ${course.courseName} to Level U`);
+                    } else {
+                        // Default: add courses with "Safety" or "default" to Level I
+                        courseLevels.I.push(course);
+                        console.warn(`Unknown level "${level}" for ${course.courseName}, defaulting to Level I`);
+                    }
+                });
+                // Map courseID to original API index for correct score pulling
+                const courseIndexMap = {};
+                courseNames.forEach((course, originalIdx) => {
+                    courseIndexMap[course.courseID] = originalIdx + 1;
+                });
+                console.log('Course Index Map:', courseIndexMap);
+                // Organize ordered courses
+                const orderedCourses = [...courseLevels.I, ...courseLevels.L, ...courseLevels.U];
+                numCourses = courseNames.length;
+                const mainHeaderRow = document.getElementById('mainHeaderRow');
+                const courseHeaderRow = document.getElementById('courseHeaderRow');
+                // IMPORTANT: Clear ALL existing course-related headers first
+                const existingCourseHeaders = mainHeaderRow.querySelectorAll('.level-group-header, .course-column');
+                existingCourseHeaders.forEach(header => header.remove());
+                while (courseHeaderRow.children.length > 0) {
+                    courseHeaderRow.removeChild(courseHeaderRow.lastChild);
+                }
+                // Find the position to insert (before Total, Result, Level, Certificates, Save)
+                let summaryStartIndex = -1;
+                for (let i = 0; i < mainHeaderRow.children.length; i++) {
+                    const th = mainHeaderRow.children[i];
+                    if (th.textContent.trim() === 'Total' || th.classList.contains('summary-column')) {
+                        summaryStartIndex = i;
+                        break;
+                    }
+                }
+                // If not found, assume last 5 columns are summary columns
+                if (summaryStartIndex === -1) {
+                    summaryStartIndex = mainHeaderRow.children.length - 5;
+                }
+                console.log('Summary starts at index:', summaryStartIndex);
+                console.log('Level I courses:', courseLevels.I.length);
+                console.log('Level L courses:', courseLevels.L.length);
+                console.log('Level U courses:', courseLevels.U.length);
+                // Add Level I header - removed .course-column
+                if (courseLevels.I.length > 0) {
+                    const levelIHeader = document.createElement('th');
+                    levelIHeader.className = 'level-group-header level-I-header';
+                    levelIHeader.colSpan = courseLevels.I.length;
+                    levelIHeader.rowSpan = 1;
+                    levelIHeader.textContent = `Level I (${courseLevels.I.length} courses)`;
+                    mainHeaderRow.insertBefore(levelIHeader, mainHeaderRow.children[summaryStartIndex]);
+                    console.log('Added Level I header with colspan:', courseLevels.I.length);
+                }
+                // Add Level L header - removed .course-column
+                if (courseLevels.L.length > 0) {
+                    const levelLHeader = document.createElement('th');
+                    levelLHeader.className = 'level-group-header level-L-header';
+                    levelLHeader.colSpan = courseLevels.L.length;
+                    levelLHeader.rowSpan = 1;
+                    levelLHeader.textContent = `Level L (${courseLevels.L.length} courses)`;
+                    mainHeaderRow.insertBefore(levelLHeader, mainHeaderRow.children[summaryStartIndex + (courseLevels.I.length > 0 ? 1 : 0)]);
+                    console.log('Added Level L header with colspan:', courseLevels.L.length);
+                }
+                // Add Level U header - removed .course-column
+                if (courseLevels.U.length > 0) {
+                    const levelUHeader = document.createElement('th');
+                    levelUHeader.className = 'level-group-header level-U-header';
+                    levelUHeader.colSpan = courseLevels.U.length;
+                    levelUHeader.rowSpan = 1;
+                    levelUHeader.textContent = `Level U (${courseLevels.U.length} courses)`;
+                    const offset = (courseLevels.I.length > 0 ? 1 : 0) + (courseLevels.L.length > 0 ? 1 : 0);
+                    mainHeaderRow.insertBefore(levelUHeader, mainHeaderRow.children[summaryStartIndex + offset]);
+                    console.log('Added Level U header with colspan:', courseLevels.U.length);
+                }
+                // Add individual course headers in second row
+                orderedCourses.forEach((course, index) => {
+                    const courseName = course.courseName;
+                    const shortName = courseName.length > 20 ? courseName.substring(0, 12) + '...' : courseName;
+
+                    const scoreHeader = document.createElement('th');
+                    scoreHeader.className = 'course-column course-score-cell';
+                    scoreHeader.title = courseName;
+                    scoreHeader.textContent = shortName;
+                    scoreHeader.dataset.courseLevel = course.courseLevel;
+                    scoreHeader.dataset.courseId = course.courseID;
+                    courseHeaderRow.appendChild(scoreHeader);
+
+                    console.log(`Added course header ${index + 1}: ${courseName} (Level: ${course.courseLevel})`);
+                });
+                console.log('Total course headers added:', courseHeaderRow.children.length);
+                console.log('Expected:', orderedCourses.length);
+                // Continue with fetching grades data...
+                const gradesDataResponse = await fetch('/gradesData');
+                const gradesData = await gradesDataResponse.json();
+                const gradesDataContainer = document.getElementById('gradesData');
+                gradesData.forEach((user, index) => {
+                    const row = document.createElement('tr');
+                    row.classList.add('data-row');
+                    // Serial number with expand icon
+                    const serialNumberCell = document.createElement('td');
+                    serialNumberCell.innerHTML = `<span class="expand-icon">▶</span>${index + 1}`;
+                    serialNumberCell.style.cursor = 'pointer';
+                    serialNumberCell.addEventListener('click', () => toggleRowDetails(row));
+                    row.appendChild(serialNumberCell);
+                    // Basic columns - Added department
+                    const basicColumns = ['uniqueID', 'name', 'uName', 'employeeID', 'dateOfJoining', 'department', 'Contract'];
+                    basicColumns.forEach(column => {
+                        const cell = document.createElement('td');
+                        cell.textContent = user[column] || '';
+                        cell.dataset.column = column;
+                        cell.setAttribute('data-original-value', user[column] || '');
+                        if (column === 'employeeID') {
+                            cell.classList.add('employeeID');
+                        }
+                        if (column === 'uniqueID') {
+                            cell.classList.add('uniqueID');
+                            cell.style.display = 'none';
+                        }
+                        if (column === 'uName') cell.classList.add('uName');
+                        if (['dateOfJoining', 'department', 'Contract'].includes(column)) {
+                            cell.classList.add('detail-column');
+                        }
+                        row.appendChild(cell);
+                    });
+                    // Add course scores - USE THE CORRECT INDEX FROM THE API
+                    orderedCourses.forEach((course) => {
+                        const originalIndex = courseIndexMap[course.courseID];
+
+                        const posttestCell = document.createElement('td');
+                        posttestCell.textContent = user[`course${originalIndex}Posttest`] || '';
+                        posttestCell.dataset.column = `course${originalIndex}Posttest`;
+                        posttestCell.classList.add('course-score-cell', 'course-column');
+                        posttestCell.dataset.courseID = course.courseID;
+                        posttestCell.dataset.courseName = course.courseName;
+                        posttestCell.dataset.courseLevel = course.courseLevel;
+                        posttestCell.setAttribute('data-original-value', user[`course${originalIndex}Posttest`] || '');
+                        row.appendChild(posttestCell);
+                    });
+                    // Calculate totals using the correct indices
+                    let totalPosttest = 0;
+                    let numberOfPosttests = 0;
+                    orderedCourses.forEach((course) => {
+                        const originalIndex = courseIndexMap[course.courseID];
+                        const posttest = user[`course${originalIndex}Posttest`];
+                        const posttestScore = parseFloat(posttest);
+                        if (!isNaN(posttestScore) && posttest !== null && posttest !== undefined && posttest !== '') {
+                            totalPosttest += posttestScore;
+                            numberOfPosttests++;
+                        }
+                    });
+                    const averagePosttest = numberOfPosttests > 0 ? (totalPosttest / numberOfPosttests) : 0;
+                    const levelInfo = calculateLevel(averagePosttest);
+                    // Total Score
+                    const totalScoreCell = document.createElement('td');
+                    totalScoreCell.textContent = totalPosttest.toFixed(0);
+                    totalScoreCell.classList.add('summary-column');
+                    totalScoreCell.dataset.column = 'total';
+                    row.appendChild(totalScoreCell);
+                    // Result
+                    const resultCell = document.createElement('td');
+                    resultCell.textContent = levelInfo.result;
+                    resultCell.classList.add('summary-column');
+                    resultCell.dataset.column = 'result';
+                    row.appendChild(resultCell);
+                    // Level
+                    const levelCell = document.createElement('td');
+                    levelCell.textContent = levelInfo.level;
+                    levelCell.classList.add('level-cell', levelInfo.class, 'summary-column');
+                    levelCell.dataset.column = 'level';
+                    row.appendChild(levelCell);
+                    // Certificates
+                    const printcell = document.createElement('td');
+                    printcell.classList.add('summary-column');
+                    printcell.dataset.column = 'certificate';
+                    row.appendChild(printcell);
+                    // Save checkbox
+                    const selectCell = document.createElement('td');
+                    selectCell.classList.add('summary-column');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('saveCheckbox');
+                    selectCell.appendChild(checkbox);
+                    row.appendChild(selectCell);
+                    gradesDataContainer.appendChild(row);
+                    allRows.push(row);
+                    updateRowResult(row);
+                });
+                // Set compact view as default - trigger the hide
+                document.getElementById('compactViewBtn').click();
+                updatePagination();
+                updateCriteriaSummary();
+                updateCriteriaDisplay();
+                const employeeIDCells = document.querySelectorAll('td.employeeID');
+                employeeIDCells.forEach(cell => {
+                    cell.style.cursor = 'pointer';
+                    cell.style.color = '#4dabf7';
+                    cell.addEventListener('click', async () => {
+                        const employeeID = cell.textContent;
+                        try {
+                            const response = await fetch(`/getUserGrades?employeeID=${employeeID}`);
+                            const data = await response.json();
+                            window.location.href = `/userGradesReport.html?employeeID=${employeeID}`;
+                        } catch (error) {
+                            console.error('Error fetching user data:', error);
+                        }
+                    });
+                });
+                // Initial filter application
+                applyAllFilters();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+        function prepareDownloadAndRedirect() {
+            const gradesTable = document.getElementById('gradesTable');
+            if (!gradesTable) return;
+            const tableData = [];
+            const headers = Array.from(gradesTable.querySelectorAll('thead th')).map(th => th.innerText.trim());
+            const rows = gradesTable.querySelectorAll('tbody tr.data-row');
+            rows.forEach(row => {
+                if (window.getComputedStyle(row).display !== 'none') {
+                    const rowData = {};
+                    const cells = row.querySelectorAll('td');
+                    cells.forEach((cell, index) => {
+                        if (index < headers.length) {
+                            const headerKey = headers[index].replace(/[^a-zA-Z0-9]/g, '');
+                            rowData[headerKey] = cell.innerText.trim();
+                        }
+                    });
+                    tableData.push(rowData);
+                }
+            });
+            window.gradesDataToDownload = tableData;
+            window.location.href = "/downloadGradesData.html";
+        }
+        document.getElementById('downloadButton').addEventListener('click', prepareDownloadAndRedirect);
+        document.getElementById('editButton').addEventListener('click', function () {
+            if (this.checked) {
+                enableEdit();
+            } else {
+                disableEdit();
+            }
+        });
+        document.getElementById('saveButton').addEventListener('click', function () {
+            saveChanges();
+        });
+        function enableEdit() {
+            // Enable editing for table cells
+            const cells = document.querySelectorAll('td:not(.employeeID)');
+            cells.forEach(cell => {
+                const columnIndex = cell.cellIndex;
+                const columnCount = cell.parentElement.children.length;
+                if (columnIndex < columnCount - 1) {
+                    if (!['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                        cell.contentEditable = true;
+                        if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                            cell.addEventListener('input', function () {
+                                updateRowResult(this.closest('tr'));
+                            });
+                        }
+                    }
+                } else {
+                    cell.contentEditable = false;
+                }
+            });
+
+            // Enable editing for expanded course scores
+            const courseScores = document.querySelectorAll('.course-score');
+            courseScores.forEach(scoreEl => {
+                if (scoreEl.textContent !== 'Not Attempted') {
+                    scoreEl.contentEditable = true;
+
+                    // Add input event listener to update the main table row
+                    scoreEl.addEventListener('input', function () {
+                        const uniqueID = this.dataset.uniqueID;
+                        const column = this.dataset.column;
+
+                        // Find the corresponding row and update the hidden cell
+                        const rows = document.querySelectorAll('#gradesData tr.data-row');
+                        rows.forEach(row => {
+                            const rowUniqueID = row.querySelector('td[data-column="uniqueID"]');
+                            if (rowUniqueID && rowUniqueID.textContent === uniqueID) {
+                                const cell = row.querySelector(`td[data-column="${column}"]`);
+                                if (cell) {
+                                    cell.textContent = this.textContent;
+                                    updateRowResult(row);
+                                }
+                            }
+                        });
+                    });
+
+                    // Prevent non-numeric input
+                    scoreEl.addEventListener('keypress', function (e) {
+                        if (!/[0-9.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                            e.preventDefault();
+                        }
+                    });
+                }
+            });
+
+            // Also enable editing for details rows' scores
+            document.querySelectorAll('.course-details-row .course-score').forEach(scoreEl => {
+                scoreEl.contentEditable = true;
+                // Add input event listener to update the main table row
+                scoreEl.addEventListener('input', function () {
+                    const uniqueID = this.dataset.uniqueID;
+                    const column = this.dataset.column;
+
+                    // Find the corresponding row and update the hidden cell
+                    const rows = document.querySelectorAll('#gradesData tr.data-row');
+                    rows.forEach(row => {
+                        const rowUniqueID = row.querySelector('td[data-column="uniqueID"]');
+                        if (rowUniqueID && rowUniqueID.textContent === uniqueID) {
+                            const cell = row.querySelector(`td[data-column="${column}"]`);
+                            if (cell) {
+                                cell.textContent = this.textContent;
+                                updateRowResult(row);
+                            }
+                        }
+                    });
+                });
+
+                // Prevent non-numeric input
+                scoreEl.addEventListener('keypress', function (e) {
+                    if (!/[0-9.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                        e.preventDefault();
+                    }
+                });
+            });
+
+            document.getElementById('saveButton').style.display = 'inline-block';
+        }
+        function disableEdit() {
+            // Disable editing for table cells
+            const cells = document.querySelectorAll('td:not(.employeeID):not(:last-child)');
+            cells.forEach(cell => {
+                cell.contentEditable = false;
+            });
+
+            // Disable editing for expanded course scores
+            const courseScores = document.querySelectorAll('.course-score');
+            courseScores.forEach(scoreEl => {
+                scoreEl.contentEditable = false;
+            });
+
+            document.getElementById('saveButton').style.display = 'none';
+        }
+        function saveChanges() {
+            const rows = document.querySelectorAll('#gradesTable tbody tr.data-row');
+            const updatedData = [];
+            rows.forEach(row => {
+                const checkbox = row.querySelector('.saveCheckbox');
+                if (!checkbox || !checkbox.checked) return;
+                const uniqueIDCell = row.querySelector('td[data-column="uniqueID"]');
+                if (!uniqueIDCell) return;
+                const uniqueID = uniqueIDCell.textContent.trim();
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    const column = cell.dataset.column;
+                    const newValue = cell.textContent.trim();
+                    const courseID = cell.dataset.courseId ?? '';
+                    const courseName = cell.dataset.courseName ?? '';
+                    const originalValue = cell.getAttribute('data-original-value')?.trim();
+                    if (
+                        column &&
+                        column.startsWith('course') &&
+                        column.endsWith('Posttest') &&
+                        newValue !== '' &&
+                        !isNaN(newValue) &&
+                        newValue !== originalValue
+                    ) {
+                        updatedData.push({
+                            uniqueID,
+                            columnName: column,
+                            newValue,
+                            courseID,
+                            courseName
+                        });
+                    }
+                });
+
+                // Also check expanded course scores for this row
+                const detailsRow = row.nextElementSibling;
+                if (detailsRow && detailsRow.classList.contains('course-details-row')) {
+                    const courseScores = detailsRow.querySelectorAll('.course-score');
+                    courseScores.forEach(scoreEl => {
+                        const column = scoreEl.dataset.column;
+                        const newValue = scoreEl.textContent.trim();
+                        const courseID = scoreEl.dataset.courseID ?? '';
+                        const courseName = scoreEl.dataset.courseName ?? '';
+                        const originalValue = scoreEl.getAttribute('data-original-value')?.trim();
+
+                        if (
+                            column &&
+                            newValue !== 'Not Attempted' &&
+                            newValue !== '' &&
+                            !isNaN(newValue) &&
+                            newValue !== originalValue
+                        ) {
+                            // Check if not already added from main table
+                            const alreadyAdded = updatedData.find(item =>
+                                item.uniqueID === uniqueID && item.columnName === column
+                            );
+
+                            if (!alreadyAdded) {
+                                updatedData.push({
+                                    uniqueID,
+                                    columnName: column,
+                                    newValue,
+                                    courseID,
+                                    courseName
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+            if (updatedData.length === 0) {
+                alert('No changes selected to save.');
+                return;
+            }
+            const confirmSave = confirm("Are you sure you want to save the selected changes?");
+            if (!confirmSave) return;
+            fetch('/saveChanges', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ updatedData })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert('Changes saved successfully!');
+                    location.reload();
+                })
+                .catch(err => {
+                    console.error('Save error:', err);
+                    alert('Failed to save changes');
+                });
+        }
+
+
+
+        let departmentCourseFilteredUserIDs = [];
+
+// Updated filterByDepartment function (replace existing one)
+async function filterByDepartment(department) {
+    currentDepartmentFilter = department;
+    document.getElementById('allUsersBtn').classList.remove('active');
+    document.getElementById('dropdownMenu').classList.remove('show');
+
+    const filterInfo = document.getElementById('filterInfo');
+    filterInfo.textContent = 'Loading users...';
+
+    try {
+        const response = await fetch(`/getUsersByDepartment?department=${encodeURIComponent(department)}`);
+        const data = await response.json();
+
+        if (data.success) {
+            departmentCourseFilteredUserIDs = data.userIDs || [];
+            applyAllFilters();
+            
+            filterInfo.textContent = `Showing ${filteredRows.length} users assigned to ${department} courses (${data.courseCount} courses)`;
+        } else {
+            alert('Error: ' + (data.message || 'Could not load users'));
+            showAllUsers();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error loading users. Check console for details.');
+        showAllUsers();
+    }
+}
+
+// Updated applyAllFilters function (replace the existing one)
+function applyAllFilters() {
+    let tempRows = [...allRows];
+
+    // Filter by department courses (if selected)
+    if (currentDepartmentFilter !== 'all' && departmentCourseFilteredUserIDs.length > 0) {
+        tempRows = tempRows.filter(row => {
+            const uniqueIDCell = row.querySelector('td[data-column="uniqueID"]');
+            return uniqueIDCell && departmentCourseFilteredUserIDs.includes(uniqueIDCell.textContent.trim());
+        });
+    }
+
+    // Search filter
+    if (searchFilter !== '') {
+        const column = document.getElementById('searchColumn').value;
+        tempRows = tempRows.filter(row => {
+            const td = row.cells[column];
+            if (td) {
+                const txtValue = td.textContent || td.innerText;
+                return txtValue.toUpperCase().indexOf(searchFilter.toUpperCase()) > -1;
+            }
+            return false;
+        });
+    }
+
+    // Date filter
+    if (dateFilter.from || dateFilter.to) {
+        tempRows = tempRows.filter(row => {
+            const dateCell = row.cells[5];
+            const rowDate = new Date(dateCell.textContent);
+            let pass = true;
+            if (dateFilter.from && rowDate < dateFilter.from) pass = false;
+            if (dateFilter.to && rowDate > dateFilter.to) pass = false;
+            return pass;
+        });
+    }
+
+    filteredRows = tempRows;
+    currentPage = 1;
+    updatePagination();
+    updateFilterInfo();
+}
+
+// Updated showAllUsers function (replace existing one)
+function showAllUsers() {
+    currentDepartmentFilter = 'all';
+    departmentCourseFilteredUserIDs = [];
+    document.getElementById('allUsersBtn').classList.add('active');
+    applyAllFilters();
+}
+    </script>
+</body>
+
+</html>

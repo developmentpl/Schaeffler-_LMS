@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Details</title>
+    <link rel="stylesheet" href="/styles/courseDetailsPage.css">
+    <style>
+        /* Enrollment status styles */
+        .enrolled-row {
+            background-color: rgba(40, 167, 69, 0.3) !important;
+        }
+        
+        .enrolled-row td {
+            background-color: rgba(40, 167, 69, 0.3) !important;
+            border-left: 3px solid #28a745;
+        }
+        
+        .unenrolled-row {
+            background-color: rgba(255, 193, 7, 0.3) !important;
+        }
+        
+        .unenrolled-row td {
+            background-color: rgba(255, 193, 7, 0.3) !important;
+            border-left: 3px solid #ffc107;
+        }
+
+        /* Expired training styles */
+        .expired-training-row {
+            background-color: rgba(220, 53, 69, 0.3) !important;
+        }
+        
+        .expired-training-row td {
+            background-color: rgba(220, 53, 69, 0.3) !important;
+            border-left: 3px solid #dc3545;
+        }
+        
+        .enrollment-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .status-enrolled {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .status-not-enrolled {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .status-expired {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .status-expiring-soon {
+            background-color: #fd7e14;
+            color: white;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+        
+        #unenrollUsers {
+            background-color: #ffc107 !important;
+            color: #000000 !important;
+            border: 2px solid #ffc107 !important;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        #unenrollUsers:hover {
+            background-color: #ffca2c !important;
+            border-color: #ffca2c !important;
+            color: #000000 !important;
+        }
+        
+        #enrollUsers {
+            background-color: #28a745 !important;
+            color: #ffffff !important;
+            border: 2px solid #28a745 !important;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        #enrollUsers:hover {
+            background-color: #218838 !important;
+            border-color: #218838 !important;
+            color: #ffffff !important;
+        }
+
+        .training-date-cell {
+            font-weight: 500;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">  
+         <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/adminhomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+    </div>
+
+    <div class="container table-container">
+        <div class="container">
+            <div class="grid-item">
+                <h1 class="h1class">Course Details</h1>
+                
+                <div class="button-group">
+                    <button id="enrollUsers" class="btnclass" style="background-color: #28a745 !important; color: #ffffff !important; border: 2px solid #28a745 !important;">Enroll Users</button>
+                    <button id="unenrollUsers" class="btnclass" style="background-color: #ffc107 !important; color: #ffffff !important; border: 2px solid #ffc107 !important; text-shadow: none !important;">Unenroll Users</button>
+                </div>
+
+                <div id="courseDetails">
+                    <p><strong>Course Name:</strong> <span id="courseName"></span></p>
+                    <p><strong>Course ID:</strong> <span id="courseID"></span></p>
+                    <p><strong>Course Date:</strong> <span id="courseDate"></span></p>
+                    <p><strong>Course Tags:</strong> <span id="courseTags"></span></p>
+                </div>
+
+                <div>
+                    <div>
+                        <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Search..."
+                            class="search-button">
+                        <select id="searchColumn" class="DropdownClass">
+                            <option value="0">Search by</option>
+                            <option value="2">Name</option>
+                            <option value="3">Employee ID</option>
+                            <option value="4">Username</option>
+                            <option value="5">Date of Joining</option>
+                            <option value="6">Department</option>
+                            <option value="7">Registration Date</option>
+                            <option value="8">Training Date</option>
+                        </select>
+                    </div>
+                    <table id="userTable">
+                        <thead>
+                            <tr>
+                                <th>Select</th>
+                                <th>Sr No</th>
+                                <th>Name</th>
+                                <th>Employee ID</th>
+                                <th>Username</th>
+                                <th>Date Of Joining</th>
+                                <th>Department</th>
+                                <th>Registration Date</th>
+                                <th>Training Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userData">
+                            <!-- User data will be inserted here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        // Extract courseID from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseID = urlParams.get('courseID');
+
+        // Store enrolled users
+        let enrolledUsers = new Set();
+
+        if (courseID) {
+            fetch(`/course/${courseID}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Course not found');
+                    }
+                    return response.json();
+                })
+                .then(course => {
+                    document.getElementById('courseName').textContent = course.courseName;
+                    document.getElementById('courseID').textContent = courseID;
+                    document.getElementById('courseDate').textContent = course.courseDate;
+                    document.getElementById('courseTags').textContent = course.courseTags || "default";
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('courseDetails').textContent = 'Course details not available.';
+                });
+        } else {
+            document.getElementById('courseDetails').textContent = 'Course ID is missing.';
+        }
+
+        // Function to format date
+        function formatDate(dateString) {
+            if (!dateString) return 'Not Trained';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-GB');
+        }
+
+        // Function to check enrollment status for all users
+        async function checkEnrollmentStatus() {
+            try {
+                const response = await fetch(`/getEnrolledUsers/${courseID}`);
+                const data = await response.json();
+                
+                if (data.success && data.enrolledUsers) {
+                    enrolledUsers = new Set(data.enrolledUsers.map(u => u.uniqueID));
+                    updateRowStyles();
+                }
+            } catch (error) {
+                console.error('Error checking enrollment status:', error);
+            }
+        }
+
+        // Function to update row styles based on enrollment and training expiry
+        function updateRowStyles() {
+            const rows = document.querySelectorAll('#userData tr');
+            rows.forEach(row => {
+                const checkbox = row.querySelector('.user-select');
+                if (checkbox) {
+                    const userData = JSON.parse(checkbox.value);
+                    const statusCell = row.querySelector('.status-cell');
+                    
+                    // Check if training is expired (highest priority for styling)
+                    if (userData.isExpired) {
+                        row.classList.remove('enrolled-row', 'unenrolled-row');
+                        row.classList.add('expired-training-row');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="enrollment-status status-expired">Training Expired</span>';
+                        }
+                    } else if (enrolledUsers.has(userData.uniqueID)) {
+                        row.classList.remove('unenrolled-row', 'expired-training-row');
+                        row.classList.add('enrolled-row');
+                        if (statusCell) {
+                            if (userData.daysUntilExpiry !== null && userData.daysUntilExpiry <= 30 && userData.daysUntilExpiry > 0) {
+                                statusCell.innerHTML = `<span class="enrollment-status status-expiring-soon">Expiring in ${userData.daysUntilExpiry} days</span>`;
+                            } else {
+                                statusCell.innerHTML = '<span class="enrollment-status status-enrolled">Enrolled</span>';
+                            }
+                        }
+                    } else {
+                        row.classList.remove('enrolled-row', 'expired-training-row');
+                        row.classList.remove('unenrolled-row');
+                        if (statusCell) {
+                            statusCell.innerHTML = '<span class="enrollment-status status-not-enrolled">Not Enrolled</span>';
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load user data
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const userDataResponse = await fetch(`/courseDetailsUserData?courseID=${courseID}`);
+                const userData = await userDataResponse.json();
+                const userDataContainer = document.getElementById('userData');
+
+                let serialNumber = 1;
+
+                userData.forEach(user => {
+                    const row = document.createElement('tr');
+
+                    // Create checkbox cell for selection
+                    const selectCell = document.createElement('td');
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.classList.add('user-select');
+                    checkbox.value = JSON.stringify({ 
+                        uniqueID: user.uniqueID, 
+                        employeeID: user.employeeID, 
+                        name: user.name,
+                        isExpired: user.isExpired,
+                        daysUntilExpiry: user.daysUntilExpiry
+                    });
+                    selectCell.appendChild(checkbox);
+                    row.appendChild(selectCell);
+
+                    // Insert user data cells
+                    const cellsData = [
+                        serialNumber++,
+                        user.name,
+                        user.employeeID,
+                        user.uName,
+                        user.dateOfJoining,
+                        user.department,
+                        user.currentDate,
+                        formatDate(user.trainingDate)
+                    ];
+                    
+                    cellsData.forEach((data, index) => {
+                        const cell = document.createElement('td');
+                        cell.textContent = data;
+                        // Add special class to training date cell
+                        if (index === 7) {
+                            cell.classList.add('training-date-cell');
+                        }
+                        row.appendChild(cell);
+                    });
+
+                    // Add status cell
+                    const statusCell = document.createElement('td');
+                    statusCell.classList.add('status-cell');
+                    
+                    // Set initial status based on training expiry
+                    if (user.isExpired) {
+                        statusCell.innerHTML = '<span class="enrollment-status status-expired">Training Expired</span>';
+                        row.classList.add('expired-training-row');
+                    } else {
+                        statusCell.innerHTML = '<span class="enrollment-status status-not-enrolled">Not Enrolled</span>';
+                    }
+                    
+                    row.appendChild(statusCell);
+
+                    userDataContainer.appendChild(row);
+                });
+
+                // Check enrollment status after loading users
+                await checkEnrollmentStatus();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        });
+
+        // Enroll users
+        document.getElementById('enrollUsers').addEventListener('click', async () => {
+            const selectedUsers = Array.from(document.querySelectorAll('.user-select:checked')).map(checkbox =>
+                JSON.parse(checkbox.value)
+            );
+
+            if (selectedUsers.length > 0) {
+                try {
+                    const response = await fetch(`/enrollUsersToCourse/${courseID}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ users: selectedUsers })
+                    });
+                    
+                    const data = await response.json();
+                    alert(data.message);
+                    
+                    // Update enrolled users set
+                    selectedUsers.forEach(user => {
+                        enrolledUsers.add(user.uniqueID);
+                    });
+                    
+                    // Update row styles
+                    updateRowStyles();
+                    
+                    // Uncheck all checkboxes
+                    document.querySelectorAll('.user-select:checked').forEach(cb => cb.checked = false);
+                    
+                } catch (error) {
+                    console.error('Error enrolling users:', error);
+                    alert('Error enrolling users. Please try again.');
+                }
+            } else {
+                alert('Please select at least one user to enroll.');
+            }
+        });
+
+        // Unenroll users
+        document.getElementById('unenrollUsers').addEventListener('click', async () => {
+            const selectedUsers = Array.from(document.querySelectorAll('.user-select:checked')).map(checkbox =>
+                JSON.parse(checkbox.value)
+            );
+
+            if (selectedUsers.length > 0) {
+                const confirmUnenroll = confirm(`Are you sure you want to unenroll ${selectedUsers.length} user(s)?`);
+                
+                if (confirmUnenroll) {
+                    try {
+                        const response = await fetch(`/unenrollUsersFromCourse/${courseID}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ users: selectedUsers })
+                        });
+                        
+                        const data = await response.json();
+                        alert(data.message);
+                        
+                        // Mark rows as unenrolled (yellow)
+                        selectedUsers.forEach(user => {
+                            enrolledUsers.delete(user.uniqueID);
+                            const checkbox = Array.from(document.querySelectorAll('.user-select')).find(cb => {
+                                const cbData = JSON.parse(cb.value);
+                                return cbData.uniqueID === user.uniqueID;
+                            });
+                            
+                            if (checkbox) {
+                                const row = checkbox.closest('tr');
+                                row.classList.remove('enrolled-row');
+                                row.classList.add('unenrolled-row');
+                                
+                                const statusCell = row.querySelector('.status-cell');
+                                if (statusCell) {
+                                    statusCell.innerHTML = '<span class="enrollment-status status-not-enrolled">Not Enrolled</span>';
+                                }
+                            }
+                        });
+                        
+                        // Uncheck all checkboxes
+                        document.querySelectorAll('.user-select:checked').forEach(cb => cb.checked = false);
+                        
+                    } catch (error) {
+                        console.error('Error unenrolling users:', error);
+                        alert('Error unenrolling users. Please try again.');
+                    }
+                }
+            } else {
+                alert('Please select at least one user to unenroll.');
+            }
+        });
+
+        function searchUsers() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('userTable');
+            const tr = table.getElementsByTagName('tr');
+            const column = document.getElementById('searchColumn').value;
+
+            for (let i = 0; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td')[column];
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>

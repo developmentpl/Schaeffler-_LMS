@@ -1,0 +1,178 @@
+/* Admin Home Page — clean light dashboard style */
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background-color: #f4f7fb;
+    color: #101828;
+}
+
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 50px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    height: 72px;
+}
+
+/* NAVBAR ON RIGHT */
+.navbar {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #08954c;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+.right-image img {
+    display: block;
+    width: 230px;
+    height: auto;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 130px 20px 120px;
+}
+
+.page-head {
+    margin-bottom: 28px;
+}
+
+.h1class {
+    text-align: left;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: #101828;
+    margin: 0 0 6px;
+}
+
+.page-subtitle {
+    color: #667085;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+/* Card Styles */
+.card-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+.card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background-color: #ffffff;
+    border: 1px solid #e4e7ec;
+    border-radius: 10px;
+    padding: 18px 20px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 6px 16px rgba(16, 24, 40, 0.1);
+    transform: translateY(-2px);
+    border-color: #08954c55;
+}
+
+.card-main {
+    min-width: 0;
+}
+
+.card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 4px;
+}
+
+.card-title-row h2 {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+    color: #101828;
+}
+
+.badge {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #08954c;
+    background-color: #e6f5ec;
+    padding: 2px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+}
+
+.card-body {
+    font-size: 0.85rem;
+    color: #667085;
+    margin: 0;
+}
+
+.open-btn {
+    flex-shrink: 0;
+    background: #08954c;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 9px 16px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.card:hover .open-btn {
+    background: #06703b;
+}
+
+footer {
+    background-color: #ffffff;
+    color: #000000;
+    text-align: center;
+    padding: 20px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+    z-index: 5;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+    .card-container {
+        grid-template-columns: 1fr;
+    }
+}

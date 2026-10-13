@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Level 3 - Completed / Acknowledge</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: transparent; color: #172033; }
+    main { max-width: 1200px; margin: 0 auto; padding: 28px 36px 40px; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .filters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+    select, input { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar input { flex: 1; max-width: 320px; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .pill { display: inline-block; background: #e8eef6; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; overflow: hidden; }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: middle; font-size: 13px; }
+    th { background: #f7f9fc; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 12px; font-weight: 700; }
+    .badge.pass { background: #d8f4e2; color: #0a6b3b; }
+    .badge.fail { background: #fbe1de; color: #9c2c1c; }
+    .badge.none { background: #eceff3; color: #6b7a90; }
+    .badge.ack { background: #d9f7e7; color: #087443; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .empty { color: #6b7a90; font-style: italic; padding: 14px; text-align: center; }
+    .actions { margin-top: 14px; display: flex; align-items: center; gap: 12px; }
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Level 3 - Completed / Acknowledge</h1>
+    <p class="lead">Pick a Department &rarr; Segment/Area &rarr; Process/Line &rarr; Station to see users enrolled there. Users
+      appear here once they are already acknowledged for Level 2 on this Station, and are "Pass" once they have
+      completed every Level 3 course under it. Acknowledge a passed user to make them eligible for Level 4
+      acknowledgement on that same Station.</p>
+    <div class="status" id="status"></div>
+
+    <div class="filters">
+      <div>
+        <label for="deptSelect">Department</label>
+        <select id="deptSelect"><option value="">Select department</option></select>
+      </div>
+      <div>
+        <label for="areaSelect">Segment / Area</label>
+        <select id="areaSelect" disabled><option value="">Select department first</option></select>
+      </div>
+      <div>
+        <label for="processSelect">Process / Line</label>
+        <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+      </div>
+      <div>
+        <label for="stationSelect">Station</label>
+        <select id="stationSelect" disabled><option value="">Select process/line first</option></select>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input id="search" placeholder="Search by name, employee ID, username...">
+      <span class="pill" id="selectedCount">0 selected</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th></th>
+          <th>Name</th>
+          <th>Employee ID</th>
+          <th>Username</th>
+          <th>Level 3 Courses Completed</th>
+          <th>Status</th>
+          <th>Acknowledged</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="7" class="empty">Select a Department, Segment/Area, Process/Line and Station above.</td></tr></tbody>
+    </table>
+
+    <div class="actions">
+      <button id="ackBtn" disabled>Acknowledge Selected</button>
+      <button id="refreshBtn" style="background:#e8eef6;color:#172033;">Refresh</button>
+    </div>
+  </main>
+
+  <script>
+    const LEVEL_NUM = 3;
+    const statusEl = document.getElementById('status');
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const stationSelect = document.getElementById('stationSelect');
+    const rowsEl = document.getElementById('rows');
+    const searchEl = document.getElementById('search');
+    const ackBtn = document.getElementById('ackBtn');
+    const selectedCountEl = document.getElementById('selectedCount');
+
+    let allUsers = [];
+    const selected = new Set();
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function currentSelection() {
+      return {
+        deptID: deptSelect.value || '',
+        areaID: areaSelect.value || '',
+        mCourseID: processSelect.value || '',
+        stationID: stationSelect.value || ''
+      };
+    }
+
+    function badge(status) {
+      if (status === 'Previous User') return '<span class="badge ack">Previous User</span>';
+      if (status === 'Pass') return '<span class="badge pass">Pass</span>';
+      if (status === 'Fail') return '<span class="badge fail">Fail</span>';
+      return '<span class="badge none">No Attempt</span>';
+    }
+
+    function isSelectable(u) {
+      return u.levelStatus === 'Pass' && !u.acknowledged;
+    }
+
+    function render() {
+      const term = searchEl.value.trim().toLowerCase();
+      const filtered = !term ? allUsers : allUsers.filter(u =>
+        String(u.name || '').toLowerCase().includes(term) ||
+        String(u.employeeID || '').toLowerCase().includes(term) ||
+        String(u.uName || '').toLowerCase().includes(term)
+      );
+
+      rowsEl.innerHTML = '';
+      if (!currentSelection().mCourseID || !currentSelection().stationID) {
+        rowsEl.innerHTML = '<tr><td colspan="7" class="empty">Select a Department, Segment/Area, Process/Line and Station above.</td></tr>';
+      } else if (!filtered.length) {
+        rowsEl.innerHTML = '<tr><td colspan="7" class="empty">No users found. (Users must already be acknowledged for Level 2 on this Process/Line to appear here.)</td></tr>';
+      } else {
+        filtered.forEach(u => {
+          const tr = document.createElement('tr');
+          const selectable = isSelectable(u);
+          const checked = selected.has(String(u.uniqueID)) ? 'checked' : '';
+          tr.innerHTML = `
+            <td><input type="checkbox" data-id="${u.uniqueID}" ${checked} ${selectable ? '' : 'disabled'}></td>
+            <td>${u.name || ''}</td>
+            <td>${u.employeeID || ''}</td>
+            <td>${u.uName || ''}</td>
+            <td>${u.passedLevelCourses || 0} / ${u.totalLevelCourses || 0}</td>
+            <td>${badge(u.levelStatus)}</td>
+            <td>${u.acknowledged ? '<span class="badge ack">Acknowledged</span>' : '-'}</td>
+          `;
+          rowsEl.appendChild(tr);
+        });
+      }
+      refreshButtonState();
+    }
+
+    function refreshButtonState() {
+      selectedCountEl.textContent = `${selected.size} selected`;
+      ackBtn.disabled = selected.size === 0;
+    }
+
+    rowsEl.addEventListener('change', event => {
+      if (!event.target.matches('input[type="checkbox"]')) return;
+      const id = event.target.dataset.id;
+      if (event.target.checked) selected.add(id);
+      else selected.delete(id);
+      refreshButtonState();
+    });
+
+    searchEl.addEventListener('input', render);
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      stationSelect.innerHTML = '<option value="">Select process/line first</option>';
+      stationSelect.disabled = true;
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    async function loadStations(mCourseID) {
+      stationSelect.innerHTML = '<option value="">Select station</option>';
+      stationSelect.disabled = true;
+      if (!mCourseID) return;
+      const data = await requestJson(`/api/hierarchy/stations?mCourseID=${encodeURIComponent(mCourseID)}`);
+      (data.stations || []).forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.stationID;
+        opt.textContent = s.stationName;
+        stationSelect.appendChild(opt);
+      });
+      if (!data.stations || !data.stations.length) {
+        stationSelect.innerHTML = '<option value="">No stations yet</option>';
+      } else {
+        stationSelect.disabled = false;
+      }
+    }
+
+    async function loadUsers() {
+      const sel = currentSelection();
+      selected.clear();
+      if (!sel.deptID || !sel.areaID || !sel.mCourseID || !sel.stationID) {
+        allUsers = [];
+        render();
+        setStatus('');
+        return;
+      }
+      rowsEl.innerHTML = '<tr><td colspan="7" class="empty">Loading...</td></tr>';
+      try {
+        const data = await requestJson(`/api/l${LEVEL_NUM}/acknowledge/users?deptID=${encodeURIComponent(sel.deptID)}&areaID=${encodeURIComponent(sel.areaID)}&mCourseID=${encodeURIComponent(sel.mCourseID)}&stationID=${encodeURIComponent(sel.stationID)}`);
+        allUsers = data.users || [];
+        render();
+        setStatus(`${allUsers.length} user(s) found for this Station.`);
+      } catch (error) {
+        setStatus(error.message, true);
+        rowsEl.innerHTML = '<tr><td colspan="7" class="empty">Could not load users.</td></tr>';
+      }
+    }
+
+    deptSelect.addEventListener('change', async () => {
+      try { await loadAreas(deptSelect.value); await loadUsers(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    areaSelect.addEventListener('change', async () => {
+      try { await loadProcesses(deptSelect.value, areaSelect.value); await loadUsers(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    processSelect.addEventListener('change', async () => {
+      try { await loadStations(processSelect.value); await loadUsers(); }
+      catch (error) { setStatus(error.message, true); }
+    });
+    stationSelect.addEventListener('change', loadUsers);
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadUsers().catch(error => setStatus(error.message, true));
+    });
+
+    ackBtn.addEventListener('click', async () => {
+      const sel = currentSelection();
+      const ids = Array.from(selected.values());
+      if (!ids.length || !sel.mCourseID || !sel.stationID) return;
+      if (!confirm(`Acknowledge ${ids.length} user(s) as Level ${LEVEL_NUM} completed?`)) return;
+      try {
+        const data = await requestJson(`/api/l${LEVEL_NUM}completedusers/bulkAcknowledge`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deptID: sel.deptID, areaID: sel.areaID, mCourseID: sel.mCourseID, stationID: sel.stationID, uniqueIDs: ids })
+        });
+        setStatus(`Acknowledged: ${data.acknowledged || 0}. Skipped: ${data.skipped || 0}.`);
+        await loadUsers();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    loadDepartments().catch(error => setStatus(error.message, true));
+  </script>
+</body>
+
+</html>

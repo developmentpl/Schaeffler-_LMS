@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Grades Report</title>
+    <!-- Add Chart.js library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body{
+            margin: 90px 0px 100px 0px;
+        padding: 0;
+        font-family: Arial, sans-serif;
+    /* background-image:url("/Images/logo/UI 1_Background_2.jpg"); */
+    /* background-position: center; Centers the image */
+    /* background-position: fixed; */
+    background:url("/images/home/Bg_2.jpg") no-repeat center center fixed;
+    background-size: 100% auto; /* Ensures the image covers the entire body */
+        /* background-repeat: no-repeat; Prevents the image from repeating */
+        color: #000000
+        }
+        /* Add your CSS styles here */
+        .header {
+    background-color: #f8f9fa;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px;
+    box-shadow: 0 4px 6px rgba(99, 98, 98, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+   
+    
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.navbar {
+    display: flex;
+    gap: 20px; /* Space between links */
+    /* justify-content: center; */
+    flex-grow: 1;
+    text-align: center;
+    
+   
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #646464;
+    /* font-weight: bold; */
+    padding: 0px 15px;
+    font-size: 1.1rem;
+}
+
+.navbar a:hover {
+    color: #000000;
+    /* font-weight: bold; */
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+.right-image img {
+   
+    margin-right: 50px;
+}
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table,
+        th,
+        td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
+        .radar-chart-container {
+            text-align: center;
+            margin-top: 20px;
+            max-width: 600px;
+            /* Set the maximum width of the canvas */
+            margin: 0 auto;
+            /* Center the canvas horizontally */
+            display: block;
+            /* Make the canvas a block element */
+        }
+        .userDetails{
+            margin-top:40px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="navbar">
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+
+    <div id="userDetails"></div>
+    <table id="gradesTable">
+        <thead>
+            <tr>
+                <th>Sr no</th>
+                <th>Courselist</th>
+                <th>Pretest</th>
+                <th>Posttest</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Table body will be populated dynamically -->
+        </tbody>
+    </table>
+
+    <h2>Radar Chart</h2>
+    <div class="radar-chart-container">
+        <canvas id="radarChart"></canvas>
+    </div>
+
+    <script>
+        // JavaScript to fetch and display user's data and radar chart
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/getUserGrades');
+                const data = await response.json();
+                displayUserDetails(data.userDetails);
+                displayGrades(data.grades);
+                displayRadarChart(data.grades);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        });
+
+        // Function to display user details
+        function displayUserDetails(userDetails) {
+            const userDetailsDiv = document.getElementById('userDetails');
+            if (userDetails) {
+                userDetailsDiv.innerHTML = `<p>Name: ${userDetails.name}</p><p>Username: ${userDetails.uName}</p>`;
+            } else {
+                userDetailsDiv.innerHTML = '<p>User details not available</p>';
+            }
+        }
+
+
+        // Function to display grades
+        function displayGrades(grades) {
+            const gradesTable = document.getElementById('gradesTable');
+            const tbody = gradesTable.getElementsByTagName('tbody')[0];
+            console.log('Received grades data:', grades);
+
+            // Clear existing rows
+            tbody.innerHTML = '';
+
+            // Check if grades array is defined and has elements
+            if (grades && grades.length > 0) {
+                // Populate table with grades data
+                grades.forEach((grade, index) => {
+                    const row = `<tr>
+                <td>${index + 1}</td>
+                <td>${grade.courseName}</td>
+                <td>${grade.pretest}</td>
+                <td>${grade.posttest}</td>
+            </tr>`;
+                    tbody.insertAdjacentHTML('beforeend', row);
+                });
+            } else {
+                // If grades array is undefined or empty, display a message
+                tbody.innerHTML = '<tr><td colspan="4">No grades available</td></tr>';
+            }
+        }
+
+        // Function to display radar chart
+        function displayRadarChart(grades) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+
+            // Filter out courses with N/A values
+            const filteredGrades = grades.filter(grade => grade.pretest !== 'N/A' && grade.posttest !== 'N/A');
+            const courseNames = filteredGrades.map(grade => grade.courseName);
+            const pretestScores = filteredGrades.map(grade => grade.pretest);
+            const posttestScores = filteredGrades.map(grade => grade.posttest);
+
+            const data = {
+                labels: courseNames,
+                datasets: [
+                    {
+                        label: 'Pretest',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        data: pretestScores
+                    },
+                    {
+                        label: 'Posttest',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: posttestScores
+                    }
+                ]
+            };
+
+            const options = {
+                scale: {
+                    ticks: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 100,
+                        stepSize: 5
+                    }
+                }
+            };
+
+            const radarChart = new Chart(ctx, {
+                type: 'radar',
+                data: data,
+                options: options
+            });
+        }
+
+        // Function to redirect to Grades Management page
+        function redirectToGradesManagementPage() {
+            window.location.href = "/gradesManagement.html";
+        }
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,256 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Page Title Style */
+h1 {
+    color: white;
+    margin-bottom: 30px;
+    font-size: 3em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    width: 100%;
+    max-width: 600px; 
+}
+
+/* Card Styling for all Sections */
+#training-section,
+#posttest-section,
+#thank-you {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: fadeIn 0.5s ease;
+    width: 100%;
+    max-width: 600px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    color: #667eea;
+    margin-bottom: 30px;
+    font-size: 2em;
+}
+
+/* --- Training Section and Video Centering --- */
+
+.video-container {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+video {
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Button Styles */
+#next-session,
+#quiz-form-posttest button[type="submit"] {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 40px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-top: 20px;
+}
+
+#next-session:hover,
+#quiz-form-posttest button[type="submit"]:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+/* --- Posttest Quiz Styles --- */
+
+#quiz-form-posttest {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.question {
+    text-align: left;
+    margin-bottom: 30px;
+    padding: 15px 0;
+    width: 100%;
+    border-bottom: 1px solid #f0f0f0; 
+}
+
+.question:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.question p strong {
+    display: block;
+    color: #333;
+    font-size: 1.4em;
+    margin-bottom: 25px;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Option container (label) */
+.question label {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    margin-bottom: 12px;
+    background: #f8f9ff;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1em;
+    color: #555;
+    position: relative; 
+    z-index: 10;
+}
+
+.question label:hover {
+    background: #e8ebff;
+    border-color: #667eea;
+    transform: translateX(5px);
+}
+
+/* HIDE THE ACTUAL RADIO INPUT */
+.question input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    /* Ensure it has enough space to be clickable while being visually hidden */
+    width: 100%; 
+    height: 100%;
+    top: 0;
+    left: 0;
+    margin: 0;
+    cursor: pointer;
+    z-index: 15; /* MUST be higher than label z-index (10) to catch the click */
+}
+
+/* Custom Radio Circle (The unselected look) */
+.question label::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #667eea;
+    border-radius: 50%;
+    margin-right: 15px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+/* ------------------------------------------------ */
+/* --- CRITICAL FIX: STYLES FOR THE CHECKED STATE --- */
+/* ------------------------------------------------ */
+
+/* 1. Change the background/text of the ENTIRE LABEL when the hidden input is checked */
+/* We use the child selector (>) for greater specificity */
+.question > label input[type="radio"]:checked {
+   text-decoration: none;
+}
+
+
+/* 2. Style the LABEL (the box) when the radio is checked */
+.question label:has(input[type="radio"]:checked) {
+    background: #667eea; 
+    color: white;
+    border-color: #667eea;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.2);
+    /* Ensure the transform is reset on selection if needed, although :hover should handle it */
+    transform: none; 
+}
+
+
+/* 3. Style the custom circle (:before) when the radio is checked */
+.question label:has(input[type="radio"]:checked)::before {
+    background: white; 
+    border-color: white; /* Fill the border color with white too */
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.4);
+}
+
+/* ------------------------------------------------ */
+
+/* --- Thank You Section --- */
+
+#thank-you p {
+    font-size: 1.3em;
+    color: #666;
+    padding: 10px;
+}
+
+/* --- Animations --- */
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* --- Responsive Design --- */
+
+@media (max-width: 768px) {
+    #training-section, #posttest-section, #thank-you {
+        padding: 30px 20px;
+        max-width: 95%;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    .question p strong {
+        font-size: 1.4em;
+    }
+
+    .question label {
+        padding: 15px 20px;
+        font-size: 1em;
+    }
+
+    #next-session,
+    #quiz-form-posttest button[type="submit"] {
+        width: 100%;
+    }
+}

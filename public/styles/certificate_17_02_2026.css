@@ -1,0 +1,236 @@
+body { 
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* background: linear-gradient(135deg, #ebeef0,#d0d9df); */
+   background: url("/Images/home/Work license_5.83x8.27in_SP_E-04.jpg") fixed;
+    /* background: url("/images/logo/UI Background-03.jpg") no-repeat center center fixed; */
+    background-size: 100% auto;
+
+    color: #000000
+    
+}
+  
+  .bg_img_div::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* background-image: url('/images/world.png'); */
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-position: center;
+    opacity: 0.5;
+    z-index: -1;
+    background-attachment: fixed;
+  }
+  
+  
+  /* Navbar */
+  
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+   justify-content: flex-start;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+    z-index: 10;
+    column-gap: 1cm;
+    height: 1.50cm;
+}
+
+.navbar {
+    display: flex;
+    gap: 70px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: white;
+    font-size: 1.1rem;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #ffcc00;
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+
+  
+  
+  /* Visiting Card */
+  
+  
+  .card {
+    width: 510px;
+    height: 750px;
+    padding: 20px;
+    background-image: url('/Images/home/Work_certificate-03.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin: 80px auto;
+    /* margin-top: 100px; */
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+     -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  
+  .user-details {
+    flex: 1;
+    margin-left: 10px;
+    margin-top: 10px;
+  }
+  
+  .user-photo-container {
+    flex: 0 0 120px;
+    margin-left: 20px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .user-photo {
+    width: 130px;
+    height: 130px;
+    /* border-radius: 50%; */
+    object-fit: cover;
+    margin-left: 30px;
+    margin-top: 80px;
+    /* margin-top: 20px; */
+  }
+  
+  
+  /* Table CSS */
+  
+  
+  .other_details {
+    margin-top: 20px;
+    margin-left: 30px;
+  }
+  
+  .levelClass {
+    font-weight: bold;
+    padding-left: 150px;
+    padding-top: 9px;
+    color: #5F5F5F;
+    font-size: 25px;
+  }
+  
+  .listed_data {
+    margin: 0;
+    padding-top: 2px;
+    /* padding: 0; */
+    font-size: 18px;
+    color: #5F5F5F;
+  }
+  
+  .td_Row_Distance {
+    padding-top: 12px;
+    padding-bottom: 10px;
+  }
+  
+  .Row1 {
+    padding-left: 30px;
+    padding-top: 20px;
+  }
+  
+  .Row2 {
+    padding-top: 10px;
+    padding-left: 115px;
+  }
+  
+  .Row3 {
+    padding-left: 110px;
+    padding-top: 25px;
+    
+  }
+  
+  .Row4 {
+    padding-top: 20px;
+    padding-left: 140px;
+  }
+  
+  .Row5 {
+    padding-top: 30px;
+    margin-left: 0;
+    color: #5F5F5F;
+    font-size: 18px;
+    /* padding-left: 30px; */
+  }
+  
+  
+  /* // Print button */
+  
+  .print-button {
+    display: block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .print-button:hover {
+    background-color: #45a049;
+  }
+  
+  h3 {
+    margin-top: 5px;
+    margin-bottom: 0;
+    color: #5F5F5F;
+  }
+  
+  h4 {
+    margin-top: 0;
+    color: #5F5F5F;
+    margin-bottom: 5px;
+  }
+  
+  p {
+    margin: 0;
+    padding: 0;
+    font-size: 10px;
+    color: #5F5F5F;
+  }
+  
+  .print_btn_div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+  }
+  
+  .welcome_text {
+    margin: 0;
+    margin-right: 50px;
+    padding: 0;
+    font-size: 9px;
+    color: #5F5F5F;
+    line-height: 10px;
+  }
+  
+  .hr_line {
+    width: 50%;
+    margin-right: 100px;
+  }
+  
+  .card_icons {
+    width: 15px;
+    margin-right: 10px;
+  }

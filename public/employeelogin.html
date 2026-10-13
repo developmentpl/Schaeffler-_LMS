@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Login</title>
+    <link rel="stylesheet" href="/styles/Employee.css"> 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+    <div class="header"> 
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+        <div class="navbar">
+            <a href="/home.html">Home</a>
+        </div>
+    </div>
+
+    <div class="main-content-wrapper">
+        <div class="left-panel">
+            
+            <div class="slogan">
+                Learn Today.<br><span>Lead Tomorrow.</span>
+            </div>
+        </div>
+
+        <div class="FormClass-container">
+            <div class="FormClass">
+                <form id="loginForm" class="loginFormClass" action="/employeelogin" method="post">
+                    <h2>Employee Login</h2>
+                    <p class="subtitle">Access your personal learning dashboard</p>
+                    <br>
+                    
+                    <div class="row">
+                        <label class="input-label" for="username"> Username</label>
+                        <input type="text" id="username" name="username" class="textclass" placeholder="Your Username">
+                    </div>
+                    <div class="row">
+                        <label class="input-label" for="password">Password</label>
+                        <input type="password" id="password" name="password" class="textclass"><b></b>
+                        <button type="button" id="togglePassword" class="showbtn">Show</button>
+                    </div>
+
+                    <div class="show-password-container">
+                        
+                    </div>
+
+                    <!-- <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div> -->
+                    
+                    <button type="submit" class="FormLoginbtn">Login</button>
+
+                    <!-- <p class="forgot-link">
+                        <a href="#">Forgot Password?</a>
+                    </p> -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        // Check login and go to lmspage if it's correct
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent the default form submission behavior
+
+                const formData = new FormData(loginForm);
+                const username = formData.get('username');
+                const password = formData.get('password');
+
+                try {
+                    const response = await fetch('/employeelogin', {
+                        method: 'POST',
+                        body: JSON.stringify({ username, password }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        // Store username for session
+                        sessionStorage.setItem('uniqueID', data.uniqueID);
+                        // One refresher notice per successful employee login.
+                        sessionStorage.removeItem('refresherNoticeShown');
+                        window.location.href = '/lmshomepage.html';
+                    } else {
+                        // Show alert for invalid username or password
+                        alert(data.message);
+                        // Clear input fields
+                        usernameInput.value = '';
+                        passwordInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    // Show alert for general error
+                    alert('An error occurred during login. Please try again later.');
+                }
+            });
+        });
+
+        // Get references to the password field and the toggle button
+        const passwordField = document.getElementById('password');
+        const toggleButton = document.getElementById('togglePassword');
+
+        // Add click event listener to the toggle button
+        toggleButton.addEventListener('click', function () {
+            // Check the type of the password field
+            if (passwordField.type === 'password') {
+                // If the password field is currently hidden, show the password
+                passwordField.type = 'text';
+                // Change the button text to 'Hide'
+                toggleButton.textContent = 'Hide';
+            } else {
+                // If the password field is currently shown, hide the password
+                passwordField.type = 'password';
+                // Change the button text to 'Show'
+                toggleButton.textContent = 'Show';
+            }
+        });
+    </script>
+</body>
+
+</html>

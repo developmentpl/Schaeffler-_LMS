@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>SCORM LMS</title>
+  <link rel="stylesheet" href="/styles/uploadTrainingAssessment.css">
+  <style>
+    #courseID {
+      background: #ffffff !important;
+      background-image: none !important;
+      color: #1a1a1a !important;
+      cursor: not-allowed !important;
+      font-weight: bold !important;
+      padding: 8px 20px !important;
+      box-shadow: 0 4px 5px rgba(209, 205, 205, 0.897) !important;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+    </div>
+    
+    <div class="navbar">
+      <a href="/adminhomepage.html">Home</a>
+      <a href="/courseManagement.html">Courses</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <br>
+  <h1 class="h1class" style="text-align: center;">Add New Course</h1><br>
+  <div class="container">
+    <div class="FormClass">
+      <form id="addCourseForm" class="Floatclass" action="/upload" method="post" enctype="multipart/form-data">
+        <label class="allLabels">Course ID:</label><br>
+        <input type="text" id="courseID" class="idTag" name="courseID" readonly required><br><br>
+
+        <div class="labelDiv">
+          <label class="allLabels" for="courseName">Course Name:</label><br>
+        </div>
+        <input type="text" id="courseName" name="courseName" required><br>
+
+        <label class="allLabels" for="courseDescription">Course Description:</label><br>
+        <textarea id="courseDescription" name="courseDescription" required></textarea><br><br><br>
+
+        <label class="allLabels" for="department">Department:</label><br>
+        <select id="department" name="department" required>
+          <option value="">Select Department</option>
+        </select><br><br><br>
+
+        <label class="allLabels" for="courseDate">Course Date:</label><br>
+        <input type="date" id="courseDate" name="courseDate" required><br><br><br>
+
+        <label class="allLabels" for="level">Level:</label><br>
+        <select id="level" name="level" required>
+          <option value="">Select Level</option>
+        </select><br><br><br>
+
+        <label class="allLabels" for="scormFile">Upload SCORM File:</label><br>
+        <input type="file" id="scormFile" name="scormFile" accept=".zip"><br><br><br>
+
+        <button type="submit">Save Course</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Function to fetch departments from database
+    function fetchDepartments() {
+      return new Promise((resolve, reject) => {
+        fetch('/getDepartments')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            resolve(data.departments);
+          })
+          .catch(error => {
+            console.error('Error fetching departments:', error);
+            reject(error);
+          });
+      });
+    }
+
+    // Function to populate department dropdown - NOW STORES DEPARTMENT NAME
+    function populateDepartmentDropdown(departments) {
+      const dropdown = document.getElementById('department');
+      dropdown.innerHTML = '<option value="">Select Department</option>';
+      
+      departments.forEach(dept => {
+        const option = document.createElement('option');
+        // Store department name instead of ID
+        option.value = dept.name;
+        option.textContent = dept.name;
+        // Store the ID as a data attribute if needed for backend
+        option.setAttribute('data-dept-id', dept.id);
+        dropdown.appendChild(option);
+      });
+    }
+
+    // Function to fetch levels from database
+    function fetchLevels() {
+      return new Promise((resolve, reject) => {
+        fetch('/getLevels')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            resolve(data.levels);
+          })
+          .catch(error => {
+            console.error('Error fetching levels:', error);
+            reject(error);
+          });
+      });
+    }
+
+    // Function to populate level dropdown
+    function populateLevelDropdown(levels) {
+      const dropdown = document.getElementById('level');
+      dropdown.innerHTML = '<option value="">Select Level</option>';
+      
+      levels.forEach(level => {
+        const option = document.createElement('option');
+        option.value = level.name;
+        option.textContent = level.name;
+        dropdown.appendChild(option);
+      });
+    }
+
+    // Function to fetch used course IDs from the database
+    function fetchUsedCourseIDs() {
+      return new Promise((resolve, reject) => {
+        fetch('/getUsedCourseIDs')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+          .then(data => {
+            resolve(data.usedCourseIDs);
+          })
+          .catch(error => {
+            console.error('Error fetching used course IDs:', error);
+            reject(error);
+          });
+      });
+    }
+
+    // Function to get the next available course ID
+    function getNextAvailableCourseID(usedCourseIDs) {
+      const allCourseIDs = Array.from({ length: 200 }, (_, i) => i + 1);
+      const availableCourseIDs = allCourseIDs.filter(id => !usedCourseIDs.includes(id));
+      return availableCourseIDs.length > 0 ? availableCourseIDs[0] : null;
+    }
+
+    // Function to set the course ID in the read-only input field
+    function setCourseID() {
+      fetchUsedCourseIDs()
+        .then(usedCourseIDs => {
+          const nextCourseID = getNextAvailableCourseID(usedCourseIDs);
+          const courseIDInput = document.getElementById('courseID');
+          if (nextCourseID) {
+            courseIDInput.value = nextCourseID;
+          } else {
+            courseIDInput.value = 'No available IDs';
+            alert('No available course IDs. Please contact administrator.');
+          }
+        })
+        .catch(error => {
+          console.error('Error setting course ID:', error);
+        });
+    }
+
+    // Initialize page - Load all dropdowns
+    window.onload = function() {
+      // Set Course ID (read-only)
+      setCourseID();
+      
+      // Load Departments
+      fetchDepartments()
+        .then(departments => {
+          populateDepartmentDropdown(departments);
+        })
+        .catch(error => {
+          console.error('Error loading departments:', error);
+        });
+      
+      // Load Levels
+      fetchLevels()
+        .then(levels => {
+          populateLevelDropdown(levels);
+        })
+        .catch(error => {
+          console.error('Error loading levels:', error);
+        });
+    };
+
+    // Log form data before submission for debugging
+    document.getElementById('addCourseForm').addEventListener('submit', function(e) {
+      console.log('Form Data:');
+      console.log('Course ID:', document.getElementById('courseID').value);
+      console.log('Course Name:', document.getElementById('courseName').value);
+      console.log('Department:', document.getElementById('department').value);
+      console.log('Level:', document.getElementById('level').value);
+      console.log('Date:', document.getElementById('courseDate').value);
+    });
+  </script>
+  
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+</body>
+
+</html>

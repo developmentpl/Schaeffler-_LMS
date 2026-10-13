@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Import Segment Certificate</title>
+  <style>
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#142033;background:linear-gradient(120deg,#edf7f1,#f4f7fb);min-height:100vh}
+    header{height:76px;background:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 42px;box-shadow:0 2px 8px #0001}header strong{font-size:28px;color:#36a66f}nav a{color:#111;text-decoration:none;font-weight:700;margin-left:25px}
+    main{max-width:1120px;margin:36px auto;padding:0 20px}h1{margin-bottom:6px}.hint{color:#53627a;margin-top:0}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.panel{background:#fff;border:1px solid #d8e0ea;border-radius:12px;padding:20px;box-shadow:0 8px 24px #1b433214}
+    #cameraBox{height:340px;background:#101827;border-radius:9px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#fff;text-align:center}video{width:100%;height:100%;object-fit:cover}button{border:0;border-radius:6px;padding:11px 16px;font-weight:700;cursor:pointer;margin:12px 6px 8px 0;background:#238544;color:#fff}.secondary{background:#e8edf5;color:#172033}textarea{width:100%;height:130px;border:1px solid #c9d3e1;border-radius:6px;padding:10px;font:14px monospace}.file-box{margin-top:18px;padding:14px;border:1px dashed #8ca5bc;border-radius:8px;background:#f7fafc}.file-box label{display:block;font-weight:700;margin-bottom:8px}.details{width:100%;border-collapse:collapse;margin-top:10px}.details td{padding:8px;border-bottom:1px solid #e7ebf1}.details td:first-child{font-weight:700;color:#617087;width:42%}.status{margin-top:14px;padding:12px;border-radius:7px;background:#eaf1fb;color:#204f91;white-space:pre-line}.status.error{background:#fdecec;color:#a92323}.status.success{background:#e8f6ec;color:#176a35}#importBtn:disabled{background:#9bc7a8;cursor:not-allowed}@media(max-width:800px){.grid{grid-template-columns:1fr}header{padding:0 18px}}
+  </style>
+</head>
+<body>
+  <header><strong>SCHAEFFLER</strong><nav><a href="/adminHomePage.html">Home</a><a href="/logout">Log Out</a></nav></header>
+  <main>
+    <h1>Import Segment Level Certificate</h1>
+    <p class="hint">Scan a Level 2, Level 3, or Level 4 certificate, or select a transfer file from a pen drive. Every result is matched to the existing operator and hierarchy before it is saved.</p>
+    <div class="grid">
+      <section class="panel">
+        <h2>1. Scan certificate QR</h2>
+        <div id="cameraBox"><span id="placeholder">Click Start camera and point the webcam at the certificate QR.</span><video id="video" playsinline style="display:none"></video></div>
+        <button id="startBtn">Start camera</button><button id="stopBtn" class="secondary">Stop camera</button><button id="resetBtn" class="secondary">Reset</button>
+        <label for="qrText"><b>USB scanner or pasted QR text</b></label>
+        <textarea id="qrText" placeholder="Paste Segment Level Result QR text here"></textarea>
+        <button id="readBtn">Read QR text</button>
+        <div class="file-box"><label for="transferFile">Or select a pen-drive transfer file</label><input id="transferFile" type="file" accept="application/json,.json"><small>Files are created from “Export Results to Pen Drive” on a Segment PC.</small></div>
+      </section>
+      <section class="panel">
+        <h2>2. Verify and import</h2>
+        <table class="details"><tbody id="details"><tr><td>Status</td><td>Not scanned</td></tr></tbody></table>
+        <button id="importBtn" disabled>Import Grades and Acknowledgement</button>
+        <div id="status" class="status">Waiting for a Segment certificate QR.</div>
+      </section>
+    </div>
+  </main>
+  <canvas id="canvas" hidden></canvas>
+  <script src="/js/jsqr-offline.js"></script>
+  <script>
+    const video=document.getElementById('video'),canvas=document.getElementById('canvas'),qrText=document.getElementById('qrText'),transferFile=document.getElementById('transferFile'),statusEl=document.getElementById('status'),details=document.getElementById('details'),importBtn=document.getElementById('importBtn'),placeholder=document.getElementById('placeholder');
+    let stream=null,frame=null,payload=null,bundleRecords=null,busy=false;
+    function status(type,text){statusEl.className='status '+(type||'');statusEl.textContent=text}
+    function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+    function parse(text){
+      const compact=String(text||'').trim().split('|');
+      if(compact[0]==='SC1R'){
+        if(compact.length!==4)throw new Error('This compact Segment result QR is incomplete.');
+        const uniqueID=parseInt(compact[1],36);
+        const records=String(compact[3]||'').split(';').filter(Boolean).map((encoded,index)=>{
+          const parts=encoded.split(',');
+          if(parts.length!==7&&parts.length!==8)throw new Error('Compact cumulative result '+(index+1)+' is invalid.');
+          const isNew=parts.length===8;
+          const date=value=>String(value||'').replace(/^(\d{4})(\d{2})(\d{2})$/,'$1-$2-$3');
+          const offset=isNew?1:0;
+          const courseMarks=String(parts[6+offset]||'').split('.').filter(Boolean).map(value=>parseInt(value,36)).join('_');
+          return {version:isNew?4:3,uniqueID,level:parseInt(parts[0],36),levelStartDate:isNew?date(parts[1]):null,acknowledgementDate:date(parts[1+offset]),deptID:parseInt(parts[2+offset],36),areaID:parseInt(parts[3+offset],36),mCourseID:parseInt(parts[4+offset],36),stationID:parseInt(parts[5+offset]||'0',36),courseMarks};
+        });
+        validateBundle({format:'Schaeffler Segment Results',version:1,records});
+        return {records};
+      }
+      const values={};String(text||'').split(/\r?\n/).forEach(line=>{const i=line.indexOf(':');if(i>0)values[line.slice(0,i).trim().toLowerCase()]=line.slice(i+1).trim()});
+      const transferType=(values['transfer type']||'').toLowerCase();
+      if(transferType==='segment level results'){
+        const uniqueID=Number(values['unique id']);
+        const records=String(values.results||'').split(';').filter(Boolean).map((encoded,index)=>{
+          const parts=encoded.split('|');
+          if(parts.length!==7)throw new Error('Cumulative result '+(index+1)+' is invalid.');
+          return {version:2,uniqueID,level:Number(parts[0]),acknowledgementDate:parts[1],deptID:Number(parts[2]),areaID:Number(parts[3]),mCourseID:Number(parts[4]),stationID:Number(parts[5]||0),courseMarks:parts[6]};
+        });
+        validateBundle({format:'Schaeffler Segment Results',version:1,records});
+        return {records};
+      }
+      if(transferType!=='segment level result')throw new Error('This is not a Segment Level Result certificate QR.');
+      const marks=values['course marks']||'';
+      if(!/^\d+_\d+(?:_\d+_\d+)*$/.test(marks))throw new Error('The certificate has no valid Course ID and marks data.');
+      const result={version:Number(values.version||1),uniqueID:Number(values['unique id']),level:Number(values.level),acknowledgementDate:values['acknowledgement date'],deptID:Number(values['department id']),areaID:Number(values['segment id']),mCourseID:Number(values['process id']),stationID:Number(values['station id']||0),courseMarks:marks};
+      if(!result.uniqueID||![2,3,4].includes(result.level)||!result.acknowledgementDate||!result.deptID||!result.areaID||!result.mCourseID)throw new Error('The certificate QR is missing required transfer data.');
+      return result;
+    }
+    function showPayload(result){
+      payload=result;bundleRecords=null;importBtn.disabled=false;importBtn.textContent='Import Grades and Acknowledgement';
+      const pairs=result.courseMarks.split('_'),courses=[];for(let i=0;i<pairs.length;i+=2)courses.push(pairs[i]+' = '+pairs[i+1]);
+      details.innerHTML=[['Unique ID',result.uniqueID],['Completed level','Level '+result.level],['Level start date',result.levelStartDate||'-'],['Level end / acknowledgement date',result.acknowledgementDate],['Department ID',result.deptID],['Segment ID',result.areaID],['Process/Line ID',result.mCourseID],['Station ID',result.stationID],['Course marks',courses.join(', ')]].map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('');
+      status('', 'Certificate read successfully. Verify the values, then import.');
+    }
+    function showRecords(records,source){bundleRecords=records;payload=null;importBtn.disabled=records.length===0;importBtn.textContent='Import '+records.length+' Result'+(records.length===1?'':'s');details.innerHTML=[['Source',source],['Operator Unique ID',records[0]?.uniqueID||'-'],['Levels included',records.map(r=>'Level '+r.level).join(', ')],['Records',records.length],['Course results',records.map(r=>'L'+r.level+': '+r.courseMarks).join(' | ')]].map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>').join('');status('',records.length?'Cumulative results verified. Existing matching levels will be reused and newer levels will be added.':'No results were found.')}
+    function read(text){try{const parsed=parse(text);if(parsed.records)showRecords(parsed.records,'Certificate QR');else showPayload(parsed);stopCamera()}catch(e){payload=null;bundleRecords=null;importBtn.disabled=true;status('error',e.message)}}
+    function validateBundle(data){if(!data||data.format!=='Schaeffler Segment Results'||![1,2].includes(Number(data.version))||!Array.isArray(data.records))throw new Error('This is not a valid Schaeffler Segment Results transfer file.');return data.records.map((record,index)=>{if(!record||!record.uniqueID||![2,3,4].includes(Number(record.level))||!record.acknowledgementDate||!record.deptID||!record.areaID||!record.mCourseID||!/^\d+_\d+(?:_\d+_\d+)*$/.test(String(record.courseMarks||'')))throw new Error('Transfer record '+(index+1)+' is incomplete or invalid.');return record})}
+    transferFile.onchange=async()=>{const file=transferFile.files[0];if(!file)return;try{const data=JSON.parse(await file.text());const records=validateBundle(data);showRecords(records,file.name);details.insertAdjacentHTML('beforeend','<tr><td>Up to date</td><td>'+esc(data.filters?.toDate||'-')+'</td></tr>')}catch(e){bundleRecords=null;payload=null;importBtn.disabled=true;status('error',e.message)}};
+    async function startCamera(){
+      try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:720}}});video.srcObject=stream;video.style.display='block';placeholder.style.display='none';await video.play();scan()}catch(e){status('error','Camera could not start: '+e.message)}
+    }
+    function scan(){if(!stream)return;if(video.readyState>=2&&!busy){const ctx=canvas.getContext('2d',{willReadFrequently:true});canvas.width=video.videoWidth;canvas.height=video.videoHeight;ctx.drawImage(video,0,0);const img=ctx.getImageData(0,0,canvas.width,canvas.height);const code=jsQR(img.data,img.width,img.height,{inversionAttempts:'attemptBoth'});if(code?.data){busy=true;qrText.value=code.data;read(code.data);busy=false;return}}frame=requestAnimationFrame(scan)}
+    function stopCamera(){if(frame)cancelAnimationFrame(frame);frame=null;if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;video.style.display='none';placeholder.style.display='block'}
+    document.getElementById('startBtn').onclick=startCamera;document.getElementById('stopBtn').onclick=stopCamera;document.getElementById('readBtn').onclick=()=>read(qrText.value);
+    document.getElementById('resetBtn').onclick=()=>{stopCamera();payload=null;bundleRecords=null;qrText.value='';transferFile.value='';importBtn.disabled=true;importBtn.textContent='Import Grades and Acknowledgement';details.innerHTML='<tr><td>Status</td><td>Not scanned</td></tr>';status('','Waiting for a Segment certificate QR or transfer file.')};
+    async function importOne(record){const response=await fetch('/api/admin/import-segment-result',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(record)});const data=await response.json();if(!response.ok||!data.success)throw new Error(data.error||'Import failed');return data}
+    importBtn.onclick=async()=>{const records=bundleRecords||[payload].filter(Boolean);if(!records.length)return;importBtn.disabled=true;let imported=0;const failures=[];for(let i=0;i<records.length;i++){status('',`Importing ${i+1} of ${records.length}...`);try{await importOne(records[i]);imported++}catch(e){failures.push('Record '+(i+1)+' (User '+records[i].uniqueID+', Level '+records[i].level+'): '+e.message)}}if(failures.length){status('error',imported+' result(s) imported; '+failures.length+' failed.\n'+failures.join('\n'));importBtn.disabled=false}else{status('success',imported+' result(s) imported successfully. Grades, acknowledgements, assignments, reports, and skill matrix data are updated.')}};
+    window.addEventListener('beforeunload',stopCamera);
+  </script>
+</body>
+</html>

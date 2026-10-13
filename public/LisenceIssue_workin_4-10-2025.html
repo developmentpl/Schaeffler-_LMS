@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/styles/addUser.css">
+    <style>
+        .certificate {
+            width: 60%;
+            margin: auto;
+            padding: 20px;
+            border: 5px solid gold;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/gradesManagement.html">Grades Management</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="FormClass">
+            <div>
+                <h1 style="text-align: center; ">Lisence Issue</h1><br>
+            </div>
+            <div>
+                <div>
+                    <div>
+                        <h2>User Datails</h2>
+                    </div>
+
+                    <form class="userForm" id="userForm" action="/update-data" method="POST">
+                        <div style="display:none">
+                            <div>
+                                <label class="labels">Unique ID</label>
+                            </div>
+                            <input type="text" name="IDinput" id="IDinput" placeholder="IDinput" required><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Full Name</label>
+                            </div>
+                            <input type="text" name="name" id="nameInput" placeholder="Name" required><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Email</label>
+                            </div>
+                            <input type="emailID" name="emailID" placeholder="Email" id="emailID" required><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Employee ID</label>
+                            </div>
+                            <input type="text" name="employeeID" placeholder="Employee ID" id="EmpID"><br><br>
+
+                        </div>
+
+                        <div>
+                            <div>
+                                <label class="labels">Mobile Number</label>
+                            </div>
+                            <input type="tel" name="mobileNo" placeholder="Mobile Number" id="mobileNo"><br><br>
+                        </div>
+                        <div>
+                            <div>
+                                <label class="labels">Department</label>
+                            </div>
+                            <input type="text" name="department" placeholder="Department" id="department"><br><br>
+                        </div>
+                        <div>
+                            <label class="labels">Qualification</label>
+                        </div>
+                        <input type="text" name="Qualification" placeholder="Qualification" id="Qualification"><br><br>
+                </div>
+                <div>
+                    <div>
+                        <label class="labels">License Issue Date</label>
+                    </div>
+                    <input type="date" name="LisenceIssue" placeholder="LisenceIssue" id="LisenceIssue"><br><br>
+                </div>
+
+                <div>
+                    <label class="labels">Select an Option</label>
+                    <select name="selectedOption" class="selectedOptionDropdown" required id="level">
+                        <option value="Level 1">Level 1</option>
+                        <option value="Level 2">Level 2</option>
+                        <option value="Inspector">Inspector</option>
+                    </select>
+                </div><br><br>
+                <div class="userMedia">
+                    <div class="media-container">
+                        <video id="video" class="webCamStream"></video>
+                        <canvas id="canvas"></canvas>
+                        <img id="photoPreview" src="" alt="Captured Photo">
+                    </div><br><br>
+                    <div class="click_btn">
+                        <button type="button" onclick="takePhoto()">Click photo</button><br><br>
+
+                        <button type="button" onclick="retakePhoto()">Retake Photo</button><br><br>
+                    </div>
+                    <div class="submit_btn">
+                        <button type="submit" id="addUserSubmit" class="submit_btn_class">Submit</button>
+                    </div>
+                </div><br><br>
+                <div>
+                    <div class="submit_btn">
+                        <button type="submit" id="addUserSubmit" class="submit_btn_class">Print Certificate</button>
+                    </div>
+
+                    </form>
+
+                    <script>
+                        let stream;
+
+                        // Access the webcam and display the video feed
+                        navigator.mediaDevices.getUserMedia({ video: true })
+                            .then(str => {
+                                stream = str; // Store the stream
+                                const video = document.getElementById('video');
+                                video.srcObject = stream;
+                                video.play();
+                            })
+                            .catch(err => {
+                                console.error('Error accessing the webcam: ', err);
+                            });
+                        function getQueryParams(name) {
+                            const urlParams = new URLSearchParams(window.location.search);
+                            return urlParams.get(name);
+                        }
+                        const uid = getQueryParams("uid");
+                        console.log(uid);
+
+                        // Capture photo from the video feed
+                        function takePhoto() {
+                            const video = document.getElementById('video');
+                            const canvas = document.getElementById('canvas');
+                            const context = canvas.getContext('2d');
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                            canvas.toBlob((blob) => {
+                                const formData = new FormData();
+                                const name = document.getElementById('nameInput').value.trim();
+                                const currentDate = new Date().toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: '2-digit',
+                                    year: 'numeric'
+                                }).replace(/\//g, '');
+
+                                const currentTime = new Date().toLocaleTimeString('en-US', {
+                                    hour12: false,
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                }).replace(/:/g, '');
+
+                                // const currentDate = '<%= currentDate %>';
+                                // const currentTime = '<%= currentTime %>';
+                                const sanitizedName = name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '_');
+                                const fileName = `${sanitizedName}_${currentDate}_${currentTime}.png`;
+
+                                formData.append('name', name);
+                                formData.append('photo', blob, fileName);
+
+                                fetch('/save-photo', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                    .then(response => {
+                                        if (response.ok) {
+                                            console.log('Photo saved successfully');
+                                            console.log("Photo path : " + fileName);
+                                            const photoPreview = document.getElementById('photoPreview');
+                                            photoPreview.src = URL.createObjectURL(blob); // Display the captured photo
+                                            video.srcObject = null; // Stop the video feed
+                                        } else {
+                                            console.error('Error saving the photo');
+                                        }
+                                    })
+                                    .catch(error => {
+                                        console.error('Error saving the photo: ', error);
+                                    });
+                            });
+                        }
+                        // Retake photo by restarting the video feed
+                        function retakePhoto() {
+                            const video = document.getElementById('video');
+                            const canvas = document.getElementById('canvas');
+                            const context = canvas.getContext('2d');
+                            context.clearRect(0, 0, canvas.width, canvas.height);
+                            video.srcObject = stream; // Restart the video feed
+                            video.play();
+                        }
+
+                        fetch(`/getCertificate?id=${uid}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    console.log(data.error);
+                                    // document.getElementById("certificate").innerHTML = "<h2>Certificate Not Found</h2>";
+                                } else {
+                                    // document.getElementById("studentId").textContent = data.id;
+                                    // document.getElementById("name").textContent = data.name;
+                                    console.log(data);
+                                    document.getElementById("IDinput").value = data.uniqueID;
+                                    document.getElementById("nameInput").value = data.name;
+                                    document.getElementById("emailID").value = data.emailID;
+                                    document.getElementById("EmpID").value = data.employeeID;
+                                    document.getElementById("mobileNo").value = data.mobileNo;
+                                    document.getElementById("department").value = data.department;
+                                    document.getElementById("Qualification").value = data.Qualification;
+
+                                    // document.getElementById("course").textContent = data.;
+                                    // document.getElementById("date").textContent = data.date;
+                                }
+                            })
+                            .catch(error => console.error("Error fetching data:", error));
+
+                        document.addEventListener('DOMContentLoaded', () => {
+
+                            userForm.addEventListener('submit', async (event) => {
+                                event.preventDefault(); // Prevent the default form submission behavior
+
+                                const name = document.getElementById('nameInput').value;
+                                const uniqueID = document.getElementById('IDinput').value;
+                                const LisenceIssue = document.getElementById('LisenceIssue').value;
+                                const Level = document.getElementById('level').value;
+
+                                try {
+                                    const response = await fetch('/update-data', {
+                                        method: 'POST',
+                                        body: JSON.stringify({ name, uniqueID, LisenceIssue, Level }),
+                                        headers: { 'Content-Type': 'application/json' }
+                                    });
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        // Store username for session
+                                        // Redirect to dashboard or perform any other action upon successful login
+                                        window.location.href = '/Certificate.html?uid=' + document.getElementById("IDinput").value;
+                                    }
+
+                                    // Clear input fields
+
+
+                                } catch (error) {
+                                    console.error('Error during login:', error);
+                                    // Show alert for general error
+                                    alert('An error occurred during login. Please try again later.');
+                                }
+                            });
+                        });
+                        // function confirmSingleUpload() {
+                        //     // Show confirmation dialog
+                        //     if (confirm('Are you sure you want to upload this user?')) {
+                        //          // If user clicks Yes
+                        //          document.getElementById(".userForm").submit(); // Submit the form
+                        //     } else {
+                        //          // If user clicks No
+                        //          document.getElementsByName(".userForm")[0].value = ""; // Clear the file input
+                        //     }
+                        // }
+
+                    </script>
+</body>
+
+</html>

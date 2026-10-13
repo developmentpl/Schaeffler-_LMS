@@ -1,0 +1,57 @@
+SOFTWARE LICENSE AGREEMENT  
+for "Learning Management System"  
+© Parallel Learning  
+
+====================================================================
+1. LICENSE GRANT
+====================================================================
+Parallel Learning grants to the Licensee a non-exclusive, non-transferable, revocable license to use **one (1) instance** of the software known as "Learning Management System" (the “Software”) strictly in accordance with this Agreement.
+
+This license permits use only by the authorized Licensee and only on a single installation. Any attempt to copy, duplicate, distribute, or install additional instances without written approval from Parallel Learning shall constitute a breach of this Agreement.
+
+====================================================================
+2. OWNERSHIP AND AUTHORITY
+====================================================================
+The Software is and shall remain the intellectual property of Parallel Learning.  
+Authorized representatives of Parallel Learning for this Software are:
+
+- **Yash Sonar**  
+- **Sadanand Vyas**  
+
+No ownership rights are transferred to the Licensee under this Agreement.
+
+====================================================================
+3. RESTRICTIONS
+====================================================================
+- The Software may not be copied, distributed, resold, rented, leased, or sublicensed.  
+- Any modification, reverse engineering, decompilation, or disassembly of the Software without prior written consent of Parallel Learning is strictly prohibited.  
+- Any tampering with license files or bypassing technical restrictions will immediately void this license.  
+
+====================================================================
+4. BREACH OF AGREEMENT
+====================================================================
+- Running more than one instance of the Software.  
+- Making unauthorized modifications.  
+- Copying, reselling, or sharing the Software with third parties.  
+
+Any such action constitutes a **breach of agreement** and may lead to immediate termination of this license and potential legal action.
+
+====================================================================
+5. LIMITED WARRANTY / DISCLAIMER
+====================================================================
+The Software is provided "AS IS" without warranties of any kind, express or implied. Parallel Learning shall not be liable for any damages, including but not limited to loss of data, profits, or business interruption, arising from the use or inability to use the Software.
+
+====================================================================
+6. TERM AND TERMINATION
+====================================================================
+This License is effective until terminated. Parallel Learning may terminate the License immediately if the Licensee fails to comply with any terms of this Agreement. Upon termination, the Licensee must uninstall and destroy all copies of the Software.
+
+====================================================================
+7. GOVERNING LAW
+====================================================================
+This Agreement shall be governed by and construed under the laws of India.  
+All disputes arising from this Agreement shall be subject to the exclusive jurisdiction of courts located in Pune, Maharashtra.
+
+====================================================================
+END OF AGREEMENT
+====================================================================

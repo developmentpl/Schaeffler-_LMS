@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Past Users</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 90% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 95%, rgba(8, 149, 76, 0.08), transparent 45%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .right-image img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1200px; width: 100%; margin: 0 auto; padding: 28px 20px 40px; box-sizing: border-box; }
+    h1 { margin-bottom: 6px; color: #101828; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; }
+    .toolbar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+    input { border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; min-width: 260px; }
+    table { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); }
+    th, td { text-align: left; padding: 10px; border-bottom: 1px solid #e6edf5; vertical-align: top; }
+    th { background: #f7f9fc; }
+    .reasonCell { max-width: 260px; white-space: pre-wrap; word-break: break-word; }
+    .btn { display: inline-block; border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; text-decoration: none; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    .empty { color: #6b7a90; font-style: italic; padding: 20px; text-align: center; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+    @media (max-width: 720px) {
+      .header { height: auto; min-height: 72px; align-items: flex-start; gap: 12px; padding: 14px 18px; flex-direction: column; }
+      .right-image img { width: 220px; max-width: 82vw; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    </div>
+    <div class="navbar">
+      <a href="/learnersList.html">Learners List</a>
+      <a href="/learnersManagement.html">Learners Management</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Past Users</h1>
+    <p class="lead">Learners previously deleted from the Learners List, along with the reason given at the time.</p>
+    <div class="toolbar">
+      <a class="btn" href="/learnersList.html">&larr; Back to Learners List</a>
+      <input id="search" placeholder="Search past users...">
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th><th>Employee ID</th><th>Username</th><th>Department</th><th>Role</th><th>Deleted On</th><th>Deleted By</th><th>Reason</th>
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="8" class="empty">Loading...</td></tr></tbody>
+    </table>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    let allPastUsers = [];
+
+    function render(users) {
+      const term = document.getElementById('search').value.toLowerCase();
+      const filtered = users.filter(u => Object.values(u).some(v => String(v || '').toLowerCase().includes(term)));
+      const rows = document.getElementById('rows');
+
+      if (!filtered.length) {
+        rows.innerHTML = `<tr><td colspan="8" class="empty">${users.length ? 'No matching past users.' : 'No users have been deleted yet.'}</td></tr>`;
+        return;
+      }
+
+      rows.innerHTML = filtered.map(u => `
+        <tr>
+          <td>${u.name || ''}</td>
+          <td>${u.employeeID || ''}</td>
+          <td>${u.uName || ''}</td>
+          <td>${u.department || ''}</td>
+          <td>${u.uRole || ''}</td>
+          <td>${u.deletedDate ? new Date(u.deletedDate).toLocaleString() : ''}</td>
+          <td>${u.deletedByName || ''}</td>
+          <td class="reasonCell">${u.reason || ''}</td>
+        </tr>
+      `).join('');
+    }
+
+    async function loadPastUsers() {
+      try {
+        const response = await fetch('/api/pastUsers');
+        const data = await response.json();
+        if (!response.ok || data.success === false) throw new Error(data.message || 'Request failed');
+        allPastUsers = data.users || [];
+        render(allPastUsers);
+      } catch (error) {
+        document.getElementById('rows').innerHTML = `<tr><td colspan="8" class="empty">Could not load past users: ${error.message}</td></tr>`;
+      }
+    }
+
+    document.getElementById('search').addEventListener('input', () => render(allPastUsers));
+
+    loadPastUsers();
+  </script>
+</body>
+
+</html>

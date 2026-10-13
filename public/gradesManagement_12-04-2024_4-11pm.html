@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grades Management</title>
+    <link rel="stylesheet" href="/styles/gradesManagement.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="navbar">
+            <a href="/adminhomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+        </div>
+    </div>
+
+
+
+
+    <div class="container table-container">
+        <div class="container">
+            <div class="grid-item">
+                <div class="EnEdit">
+
+                    Enable Editing &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type="checkbox" id="editButton"
+                        class="btnclass1" />
+                    <label for="editButton" class="toggle"></label>
+                </div>
+                <h1 class="h1class">Grades Management</h1>
+
+                <button id="downloadButton" class="downloadClass btnclass">Download Data</button>
+                <!-- <button id="editButton" class="btnclass">Enable Editing</button> -->
+                <button id="saveButton" class="btnclass" style="display: none;">Save Changes</button>
+                <div>
+                    <!-- <label for="searchInput">Search:</label> -->
+                    <input type="text" id="searchInput" oninput="searchUsers()" placeholder="Search..."
+                        class="search-button">
+                    <select id="searchColumn" class="DropdownClass">
+                        <option value="0">Search by</option>
+                        <option value="1">Name</option>
+                        <option value="2">Username</option>
+                        <option value="3">Token ID</option>
+                    </select>
+
+                </div>
+
+                <table id="gradesTable">
+                    <thead>
+                        <tr>
+                            <th>Sr No</th>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Token ID</th>
+                            <!-- Dynamic headers for pretest and posttest -->
+
+
+                        </tr>
+                    </thead>
+                    <tbody id="gradesData">
+                        <!-- Grades data will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        checkb = "true";
+        function findCourseInfoForUser(user, courseNamesData) {
+            // Iterate over courseNamesData to find the correct course information for the user
+            for (let i = 0; i < courseNamesData.length; i++) {
+                const course = courseNamesData[i];
+                // Check if the courseID matches the one in the user data
+                if (course.courseID === user.courseID) {
+                    return {
+                        courseID: course.courseID,
+                        courseName: course.courseName
+                    };
+                }
+            }
+            // Return a default value if no match is found
+            return {
+                courseID: '',
+                courseName: ''
+            };
+        }
+
+        // JavaScript to fetch and display the username and grades data
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Fetch course names from the server
+                const courseNamesResponse = await fetch('/courseNames');
+                const courseNamesData = await courseNamesResponse.json();
+                console.log(courseNamesData);
+
+                // Extract course names and IDs from the data
+                const courseNames = courseNamesData.map(course => ({
+                    courseID: course.courseID,
+                    courseName: course.courseName
+                }));
+
+                const numCourses = courseNames.length;
+
+                // Generate table headers for Pretest and Posttest based on course names
+                const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+                //tableHeaderRow.innerHTML += `<th colspan="${numCourses}">Pretest</th><th colspan="${numCourses}">Posttest</th>`;
+
+                // Insert course names as table headers
+                for (let i = 0; i < numCourses; i++) {
+                    const courseId = courseNames[i].courseID;
+                    const courseName = courseNames[i].courseName;
+                    tableHeaderRow.innerHTML += `<th class="hiddenColumn">uCourse${i}</th><th>${courseName} - Pretest</th><th>${courseName} - Posttest</th>`;
+                }
+
+                // Fetch grades data
+                const gradesDataResponse = await fetch('/gradesData');
+                const gradesData = await gradesDataResponse.json();
+                const gradesDataContainer = document.getElementById('gradesData');
+
+                gradesData.forEach((user, index) => {
+                    const row = document.createElement('tr');
+
+                    // Insert serial number
+                    const serialNumberCell = document.createElement('td');
+                    serialNumberCell.textContent = index + 1;
+                    row.appendChild(serialNumberCell);
+
+                    // Get all keys (column names) from the user object
+                    const columns = Object.keys(user);
+
+                    // Specify the order of columns to match the order in the table header
+                    const columnsOrder = ['name', 'uName', 'employeeID'];
+                    for (let i = 1; i <= numCourses; i++) {
+                        columnsOrder.push(`uCourse${i}`, `course${i}Pretest`, `course${i}Posttest`);
+                    }
+
+                    // Insert data into the table cells in the correct order
+                    columnsOrder.forEach(column => {
+                        const cell = document.createElement('td');
+                        cell.textContent = user[column];
+                        // Add data-column attribute to specify the column name
+                        cell.dataset.column = column;
+                        // Add courseID and courseName as data attributes
+                        // const courseInfo = findCourseInfoForUser(user, courseNamesData);
+                        // cell.dataset.courseID = courseInfo.courseID;
+                        // cell.dataset.courseName = courseInfo.courseName;
+
+                        // If the column is related to a course, assign courseID and courseName directly
+                        if (column.startsWith('uCourse') || column.endsWith('Pretest') || column.endsWith('Posttest')) {
+                            const courseIndex = parseInt(column.replace(/\D/g, '')); // Extract course index from column name
+                            const course = courseNames[courseIndex - 1]; // Get course information based on index
+                            cell.dataset.courseID = course.courseID;
+                            cell.dataset.courseName = course.courseName;
+                        }
+
+                        // Assign a class to the employeeID cell
+                        if (column === 'employeeID') {
+                            cell.classList.add('employeeID');
+                        }
+                        row.appendChild(cell);
+                    });
+
+                    gradesDataContainer.appendChild(row);
+                });
+                // Add event listener to each table cell
+                const cells = document.querySelectorAll('td:not(.employeeID)');
+                cells.forEach(cell => {
+                    cell.addEventListener('click', function () {
+                        const employeeID = cell.parentElement.querySelector('.employeeID').textContent;
+                        const columnName = cell.dataset.column; // Get column name from data attribute
+                        const cellValue = cell.textContent.trim(); // Get cell value
+
+                        // Get the course name and ID from the column name
+                        const clickedCourseIndex = parseInt(columnName.replace(/[^\d]/g, '')); // Extract course index from column name
+                        const clickedCourse = courseNames[clickedCourseIndex - 1]; // courseNames is assumed to be available globally
+
+                        const courseID = clickedCourse.courseID;
+                        const courseName = clickedCourse.courseName;
+
+                        // const courseID = cell.dataset.courseID; // Get courseID from data attribute
+                        // const courseName = cell.dataset.courseName; // Get courseName from data attribute
+
+                        console.log('Employee ID:', employeeID);
+                        console.log('Column Name:', columnName);
+                        console.log('Cell Value:', cellValue);
+                        console.log('Course ID:', courseID);
+                        console.log('Course Name:', courseName);
+                        console.log('CourseName:', courseNames);
+
+                    });
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+
+            // Add event listener to each employeeID cell
+            const employeeIDCells = document.querySelectorAll('td:nth-child(4)');
+            employeeIDCells.forEach(cell => {
+                cell.addEventListener('click', async () => {
+                    // Extract employeeID from the clicked cell
+                    const employeeID = cell.textContent;
+                    try {
+                        // Fetch data for the clicked employeeID
+                        const response = await fetch(`/getUserGrades?employeeID=${employeeID}`);
+                        const data = await response.json();
+                        // Redirect to userGradesReport.html with the fetched data
+                        window.location.href = `/userGradesReport.html?employeeID=${employeeID}`;
+                    } catch (error) {
+                        console.error('Error fetching user data:', error);
+                    }
+                });
+            });
+        });
+
+
+        function redirectToAdminHomePage() {
+            window.location.href = "/adminHomePage.html";
+        }
+
+
+        function searchUsers() {
+            const input = document.getElementById('searchInput');
+            const filter = input.value.toUpperCase();
+            const table = document.getElementById('gradesTable');
+            const tr = table.getElementsByTagName('tr');
+            const column = document.getElementById('searchColumn').value; // Get the value from the searchColumn input
+
+            // Loop through all table rows, and hide those who don't match the search query
+            for (let i = 0; i < tr.length; i++) {
+                const td = tr[i].getElementsByTagName('td')[column]; // Use the column index provided by the searchColumn input
+                if (td) {
+                    const txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = '';
+                    } else {
+                        tr[i].style.display = 'none';
+                    }
+                }
+            }
+        }
+
+
+        // Function to download data in .xlsx format
+        function downloadData() {
+            const gradesTable = document.getElementById('gradesTable');
+            const tableData = [];
+
+            // Loop through table rows and cells to get data
+            for (let i = 0; i < gradesTable.rows.length; i++) {
+                const rowData = [];
+                const row = gradesTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+
+            // Convert data to CSV format
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+
+            // Create a Blob object containing the CSV data
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+
+            // Set the filename for the download
+            link.download = 'grades_data.csv';
+
+            // Trigger the download
+            link.click();
+        }
+        // Add event listener to the download button
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+
+
+        // Add event listener to the edit button
+        document.getElementById('editButton').addEventListener('click', function () {
+            if (this.checked) {
+                enableEdit();
+            } else {
+                disableEdit();
+            }
+        });
+
+        // Add event listener to the save button
+        document.getElementById('saveButton').addEventListener('click', function () {
+            saveChanges();
+        });
+
+        // Function to enable editing for the entire table
+        function enableEdit() {
+            const cells = document.querySelectorAll('td:not(.employeeID):not(:last-child)');
+            cells.forEach(cell => {
+                // Get the index of the cell's column
+                const columnIndex = cell.cellIndex;
+                // Exclude certain columns from being editable
+                if (!['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                    cell.contentEditable = true;
+                    // Add event listener for Tab key press
+                    cell.addEventListener('keydown', function (event) {
+                        if (event.key === 'Tab') {
+                            // Prevent default Tab behavior
+                            event.preventDefault();
+                            // Find the next editable cell
+                            let nextCell = cell.nextElementSibling;
+                            while (nextCell) {
+                                if (!['id', 'name', 'uName', 'employeeID'].includes(nextCell.dataset.column)) {
+                                    // Focus on the next editable cell
+                                    nextCell.focus();
+                                    break;
+                                }
+                                nextCell = nextCell.nextElementSibling;
+                            }
+                        }
+                    });
+                }
+            });
+            // Show the save button
+            document.getElementById('saveButton').style.display = 'inline-block';
+            //checkb = false;
+        }
+
+        //Disable Edidting for entire table
+        function disableEdit() {
+            //location.reload();
+            const cells = document.querySelectorAll('td:not(.employeeID)');
+            cells.forEach(cell => {
+                cell.contentEditable = false;
+            });
+
+            // Hide the save button
+            //checkb = true;
+            document.getElementById('saveButton').style.display = 'none';
+        }
+        // Function to save changes
+        /*function saveChanges() {
+            console.log('Save button clicked');
+            const cells = document.querySelectorAll('td:not(.employeeID)');
+            const updatedData = [];
+
+            // Iterate through cells to collect updated data
+            cells.forEach((cell, user) => {
+                // Skip the first three columns (Sr No, Name, Username)
+                if (!['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                    updatedData.push({
+                        employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                        columnName: cell.dataset.column, // Get the column name from the data attribute
+                        newValue: cell.textContent.trim(), // Get the new value after editing
+                        courseID: cell.dataset.courseID, // Get the courseID from data attribute
+                        courseName: cell.dataset.courseName // Get the courseName from data attribute
+                    });
+                }
+            });
+            // Log the updatedData array
+            console.log('Updated data:', updatedData);
+
+            // Autofill uCourseX cells based on course Pretest and Posttest values
+            autofillUCourseCells(updatedData); // Pass updatedData array here
+
+            // Show confirmation alert before saving
+            const confirmSave = confirm("Are you sure you want to save the changes?");
+            if (!confirmSave) {
+                return; // Do not proceed with saving if user clicks "Cancel"
+            }
+
+            // Send updated data to the server
+            updatedData.forEach(data => {
+                console.log('Calling updateDatabase with:', data.employeeID, data.columnName, data.newValue, data.courseName);
+                updateDatabase(data.employeeID, data.columnName, data.newValue, data.courseName);
+            });
+
+            // Hide the save button
+            document.getElementById('saveButton').style.display = 'none';
+        }*/
+
+
+        // Function to save changes
+        function saveChanges() {
+            const cells = document.querySelectorAll('td:not(.employeeID):not(:last-child)');
+            const updatedData = [];
+
+            //Skip the first three columns (Sr No, Name, Username)
+            //Iterate through cells to collect updated data
+            cells.forEach((cell, user) => {
+                // Skip the first three columns (Sr No, Name, Username)
+                if (cell.cellIndex > 0 && !['id', 'name', 'uName', 'employeeID'].includes(cell.dataset.column)) {
+                    console.log('Cell Data:', cell.dataset);
+                    // Get the new value after editing
+                    const newValue = cell.textContent.trim();
+                    const columnName = cell.dataset.column;
+                    if (newValue !== '') { // Check if newValue is not empty
+                        updatedData.push({
+                            employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                            columnName: columnName,
+                            newValue: newValue,
+                            courseID: cell.dataset.courseID,
+                            courseName: cell.dataset.courseName
+                        });
+                    }
+                    else { // If cell value is cleared, clear the corresponding uCourseX value
+                        if (columnName.endsWith('Pretest') || columnName.endsWith('Posttest')) {
+                            const courseNumber = columnName.match(/\d+/)[0];
+                            const uCourseCell = cell.parentElement.querySelector(`[data-column="uCourse${courseNumber}"]`);
+                            const courseXPretestCell = cell.parentElement.querySelector(`[data-column="course${courseNumber}Pretest"]`);
+                            const courseXPosttestCell = cell.parentElement.querySelector(`[data-column="course${courseNumber}Posttest"]`);
+
+                            // Check if both courseXPretest and courseXPosttest are cleared or one is cleared while the other is null
+                            if ((newValue === '' && courseXPosttestCell.textContent === '') ||
+                                (newValue === '' && courseXPosttestCell.textContent === 'null') ||
+                                (courseXPretestCell.textContent === '' && newValue === '') ||
+                                (courseXPretestCell.textContent === 'null' && newValue === '')) {
+                                uCourseCell.textContent = ''; // Clear the uCourseX cell
+                                updatedData.push({
+                                    employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                                    columnName: `uCourse${courseNumber}`,
+                                    newValue: null, // Clear the corresponding uCourseX value
+                                    courseID: cell.dataset.courseID,
+                                    courseName: null
+                                });
+                            }
+
+                            // Also clear the courseXPretest or courseXPosttest cell
+                            if (newValue !== null) {
+                                updatedData.push({
+                                    employeeID: cell.parentElement.querySelector('.employeeID').textContent,
+                                    columnName: columnName,
+                                    newValue: null, // Set the courseXPretest or courseXPosttest value to null
+                                    courseID: cell.dataset.courseID,
+                                    courseName: null // Set courseName to null
+                                });
+                            }
+                        }
+                    }
+
+                }
+            });
+            console.log('Updated data:', updatedData);
+            // Check if there are any changes to save
+            if (updatedData.length === 0) {
+                console.log('No changes to save.');
+                return;
+            }
+
+            // Autofill uCourseX cells based on course Pretest and Posttest values
+            //autofillUCourseCells(updatedData);
+
+            // Show confirmation alert before saving
+            const confirmSave = confirm("Are you sure you want to save the changes?");
+            if (!confirmSave) {
+                location.reload();
+                return; // Do not proceed with saving if user clicks "Cancel"
+            }
+            else {
+                // Send updated data to the server
+                updatedData.forEach(data => {
+                    console.log('Calling updateDatabase with:', data.employeeID, data.columnName, data.newValue, data.courseName);
+                    updateDatabase(data.employeeID, data.columnName, data.newValue, data.courseName);
+                });
+
+                // Send updated data to the server
+                fetch('/saveChanges', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ updatedData: updatedData })
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Changes saved successfully');
+                            // Update uCourseX cells based on course Pretest and Posttest values after saving changes
+                            updatedData.forEach(entry => {
+                                const columnName = entry.columnName;
+                                const newValue = entry.newValue;
+                                const courseName = entry.courseName;
+
+                                // Check if the column corresponds to a course Pretest or Posttest
+                                if (columnName && columnName.startsWith('course') && (columnName.endsWith('Pretest') || columnName.endsWith('Posttest'))) {
+                                    const courseNumber = columnName.match(/\d+/)[0]; // Extract the course number from the column name (e.g., 'course1')
+
+                                    // Get the corresponding uCourseX cell
+                                    const uCourseCell = document.querySelector(`[data-column="uCourse${courseNumber}"]`);
+
+                                    // If the entered value is not empty, undefined, or null, fill the corresponding uCourseX cell with the courseName
+                                    if (newValue && newValue.trim() !== '' && newValue.trim() !== undefined && newValue.trim() !== null) {
+                                        uCourseCell.textContent = courseName; // Fill the uCourseX cell with the courseName
+                                    } else {
+                                        uCourseCell.textContent = ''; // Clear the uCourseX cell if the entered value is empty, undefined, or null
+                                    }
+                                }
+                            });
+                            location.reload();
+                        } else {
+                            throw new Error('Failed to save changes');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error saving changes:', error);
+                    });
+                document.getElementById('saveButton').style.display = 'none';
+            }
+
+        }
+
+
+
+        // Function to update the database with edited data
+        function updateDatabase(updatedData) {
+            // Send the updatedData to the server using AJAX or fetch
+            fetch('/saveChanges', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ updatedData: updatedData })
+            })
+                .then(response => {
+                    if (response.ok) {
+                        console.log('Changes saved successfully');
+                    } else {
+                        throw new Error('Failed to save changes');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error saving changes:', error);
+                });
+        }
+
+        function autofillUCourseCells(courseNameData) {
+            courseNameData.forEach(entry => {
+                const columnName = entry.columnName;
+                console.log('Column Name:', columnName); // Add this line for debugging
+                const newValue = entry.newValue;
+                const courseName = entry.courseName;
+
+                // Check if the column corresponds to a course Pretest or Posttest
+                if (columnName && columnName.startsWith('course') && (columnName.endsWith('Pretest') || columnName.endsWith('Posttest'))) {
+                    const courseNumber = columnName.match(/\d+/)[0]; // Extract the course number from the column name (e.g., 'course1')
+
+                    // Get the corresponding uCourseX cell
+                    const uCourseCell = document.querySelector(`[data-column="uCourse${courseNumber}"]`);
+                    console.log("I get the value till here");
+
+                    // If the entered value is not empty, undefined, or null, fill the corresponding uCourseX cell with the courseName
+                    if (newValue && newValue.trim() !== '' && newValue.trim() !== undefined && newValue.trim() !== null) {
+                        uCourseCell.textContent = courseName; // Fill the uCourseX cell with the courseName
+                        console.log("uCourseX cell is filled");
+                    } else {
+                        uCourseCell.textContent = ''; // Clear the uCourseX cell if the entered value is empty, undefined, or null
+                    }
+                }
+            });
+        }
+
+        // Function to add a new column header for total posttest grade at the end of the header row
+        function addTotalPosttestHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const totalPosttestHeader = document.createElement('th');
+            totalPosttestHeader.textContent = 'Total Posttest';
+
+            totalPosttestHeader.setAttribute('data-hidden', 'true');
+
+            // Append the total posttest header at the end of the header row
+            tableHeaderRow.appendChild(totalPosttestHeader);
+        }
+
+        // Call the function to add the total posttest header after all other headers have been added
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addTotalPosttestHeader, 100);
+        });
+
+
+        // Function to calculate the total posttest grade for each row
+        function calculateAndAppendTotalPosttest() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttest = 0;
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // Check if the column ends with "Posttest"
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0; // Parse the grade as float or default to 0
+                        totalPosttest += posttestGrade;
+                    }
+                });
+                // Append total posttest grade as a new column to the row
+                const totalPosttestCell = document.createElement('td');
+                totalPosttestCell.textContent = totalPosttest.toFixed(2); // Display total with two decimal places
+                totalPosttestCell.setAttribute('data-column', 'totalPosttest');
+                row.appendChild(totalPosttestCell);
+            });
+        }
+
+        // Call the function to calculate and append the total posttest column
+        //setTimeout(calculateAndAppendTotalPosttest, 100);
+
+        // Function to calculate the mean percentage based on total posttest grades
+        function calculateMeanPercentage(totalPosttestGrades) {
+            const totalTests = totalPosttestGrades.length;
+            if (totalTests === 0) return 0;
+
+            const totalPosttest = totalPosttestGrades.reduce((total, grade) => total + grade, 0);
+            const meanPercentage = ((totalPosttest / (totalTests * 100)) * 100).toFixed(2);
+            return meanPercentage;
+            console.log("totalPosttest", totalPosttest, "totalTests", totalTests);
+            console.log("meanPercentage", meanPercentage);
+        }
+
+        // Function to calculate and append total posttest grade for each row
+        function calculateAndAppendTotalPosttest() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttestGrades = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // Check if the column ends with "Posttest"
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0;
+                        totalPosttestGrades.push(posttestGrade);
+                    }
+                });
+                // Append total posttest grade as a new column to the row
+                const totalPosttestCell = document.createElement('td');
+                totalPosttestCell.textContent = totalPosttestGrades.reduce((total, grade) => total + grade, 0).toFixed(2);
+                totalPosttestCell.setAttribute('data-column', 'totalPosttest');
+                row.appendChild(totalPosttestCell);
+            });
+        }
+
+        // Function to add a new column header for mean percentage at the end of the header row
+        function addMeanPercentageHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const meanPercentageHeader = document.createElement('th');
+            meanPercentageHeader.textContent = 'Mean Percentage';
+            meanPercentageHeader.setAttribute('data-hidden', 'true');
+            // Append the mean percentage header at the end of the header row
+            tableHeaderRow.appendChild(meanPercentageHeader);
+        }
+
+        // Function to calculate and append mean percentage for each row
+        function calculateAndAppendMeanPercentage() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                let totalPosttestGrades = [];
+                const cells = row.querySelectorAll('td');
+                cells.forEach(cell => {
+                    // Check if the column ends with "Posttest"
+                    if (cell.dataset.column && cell.dataset.column.endsWith('Posttest')) {
+                        const posttestGrade = parseFloat(cell.textContent.trim()) || 0;
+                        totalPosttestGrades.push(posttestGrade);
+                    }
+                });
+                const meanPercentage = calculateMeanPercentage(totalPosttestGrades);
+                // Append mean percentage as a new column to the row
+                const meanPercentageCell = document.createElement('td');
+                meanPercentageCell.textContent = meanPercentage + '%';
+                meanPercentageCell.setAttribute('data-column', 'meanPercentage');
+                row.appendChild(meanPercentageCell);
+            });
+        }
+
+        // Call the functions to add the mean percentage header and calculate mean percentage after all other headers have been added
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addMeanPercentageHeader, 300);
+            setTimeout(calculateAndAppendTotalPosttest, 300);
+            setTimeout(calculateAndAppendMeanPercentage, 300);
+        });
+
+
+
+        // Function to add a new column header for level at the end of the header row
+        function addLevelHeader() {
+            const tableHeaderRow = document.querySelector('#gradesTable thead tr');
+            const levelHeader = document.createElement('th');
+            levelHeader.textContent = 'Level';
+
+            levelHeader.classList.add('level-header');
+
+            // Append the level header at the end of the header row
+            tableHeaderRow.appendChild(levelHeader);
+        }
+
+        // Function to determine the level based on the percentage
+        function determineLevel(percentage) {
+            console.log(percentage);
+            if (percentage <= 59) {
+                return 'FAIL';
+            } else if (percentage >= 60 && percentage <= 69) {
+                return 'L1';
+            } else if (percentage >= 70 && percentage <= 79) {
+                return 'L2';
+            } else if (percentage >= 80 && percentage <= 89) {
+                return 'L3';
+            } else {
+                return 'L4';
+            }
+        }
+
+        // Function to calculate the level for each row based on the mean percentage
+        function calculateLevel() {
+            const rows = document.querySelectorAll('#gradesData tr');
+            rows.forEach(row => {
+                const meanPercentageCell = row.lastElementChild; // Get the cell containing the mean percentage
+                const meanPercentageText = meanPercentageCell.textContent.trim();
+                const meanPercentage = parseFloat(meanPercentageText.substring(0, meanPercentageText.length - 1)); // Parse the mean percentage (remove '%' sign)
+
+                // Determine the level based on the mean percentage
+                const level = determineLevel(meanPercentage);
+
+                // Append the level as a new column to the row
+                const levelCell = document.createElement('td');
+                levelCell.textContent = level;
+                row.appendChild(levelCell);
+            });
+        }
+
+
+
+        // Call the functions to add the level header and calculate level after all other headers have been added
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addLevelHeader, 300);
+            setTimeout(calculateLevel, 300);
+        });
+
+        // Function to toggle the visibility of the "Total Posttest" and "Mean Percentage" columns
+        function toggleColumnVisibility() {
+            const totalPosttestCells = document.querySelectorAll('[data-column="totalPosttest"]');
+            const meanPercentageCells = document.querySelectorAll('[data-column="meanPercentage"]');
+
+            // Toggle visibility for each cell
+            totalPosttestCells.forEach(cell => {
+                cell.classList.toggle('hidden');
+            });
+
+            meanPercentageCells.forEach(cell => {
+                cell.classList.toggle('hidden');
+            });
+        }
+
+        // Call the function to toggle visibility after all other headers have been added
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(toggleColumnVisibility, 300);
+        });
+
+        // Function to add classes to specific cells, including the employeeID column
+        function addCellClasses() {
+            const employeeIDCells = document.querySelectorAll('td:nth-child(4)'); // Assuming employeeID is the fourth column
+            employeeIDCells.forEach(cell => {
+                cell.classList.add('employeeID-cell'); // Add the class to the employeeID cells
+            });
+        }
+
+        // Call the function to add classes to cells after the DOM content is loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addCellClasses, 300);
+        });
+
+        // Function to add classes to cells in the Pretest and Posttest columns for each course
+        function addCourseTestClasses() {
+            const courseCells = document.querySelectorAll('[data-column^="course"]');
+            courseCells.forEach(cell => {
+                const columnName = cell.dataset.column;
+                if (columnName.endsWith('Pretest')) {
+                    cell.classList.add('pretest-cell');
+                    const courseNumber = columnName.match(/\d+/)[0];
+                    cell.classList.add(`course${courseNumber}-pretest`);
+                } else if (columnName.endsWith('Posttest')) {
+                    cell.classList.add('posttest-cell');
+                    const courseNumber = columnName.match(/\d+/)[0];
+                    cell.classList.add(`course${courseNumber}-posttest`);
+                }
+            });
+        }
+
+        // Call the function to add classes to cells after the DOM content is loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addCourseTestClasses, 300);
+        });
+
+        // Function to add class to cells in the last column (assumed to be the "Level" column)
+        function addLevelCellClass() {
+            const levelCells = document.querySelectorAll('#gradesData td:last-child');
+            levelCells.forEach(cell => {
+                cell.classList.add('level-cell');
+            });
+        }
+
+        // Call the function after a short delay to ensure the "Level" column is created
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(addLevelCellClass, 300);
+        });
+
+
+
+    </script>
+
+</body>
+
+</html>

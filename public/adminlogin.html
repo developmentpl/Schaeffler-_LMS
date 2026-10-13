@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link rel="stylesheet" href="/styles/adminlogin.css">
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+
+        <div class="navbar">
+            <a href="/Home.html">Home</a>
+        </div>
+    </div>
+
+    <div class="main-content-wrapper">
+        <div class="left-panel">
+            <!-- <div class="logo-placeholder">
+                <img src="/images/userlogin/adminM.png" alt="Logo"> </div> -->
+            <div class="slogan">
+                Empower Learning<br>Master <span>Control.</span>
+            </div>
+        </div>
+
+        <div class="FormClass-container">
+            <div class="FormClass">
+                <form id="loginForm" class="loginFormClass" action="/adminlogin" method="post">
+                    <h2>Admin Login</h2>
+                    <p class="subtitle">Enter your credentials to access your account</p>
+                    <br>
+                    <div class="row">
+                        <label class="input-label" for="username">Username</label>
+                        <input type="text" id="username" name="username" class="textclass" placeholder="aimerp123">
+                    </div>
+                    <div class="row">
+                        <label class="input-label" for="password">Password</label>
+                        <input type="password" id="password" name="password" class="textclass">
+                        <button type="button" id="togglePassword" class="showbtn">Show</button>
+                    </div>
+                    <!-- <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe">Remember me</label>
+                    </div> -->
+
+                   <button type="submit" class="FormLoginbtn">Login</button>
+                    <!-- <p class="signup-link">                </p> -->
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+
+            loginForm.addEventListener('submit', async (event) => {
+                event.preventDefault();
+
+                const formData = new FormData(loginForm);
+                const username = formData.get('username');
+                const password = formData.get('password');
+
+                try {
+                    const response = await fetch('/adminlogin', {
+                        method: 'POST',
+                        body: JSON.stringify({ username, password }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        // Admin-level roles, Super Admin, and Manager can all log in here.
+                        if (['Admin', 'P.V./T.L.', 'Super Admin', 'Manager'].includes(data.userRole)) {
+                            window.location.href = '/adminHomePage.html'; // Redirect to admin home page
+                        } else {
+                            alert('You are not authorized to access this page.');
+                        }
+                    } else {
+                        alert(data.message);
+                        usernameInput.value = '';
+                        passwordInput.value = '';
+                    }
+                } catch (error) {
+                    console.error('Error during login:', error);
+                    alert('An error occurred during login. Please try again later.');
+                }
+            });
+        });
+
+        // Get references to the password field and the toggle button
+        const passwordField = document.getElementById('password');
+        const toggleButton = document.getElementById('togglePassword');
+
+        // Add click event listener to the toggle button
+        toggleButton.addEventListener('click', function () {
+            // Check the type of the password field
+            if (passwordField.type === 'password') {
+                // If the password field is currently hidden, show the password
+                passwordField.type = 'text';
+                // Change the button text to 'Hide'
+                toggleButton.textContent = 'Hide';
+            } else {
+                // If the password field is currently shown, hide the password
+                passwordField.type = 'password';
+                // Change the button text to 'Show'
+                toggleButton.textContent = 'Show';
+            }
+        });
+
+    </script>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+</body>
+
+</html>

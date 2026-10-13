@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learners Management</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.12), transparent 45%),
+        radial-gradient(circle at 90% 25%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 85%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 88% 90%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1100px; width: 100%; margin: 0 auto; padding: 48px 20px; box-sizing: border-box; }
+    h1 { text-align: center; margin-bottom: 32px; color: #101828; }
+    .grid { display: grid; grid-template-columns: repeat(3, minmax(220px, 1fr)); gap: 20px; }
+    .card {
+      background: linear-gradient(135deg, #0b3320, #08954c);
+      border-radius: 10px;
+      padding: 24px;
+      min-height: 145px;
+      text-decoration: none;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 8px 20px rgba(8, 149, 76, 0.18);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 12px 26px rgba(8, 149, 76, 0.3); }
+    .card-icon { flex-shrink: 0; width: 48px; height: 48px; border-radius: 50%; background: #ffffff; display: flex; align-items: center; justify-content: center; }
+    .card-icon svg { width: 24px; height: 24px; }
+    .card h2 { margin: 0 0 6px; font-size: 20px; color: #ffffff; }
+    .card p { margin: 0; line-height: 1.4; color: rgba(255, 255, 255, 0.85); font-size: 14px; }
+    footer { flex-shrink: 0; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+    </div>
+    <div class="navbar">
+      <a href="/userManagement.html">User Management</a>
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Learners Management</h1>
+    <div class="grid">
+      <a class="card" href="/previousUsersUpload.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
+        </span>
+        <span>
+          <h2>Previous Data Upload</h2>
+          <p>Import offline training history with a preview before saving.</p>
+        </span>
+      </a>
+      <a class="card" href="/previousUsersLayoutUpload.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v14H4z"></path><path d="M4 10h16M9 5v14"></path></svg>
+        </span>
+        <span>
+          <h2>Upload Users Using Layout</h2>
+          <p>Import previous users from department, segment, process, machine, and level.</p>
+        </span>
+      </a>
+      <a class="card" href="/learnersBulkUpload.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 8l5-5 5 5"></path><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"></path></svg>
+        </span>
+        <span>
+          <h2>Bulk Upload</h2>
+          <p>Upload learners from an Excel sheet.</p>
+        </span>
+      </a>
+      <a class="card" href="/addUser.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"></circle><path d="M2 21c0-4 3-6 7-6s7 2 7 6"></path><path d="M17 8h5"></path><path d="M19.5 5.5v5"></path></svg>
+        </span>
+        <span>
+          <h2>Manual Single Upload</h2>
+          <p>Create one learner with mandatory User ID and Password.</p>
+        </span>
+      </a>
+      <a class="card" href="/learnersList.html">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#0b3320" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h10"></path></svg>
+        </span>
+        <span>
+          <h2>Learners List</h2>
+          <p>View, search, and manage all learner login records.</p>
+        </span>
+      </a>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+</body>
+
+</html>

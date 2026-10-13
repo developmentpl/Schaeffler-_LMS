@@ -1,0 +1,501 @@
+<!-- <!DOCTYPE html>
+<html>
+
+<head>
+    <title>View SCORM Data</title>
+</head>
+<link rel="stylesheet" href="/styles/viewscorm.css">
+
+
+<body>
+
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/lmshomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+    </div>
+    <h1 class="h1class">List of Uploaded Training Packages</h1><br><br>
+    <div class="grid-container">
+        <div class="card-content">
+            <div id="scormList"></div>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        /**
+         * Fetches the logged-in user's course tags from the new server route.
+         * @returns {Promise<string[]>} A promise that resolves to an array of lowercase, trimmed course tags.
+         */
+        async function fetchUserTags() {
+            try {
+                // Call the new Express route
+                const response = await fetch('/getUserCourseTags'); 
+                
+                if (!response.ok) {
+                    // Check for specific 401 response if user is not authenticated
+                    if (response.status === 401) {
+                         console.warn('User not authenticated, fetching no tags.');
+                         return [];
+                    }
+                    throw new Error('Failed to fetch user tags');
+                }
+                const data = await response.json();
+
+                if (data && data.courseTags) {
+                    // Normalize tags: split the comma-separated string, trim, lowercase, and filter out empty strings
+                    return data.courseTags.split(',')
+                                          .map(tag => tag.trim().toLowerCase())
+                                          .filter(tag => tag !== '');
+                } else {
+                    return []; // User has no tags
+                }
+            } catch (error) {
+                console.error('Error fetching user tags:', error);
+                return []; // Fail safe: return empty array
+            }
+        }
+
+
+        function fetchUploadedScorms() {
+            // 1. Fetch User Tags
+            fetchUserTags().then(userTags => {
+                // 2. Fetch All Courses (using your existing route)
+                fetch('/getViewscormCourseList')
+                    .then(response => response.json())
+                    .then(allCourses => {
+                        const scormListContainer = document.getElementById('scormList');
+                        scormListContainer.innerHTML = ''; // Clear previous list
+
+                        console.log("User Tags for Filtering:", userTags);
+                        
+                        // 3. Filter Courses
+                        const filteredCourses = allCourses.filter(course => {
+                            // Normalize course tags (must be present in the course object now)
+                            const courseTagsArray = course.courseTags
+                                ? course.courseTags.split(',')
+                                                  .map(tag => tag.trim().toLowerCase())
+                                                  .filter(tag => tag !== '')
+                                : [];
+
+                            // If the course has no tags defined, we assume it's not visible to anyone (unless a special 'default' rule is set).
+                            if (courseTagsArray.length === 0) {
+                                return false; 
+                            }
+                            
+                            // A user must have AT LEAST ONE matching tag with the course.
+                            const hasMatchingTag = courseTagsArray.some(courseTag => userTags.includes(courseTag));
+
+                            return hasMatchingTag;
+                        });
+
+                        // 4. Render Filtered Courses
+                        filteredCourses.sort((a, b) => a.courseName.localeCompare(b.courseName));
+
+                        if (filteredCourses.length === 0) {
+                            const noCourses = document.createElement('h3');
+                            noCourses.textContent = 'No courses available for you at this time based on your access tags.';
+                            noCourses.style.color = 'white';
+                            scormListContainer.appendChild(noCourses);
+                        }
+
+                        filteredCourses.forEach(course => {
+                            const courseContainer = document.createElement('div');
+                            courseContainer.classList.add('card', 'card-content', 'grid-container');
+
+                            const courseName = document.createElement('h2');
+                            courseName.textContent = course.courseName;
+                            courseName.classList.add('row', 'card-heading');
+
+                            const courseStatus = document.createElement('p');
+                            courseStatus.textContent = `Status: ${course.status}`;
+                            courseStatus.classList.add('row', 'status-text');
+
+                            const courseDetails = document.createElement('p');
+                            // Keeping the original course details display
+                            courseDetails.textContent = `Date: ${course.courseDate}, Description: ${course.courseDescription}, Teacher: ${course.courseTeacher}, Course ID: ${course.courseID}`;
+                            courseDetails.classList.add('row', 'card-body');
+
+                            const button = document.createElement('button');
+                            button.textContent = "View SCORM";
+                            button.classList.add('btnclass');
+                            button.addEventListener('click', () => {
+                                viewScorm(course);
+                            });
+
+                            courseContainer.appendChild(courseName);
+                            courseContainer.appendChild(courseStatus);
+                            courseContainer.appendChild(courseDetails);
+                            courseContainer.appendChild(button);
+                            scormListContainer.appendChild(courseContainer);
+                        });
+                    })
+                    .catch(error => console.error('Error fetching courses:', error));
+            }).catch(error => console.error('Initialization error:', error));
+        }
+
+        window.onload = fetchUploadedScorms;
+
+        function viewScorm(course) {
+            localStorage.setItem('selectedCourse', JSON.stringify(course));
+            const scorm = encodeURIComponent(course.scormPath);
+            const courseID = encodeURIComponent(course.courseID);
+            const courseName = encodeURIComponent(course.courseName);
+            window.location.href = `/scormview.html?scorm=${scorm}&courseID=${courseID}&courseName=${courseName}`;
+        }
+
+        // Existing function kept intact
+        function onViewScormClicked(courseDetails) {
+            fetch(`/getScorms?courseID=${courseDetails.courseID}&${courseDetails.courseName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching SCORM data:', error);
+                });
+        }
+
+        function BackPage() {
+            window.location.href = '/lmshomepage.html';
+        }
+    </script>
+</body>
+
+</html> -->
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>View SCORM Data</title>
+</head>
+<link rel="stylesheet" href="/styles/viewscorm.css">
+
+
+<body>
+
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo" width="280" style="height:auto;">
+        </div>
+        <div class="navbar">
+            <a href="/lmshomepage.html">Home</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+    </div>
+    <h1 class="h1class">List of Uploaded Training Packages</h1>
+
+    <div class="level-tabs" id="levelTabs" style="display:none;">
+        <button type="button" class="level-tab" data-level-tab="level1">Level 1</button>
+        <button type="button" class="level-tab" data-level-tab="level2plus">Level 2 and above</button>
+    </div>
+
+    <div class="sub-tabs" id="subTabs" style="display:none;">
+        <button type="button" class="sub-tab" data-sub-level="Level 2">Level 2</button>
+        <button type="button" class="sub-tab" data-sub-level="Level 3">Level 3</button>
+        <button type="button" class="sub-tab" data-sub-level="Level 4">Level 4</button>
+        <button type="button" class="sub-tab" data-sub-level="Refresher">Refresher</button>
+    </div>
+
+    <div class="grid-container">
+        <div class="card-content">
+            <div id="scormList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="completedModalOverlay">
+        <div class="modal-box">
+            <p id="completedModalText">You have already attempted and completed this course successfully.</p>
+            <button type="button" id="completedModalOkBtn">OK</button>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        // NOTE: The uniqueID is fetched on the server side using the session,
+        // so no client-side tag fetching or filtering is needed anymore.
+
+        // All courses returned by the server for this user, kept around so tab
+        // switching can re-render without re-fetching.
+        let allFetchedCourses = [];
+        let activeTopTab = 'level1';       // 'level1' | 'level2plus'
+        let activeSubLevel = 'Level 2';    // 'Level 2' | 'Level 3' | 'Level 4' | 'Refresher'
+
+        function getLastStatus(course) {
+            const raw = course.status || '';
+            const statuses = raw.split(',').map(s => s.trim()).filter(Boolean);
+            return statuses[statuses.length - 1] || 'Not Started';
+        }
+
+        // A course counts as "already completed" using the same Pass/Completed
+        // convention the server already uses (see index.js isPassed checks):
+        // assessment/scorm courses pass on status 'Pass', training-type content
+        // passes on status 'Completed'.
+        function isCourseCompleted(course) {
+            if (course.refresherRequired) {
+                return course.refresherCompleted === true;
+            }
+            const lastStatus = getLastStatus(course);
+            if (course.courseType === 'training') {
+                return lastStatus === 'Completed';
+            }
+            return lastStatus === 'Pass';
+        }
+
+        function buildCourseCard(course) {
+            const courseContainer = document.createElement('div');
+            courseContainer.classList.add('card', 'card-content', 'grid-container');
+
+            const courseName = document.createElement('h2');
+            courseName.textContent = course.courseName;
+            courseName.classList.add('row', 'card-heading');
+
+            const courseStatus = document.createElement('p');
+            const lastStatus = getLastStatus(course);
+            if (course.refresherRequired) {
+                courseStatus.textContent = course.refresherCompleted
+                    ? 'Status: Refresher Completed'
+                    : course.refresherLocked
+                        ? 'Status: Refresher Failed - Retrain Required'
+                        : 'Status: Refresher Pending';
+            } else {
+                courseStatus.textContent = `Status: ${lastStatus}`;
+            }
+            courseStatus.classList.add('row', 'status-text');
+
+            const courseDetails = document.createElement('p');
+            courseDetails.textContent = `Date: ${course.courseDate}, Description: ${course.courseDescription}, Teacher: ${course.courseTeacher}, Course ID: ${course.courseID}`;
+            courseDetails.classList.add('row', 'card-body');
+
+            const openCourse = languageInfo => {
+                if (course.refresherLocked) {
+                    document.getElementById('completedModalText').textContent =
+                        'This refresher attempt is locked after an unsuccessful result. Please ask the administrator to select Retrain.';
+                    openCompletedModal();
+                    return;
+                }
+                if (isCourseCompleted(course)) {
+                    document.getElementById('completedModalText').textContent =
+                        course.refresherRequired
+                            ? 'You have already completed this course for the current refresher cycle.'
+                            : 'You have already attempted and completed this course successfully.';
+                    openCompletedModal();
+                    return;
+                }
+                viewScorm(course, languageInfo);
+            };
+
+            const buttonArea = document.createElement('div');
+            buttonArea.style.display = 'flex';
+            buttonArea.style.gap = '8px';
+            buttonArea.style.flexWrap = 'wrap';
+            buttonArea.style.justifyContent = 'flex-end';
+            const languages = Array.isArray(course.languages) ? course.languages : [];
+            const buttonLanguages = languages.length ? languages : [null];
+            buttonLanguages.forEach(languageInfo => {
+                const button = document.createElement('button');
+                button.textContent = languageInfo ? languageInfo.language : (course.courseType === 'training' ? 'View Training' : 'View Course');
+                if (course.refresherRequired && !course.refresherCompleted && course.refresherLocked) {
+                    button.textContent = 'Retrain Required';
+                }
+                button.classList.add('btnclass');
+                button.addEventListener('click', () => openCourse(languageInfo));
+                buttonArea.appendChild(button);
+            });
+
+            courseContainer.appendChild(courseName);
+            courseContainer.appendChild(courseStatus);
+            courseContainer.appendChild(courseDetails);
+            courseContainer.appendChild(buttonArea);
+            return courseContainer;
+        }
+
+        function renderCourseList(courses) {
+            const scormListContainer = document.getElementById('scormList');
+            scormListContainer.innerHTML = '';
+
+            if (!courses.length) {
+                const noCourses = document.createElement('h3');
+                noCourses.textContent = 'No courses available in this section yet.';
+                noCourses.style.color = '#172033';
+                scormListContainer.appendChild(noCourses);
+                return;
+            }
+
+            courses.slice().sort((a, b) => a.courseName.localeCompare(b.courseName))
+                .forEach(course => scormListContainer.appendChild(buildCourseCard(course)));
+        }
+
+        function groupByLevel(courses) {
+            const groups = { 'Level 1': [], 'Level 2': [], 'Level 3': [], 'Level 4': [], 'Refresher': [] };
+            courses.forEach(course => {
+                if (groups[course.level]) groups[course.level].push(course);
+            });
+            return groups;
+        }
+
+        function renderActiveView() {
+            const groups = groupByLevel(allFetchedCourses);
+            const hasLevel2Plus = groups['Level 2'].length > 0 || groups['Level 3'].length > 0 || groups['Level 4'].length > 0 || groups['Refresher'].length > 0;
+            const levelTabs = document.getElementById('levelTabs');
+            const subTabs = document.getElementById('subTabs');
+
+            if (!hasLevel2Plus) {
+                // Not assigned to a Level 2+ line: no tabs at all, courses open directly.
+                levelTabs.style.display = 'none';
+                subTabs.style.display = 'none';
+                renderCourseList(groups['Level 1']);
+                return;
+            }
+
+            levelTabs.style.display = '';
+            levelTabs.querySelectorAll('.level-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.levelTab === activeTopTab);
+            });
+
+            if (activeTopTab === 'level1') {
+                subTabs.style.display = 'none';
+                renderCourseList(groups['Level 1']);
+                return;
+            }
+
+            // "Level 2 and above": show a sub-tab per level the user currently has
+            // acknowledgement/enrollment for (the server only returns Level 3 /
+            // Level 4 courses once the prior level has been acknowledged, so the
+            // presence of courses in a level is itself the gate).
+            subTabs.style.display = 'flex';
+            const availableSubLevels = ['Level 2', 'Level 3', 'Level 4', 'Refresher'].filter(lvl => groups[lvl].length > 0);
+            if (!availableSubLevels.includes(activeSubLevel)) {
+                activeSubLevel = availableSubLevels[0] || 'Level 2';
+            }
+            subTabs.querySelectorAll('.sub-tab').forEach(tab => {
+                const lvl = tab.dataset.subLevel;
+                const isAvailable = availableSubLevels.includes(lvl);
+                tab.style.display = isAvailable ? '' : 'none';
+                tab.classList.toggle('active', isAvailable && lvl === activeSubLevel);
+            });
+
+            renderCourseList(groups[activeSubLevel] || []);
+        }
+
+        function openCompletedModal() {
+            document.getElementById('completedModalOverlay').classList.add('active');
+        }
+
+        function closeCompletedModal() {
+            document.getElementById('completedModalOverlay').classList.remove('active');
+        }
+
+        function fetchUploadedScorms() {
+            // 1. Fetch only the courses the user is enrolled in (filtered by the server)
+            fetch('/getViewscormCourseList')
+                .then(response => {
+                    if (response.status === 401) {
+                        // Handle unauthenticated state if the session expired
+                        document.getElementById('scormList').innerHTML = '<h3 style="color:#172033;">Please log in to view your courses.</h3>';
+                        return [];
+                    }
+                    return response.json();
+                })
+                .then(courses => {
+                    if (!Array.isArray(courses) || courses.length === 0) {
+                        allFetchedCourses = [];
+                        const scormListContainer = document.getElementById('scormList');
+                        scormListContainer.innerHTML = '';
+                        const noCourses = document.createElement('h3');
+                        noCourses.textContent = 'You are not enrolled in any courses at this time.';
+                        noCourses.style.color = '#172033';
+                        scormListContainer.appendChild(noCourses);
+                        document.getElementById('levelTabs').style.display = 'none';
+                        document.getElementById('subTabs').style.display = 'none';
+                        return;
+                    }
+
+                    // Practical assessment courses are conducted/evaluated by
+                    // admins/trainers directly (OJT observation & practical
+                    // evaluation flows) - they aren't something an employee opens
+                    // for themselves here, so keep them out of this list.
+                    allFetchedCourses = courses.filter(course => course.courseType !== 'practical');
+                    renderActiveView();
+                })
+                .catch(error => console.error('Error fetching courses:', error));
+        }
+
+        document.getElementById('levelTabs').addEventListener('click', event => {
+            const tab = event.target.closest('.level-tab');
+            if (!tab) return;
+            activeTopTab = tab.dataset.levelTab;
+            renderActiveView();
+        });
+
+        document.getElementById('subTabs').addEventListener('click', event => {
+            const tab = event.target.closest('.sub-tab');
+            if (!tab || tab.style.display === 'none') return;
+            activeSubLevel = tab.dataset.subLevel;
+            renderActiveView();
+        });
+
+        document.getElementById('completedModalOkBtn').addEventListener('click', closeCompletedModal);
+        document.getElementById('completedModalOverlay').addEventListener('click', event => {
+            if (event.target.id === 'completedModalOverlay') closeCompletedModal();
+        });
+
+        window.onload = fetchUploadedScorms;
+
+        function viewScorm(course, languageInfo) {
+            localStorage.setItem('selectedCourse', JSON.stringify(course));
+            if (course.courseType === 'training') {
+                const courseID = encodeURIComponent(course.courseID);
+                const source = course.source === 'refresher' ? '&source=refresher' : '';
+                const languageParam = languageInfo ? `&language=${encodeURIComponent(languageInfo.language)}` : '';
+                window.location.href = `/trainingMaterialView.html?courseID=${courseID}${source}${languageParam}`;
+                return;
+            }
+            const scorm = encodeURIComponent(languageInfo?.filePath || course.scormPath);
+            const courseID = encodeURIComponent(course.courseID);
+            const courseName = encodeURIComponent(course.courseName);
+            const source = course.source === 'refresher' ? '&source=refresher' : '';
+            window.location.href = `/scormview.html?scorm=${scorm}&courseID=${courseID}&courseName=${courseName}${source}`;
+        }
+
+        function onViewScormClicked(courseDetails) {
+            // Existing functionality kept intact
+            fetch(`/getScorms?courseID=${courseDetails.courseID}&${courseDetails.courseName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching SCORM data:', error);
+                });
+        }
+
+        function BackPage() {
+            window.location.href = '/lmshomepage.html';
+        }
+    </script>
+    <script src="/js/refresherPopup.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile</title>
+    <link rel="stylesheet" href="/styles/myProfile.css">
+
+</head>
+
+<body>
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+
+        <div class="navbar">
+            <a href="/userManagement.html">Back</a>
+
+          <!-- <a href="/logout" class="logout login-btn">Log Out</a> -->
+
+        </div>
+
+        <!-- <div class="right-image">
+            <img src="/Images/logo/Logo_1-15.png" alt="Right Side Image" width="70" height="auto">
+        </div> -->
+    </div>
+
+
+    <div class="container">
+        <div>
+            <h1>My Profile</h1>
+        </div>
+        <div id="userDetails">
+
+        </div>
+    </div>
+
+
+    <script>
+        // JavaScript to fetch and display user's data
+        // async function fetchUserData() {
+        //     try {
+        //         // Extract employeeID from the URL query string
+        //         const urlParams = new URLSearchParams(window.location.search);
+        //         const employeeID = urlParams.get('employeeID');
+
+        //         // Fetch user data based on the employeeID
+        //         const response = await fetch(`/getUserGrades?employeeID=${employeeID}`);
+        //         const userData = await response.json();
+        //         console.log(userData);
+        //     }
+        // }
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const urlParams = new URLSearchParams(window.location.search);
+                const uniqueID = urlParams.get('uniqueID');
+                const response = await fetch(`/UserDataAd?uniqueID=${uniqueID}`);
+
+                const userData = await response.json();
+                console.log(userData);
+                displayUserData(userData);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        });
+
+        // Function to display user data
+        // function displayUserData(userData) {
+        //     const userDetailsDiv = document.getElementById('userDetails');
+        //     // Assuming userData is an array with a single object for the logged-in user
+        //     if (userData.length === 1) {
+        //         const user = userData[0];
+        //         const userHtml = `
+        //             <p>Name: ${user.name}</p>
+        //             <p>Email ID: ${user.emailID}</p>
+        //             <p>Employee ID: ${user.employeeID}</p>
+        //             <p>Username: ${user.uName}</p>
+        //             <p>Password: ${user.uPass}</p>
+        //             <p>Mobile No: ${user.mobileNo}</p>
+        //             <p>Date of Birth: ${user.dateOfBirth}</p>
+        //             <p>Address: ${user.address}</p>
+        //             <p>Date of Joining: ${user.dateOfJoining}</p>
+        //             <p>Department: ${user.department}</p>
+        //             <p>Role: ${user.uRole}</p>
+        //             <p>Registration Date: ${user.currentDate}</p>
+        //             <img src="/photos/${user.photo}" alt="User Photo" width="200" height="200"> <!-- Added user photo -->
+        //         `;
+        //         userDetailsDiv.innerHTML = userHtml;
+        //     } else {
+        //         userDetailsDiv.innerHTML = '<p>User data not found</p>';
+        //     }
+        // }
+
+        function displayUserData(userData) {
+            const userDetailsDiv = document.getElementById('userDetails');
+
+            const user = Array.isArray(userData) ? userData[0] : userData;
+
+            if (user && user.uniqueID) {
+                const userHtml = `
+            <p>Name: ${user.name}</p>
+            <p>Email ID: ${user.emailID}</p>
+            <p>Employee ID: ${user.employeeID}</p>
+            <p>Username: ${user.uName}</p>
+            <p>Password: ${user.uPass}</p>
+            <p>Mobile No: ${user.mobileNo}</p>
+            <p>Date of Birth: ${user.dateOfBirth}</p>
+            <p>Address: ${user.address}</p>
+            <p>Date of Joining: ${user.dateOfJoining}</p>
+            <p>Department: ${user.department}</p>
+            <p>Role: ${user.uRole}</p>
+            <p>Registration Date: ${user.currentDate}</p>
+            <img src="/photos/${user.photo}" alt="User Photo" width="200" height="200">
+        `;
+                userDetailsDiv.innerHTML = userHtml;
+            } else {
+                userDetailsDiv.innerHTML = '<p>User data not found</p>';
+            }
+        }
+
+
+    </script>
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+</body>
+
+</html>

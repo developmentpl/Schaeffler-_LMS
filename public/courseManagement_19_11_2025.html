@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Course Management</title>
+  <link rel="stylesheet" href="/styles/courseManagement.css">
+</head>
+
+<body>
+  <div class="header">
+       <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        
+    <div class="navbar">
+        <a href="/adminHomePage.html">Home</a>
+        <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+    
+</div>
+
+
+  <div class="container table-container">
+    <div class="container">
+      <div class="grid-item">
+        <h1 class="h1class">List of Courses</h1>
+        <button onclick="redirectToAdminHomePage()" class="btnclass">Add Course</button>
+        <button onclick="redirectToCreateCoursePage()" class="btnclass">Create new Course</button>
+        <table>
+          <thead>
+            <tr>
+              <th>Course Name</th>
+              <th>Date</th>
+              <th>Description</th>
+              <th>Teacher</th>
+              <th>Course ID</th>
+              <th>Action</th>
+              <th>Delete</th>
+            </tr>
+          </thead>
+          <tbody id="courseList"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+
+
+  <script>
+    function redirectToAdminHomePage() {
+      window.location.href = "/index.html";
+    }
+    function redirectToCreateCoursePage() {
+      window.location.href = "/createCourse.html";
+    }
+
+    function fetchCourseList() {
+      fetch('/getCourseList')
+        .then(response => response.json())
+        .then(data => {
+          const courseListContainer = document.getElementById('courseList');
+          data.forEach(course => {
+            const row = document.createElement('tr');
+
+            const nameCell = document.createElement('td');
+            nameCell.textContent = course.courseName;
+            row.appendChild(nameCell);
+
+            const dateCell = document.createElement('td');
+            dateCell.textContent = course.courseDate;
+            row.appendChild(dateCell);
+
+            const descriptionCell = document.createElement('td');
+            descriptionCell.textContent = course.courseDescription;
+            row.appendChild(descriptionCell);
+
+            const teacherCell = document.createElement('td');
+            teacherCell.textContent = course.courseTeacher;
+            row.appendChild(teacherCell);
+
+            const idCell = document.createElement('td');
+            idCell.textContent = course.courseID;
+            row.appendChild(idCell);
+
+            const actionCell = document.createElement('td');
+            const viewButton = document.createElement('button');
+            viewButton.textContent = "Enroll users";
+
+            // Add a class to the button
+            viewButton.classList.add("btnclass");
+
+            viewButton.addEventListener('click', () => {
+              viewScorm(course);
+            });
+            actionCell.appendChild(viewButton);
+            row.appendChild(actionCell);
+
+            // Add delete button
+            const deleteCell = document.createElement('td');
+            const deleteButton = document.createElement('button');
+            deleteButton.textContent = "Delete";
+
+            // Add a class to the button
+            deleteButton.classList.add("btnclass");
+            deleteButton.classList.add("deleteIcon");
+
+            deleteButton.addEventListener('click', () => {
+              deleteCourse(course);
+            });
+            deleteCell.appendChild(deleteButton);
+            row.appendChild(deleteCell);
+
+            courseListContainer.appendChild(row);
+          });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // function viewScorm(course) {
+    //   window.location.href = `/scormview.html?scorm=${course.scormPath}&courseID=${course.courseID}&courseName=${course.courseName}`;
+    // }
+    /*function viewScorm(course) {
+      window.location.href = `/scormviewadmin.html?scorm=${course.scormPath}&courseID=${course.courseID}&courseName=${course.courseName}`;
+    }*/
+
+    function viewScorm(course) {
+      window.location.href = `/courseDetailsPage.html?courseID=${course.courseID}`;
+    }
+
+    function deleteCourse(course) {
+      // Display a confirmation dialog
+      if (confirm("Do you want to delete the course?")) {
+        // User clicked "Yes", proceed with deletion
+        fetch('/deleteCourse', {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ courseID: course.courseID })
+        })
+          .then(response => {
+            if (response.ok) {
+              // If deletion is successful, display alert and reload the course list
+              alert("The course is deleted successfully.");
+              location.reload(); // Reload the page
+            } else {
+              console.error('Error deleting course:', response.statusText);
+            }
+          })
+          .catch(error => console.error('Error deleting course:', error));
+      } else {
+        // User clicked "No", do nothing
+        console.log("Course deletion canceled.");
+      }
+    }
+
+
+    window.onload = fetchCourseList;
+
+    function BackPage() {
+      window.location.href = '/adminhomepage.html'; // Navigate back to the index page
+    }
+  </script>
+</body>
+
+</html>
+
+
+<!-- // Making changes -->

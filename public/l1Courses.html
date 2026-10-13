@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Induction Courses</title>
+  <style>
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 10%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 90% 95%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+    }
+    .header { flex-shrink: 0; height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .brand-logo img { display: block; width: 280px; max-width: 38vw; height: auto; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; max-width: 1280px; width: 100%; margin: 0 auto; padding: 28px 20px 112px; box-sizing: border-box; }
+    h1 { margin: 0 0 6px; font-size: 28px; color: #101828; }
+    .breadcrumb { color: #6b7a90; font-size: 13px; margin-bottom: 18px; }
+    .breadcrumb a { color: #08954c; text-decoration: none; font-weight: 600; }
+    .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 14px 16px; margin-bottom: 18px; }
+    .toolbar input[type="text"] { flex: 1 1 220px; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .toolbar select { border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .spacer { flex: 1 1 auto; }
+    .addBtns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+    button, .btn { border: 0; border-radius: 6px; padding: 11px 16px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; font-size: 13px; text-decoration: none; display: inline-block; transition: transform .15s ease, box-shadow .15s ease; }
+    button:hover, .btn:hover { transform: translateY(-1px); box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    button.secondary, .btn.secondary { background: #e8eef6; color: #172033; box-shadow: none; }
+    button.secondary:hover, .btn.secondary:hover { box-shadow: none; background: #dbe4f0; }
+    .status { min-height: 20px; margin-bottom: 10px; font-weight: 700; color: #08954c; }
+    .roleTabs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+    .roleTab { border: 1px solid #d9e1ec; border-radius: 20px; padding: 9px 16px; background: #fff; color: #172033; font-weight: 700; font-size: 13px; cursor: pointer; transition: all .15s ease; box-shadow: 0 1px 2px rgba(16,24,40,0.05); }
+    .roleTab:hover { border-color: #08954c; color: #08954c; }
+    .roleTab.active { background: linear-gradient(135deg, #0b3320, #08954c); border-color: #08954c; color: #fff; box-shadow: 0 6px 14px rgba(8, 149, 76, 0.3); }
+    .roleTab .count { opacity: 0.85; font-weight: 600; }
+    .roleBadge { display: inline-block; background: #eef2f8; color: #44526b; border-radius: 10px; padding: 2px 9px; font-size: 11px; font-weight: 700; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
+    .card { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05); transition: box-shadow .15s ease, transform .15s ease; }
+    .card:hover { box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08); transform: translateY(-2px); }
+    .card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .card .id { color: #6b7a90; font-size: 12px; font-weight: 700; }
+    .card .name { font-size: 16px; font-weight: 700; margin: 0; }
+    .card .desc { color: #44526b; font-size: 13px; line-height: 1.4; min-height: 36px; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge.training { background: #e1f0ff; color: #0b5cab; }
+    .badge.assessment { background: #fff1d6; color: #a15c00; }
+    .badge.practical { background: #e6f6ec; color: #1c7a3c; }
+    .badge.ojt_observation { background: #f1e6fb; color: #6b2bb5; }
+    .badge.scorm { background: #fde8e6; color: #b42318; }
+    .pill { display: inline-block; background: #e6f5ec; color: #08954c; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: 700; align-self: flex-start; }
+    .meta { color: #6b7a90; font-size: 12px; }
+    .card .actions { margin-top: auto; display: flex; gap: 8px; }
+    .empty { color: #6b7a90; font-style: italic; padding: 30px 0; text-align: center; }
+    .pager { display: flex; align-items: center; gap: 10px; margin-top: 18px; justify-content: center; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 24px; background-color: #ffffff; color: #000000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04); }
+    footer p { margin: 0; }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="brand-logo"><img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo"></div>
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseMasterSetup.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="breadcrumb"><a href="/courseMasterSetup.html">Course Management</a> &rsaquo; Induction Courses</div>
+    <h1>Induction Courses</h1>
+    <p class="meta" style="margin-bottom:16px;">Level 1 courses are standalone &mdash; visible to every learner with no enrollment required.</p>
+
+    <div class="addBtns">
+      <a class="btn" href="/trainingTemplate.html?level1=1">+ Training content</a>
+      <a class="btn" href="/assessmentTemplate.html?level1=1">+ Assessment</a>
+      <a class="btn secondary" href="/uploadPracticalCourse.html?level1=1">+ Practical assessment</a>
+    </div>
+
+    <div class="roleTabs" id="roleTabs"></div>
+
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Search by name or description...">
+      <select id="pageSizeSelect">
+        <option value="9">9 / page</option>
+        <option value="18" selected>18 / page</option>
+        <option value="36">36 / page</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="secondary" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="grid" id="grid"><div class="empty">Loading courses...</div></div>
+    <div class="pager">
+      <button class="secondary" id="prevPage" disabled>Prev</button>
+      <span id="pageLabel">Page 1</span>
+      <button class="secondary" id="nextPage" disabled>Next</button>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const gridEl = document.getElementById('grid');
+    const searchBox = document.getElementById('searchBox');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageLabel = document.getElementById('pageLabel');
+
+    const ROLES = ['Material Handling', 'Inspector', 'Inspector(Contractual)', 'Trainee Operator', 'Trainee Operator(Contractual)', 'Employee', 'Other'];
+    const roleTabsEl = document.getElementById('roleTabs');
+    let activeTab = 'all'; // 'all' | 'common' | one of ROLES
+
+    let allCourses = [];
+    let filtered = [];
+    let currentPage = 1;
+
+    function courseRoles(course) {
+      return String(course.subCourseRoles || '').split(',').map(r => r.trim()).filter(Boolean);
+    }
+
+    // Common (no roles set) courses are visible to every learner, so they
+    // belong in every specific role tab too - not just an "All" catch-all.
+    function matchesTab(course, tab) {
+      if (tab === 'all') return true;
+      const roles = courseRoles(course);
+      if (tab === 'common') return roles.length === 0;
+      return roles.length === 0 || roles.includes(tab);
+    }
+
+    function renderRoleTabs() {
+      const tabs = [
+        { key: 'all', label: 'All Courses' },
+        { key: 'common', label: 'Common (All Roles)' },
+        ...ROLES.map(role => ({ key: role, label: role })),
+      ];
+      roleTabsEl.innerHTML = '';
+      tabs.forEach(tab => {
+        const count = allCourses.filter(c => matchesTab(c, tab.key)).length;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'roleTab' + (activeTab === tab.key ? ' active' : '');
+        btn.innerHTML = `${tab.label} <span class="count">(${count})</span>`;
+        btn.addEventListener('click', () => {
+          activeTab = tab.key;
+          renderRoleTabs();
+          applySearch();
+        });
+        roleTabsEl.appendChild(btn);
+      });
+    }
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#0b5cab';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function badgeClass(courseType) {
+      return ['training', 'assessment', 'practical', 'ojt_observation', 'scorm'].includes(courseType) ? courseType : 'training';
+    }
+
+    function viewCourse(course) {
+      // Admin "View" opens the Course View page (details, file replace,
+      // question bank) instead of the raw learner-facing video/quiz.
+      window.open('/courseView.html?id=' + course.courseID, '_blank');
+    }
+
+    async function deleteCourse(course) {
+      if (!confirm(`Delete "${course.courseName || 'this course'}"? This cannot be undone.`)) return;
+      try {
+        await requestJson(`/api/admin/courseDetails/${course.courseID}`, { method: 'DELETE' });
+        allCourses = allCourses.filter(c => c.courseID !== course.courseID);
+        renderRoleTabs();
+        applySearch();
+        setStatus('Course deleted.');
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function render() {
+      const pageSize = Number(pageSizeSelect.value) || 18;
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      const start = (currentPage - 1) * pageSize;
+      const pageCourses = filtered.slice(start, start + pageSize);
+
+      gridEl.innerHTML = '';
+      if (!pageCourses.length) {
+        gridEl.innerHTML = '<div class="empty">No Induction courses found yet. Use the buttons above to add one.</div>';
+      } else {
+        pageCourses.forEach(course => {
+          const type = badgeClass(course.courseType);
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="top">
+              <span class="id">#${course.courseID}</span>
+              <span class="badge ${type}">${type.replace('_', ' ')}</span>
+            </div>
+            <p class="name">${course.courseName || 'Untitled course'}</p>
+            <div class="desc">${course.courseDescription || ''}</div>
+            <span class="pill">${course.level || 'Level 1'}</span>
+            <span class="roleBadge">${courseRoles(course).length ? courseRoles(course).join(', ') : 'Common - all roles'}</span>
+            <div class="meta">Created: ${course.courseDate || '-'}</div>
+            <div class="actions">
+              <button class="viewBtn" data-course-id="${course.courseID}">View</button>
+              <button class="secondary deleteBtn" style="background:#fde8e6; color:#b42318;">Delete</button>
+            </div>
+          `;
+          card.querySelector('.viewBtn').addEventListener('click', () => viewCourse(course));
+          card.querySelector('.deleteBtn').addEventListener('click', () => deleteCourse(course));
+          gridEl.appendChild(card);
+        });
+      }
+
+      pageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    function applySearch() {
+      const term = searchBox.value.trim().toLowerCase();
+      filtered = allCourses.filter(c => {
+        if (!matchesTab(c, activeTab)) return false;
+        if (!term) return true;
+        return String(c.courseName || '').toLowerCase().includes(term) ||
+          String(c.courseDescription || '').toLowerCase().includes(term);
+      });
+      currentPage = 1;
+      render();
+    }
+
+    async function loadCourses() {
+      setStatus('Loading...');
+      gridEl.innerHTML = '<div class="empty">Loading courses...</div>';
+      try {
+        const data = await requestJson('/api/admin/courseListing?scope=level1');
+        allCourses = data.courses || [];
+        renderRoleTabs();
+        applySearch();
+        setStatus(`${allCourses.length} Induction course(s) found.`);
+      } catch (error) {
+        setStatus(error.message, true);
+        gridEl.innerHTML = '<div class="empty">Could not load courses.</div>';
+      }
+    }
+
+    searchBox.addEventListener('input', applySearch);
+    pageSizeSelect.addEventListener('change', () => { currentPage = 1; render(); });
+    prevPageBtn.addEventListener('click', () => { currentPage -= 1; render(); });
+    nextPageBtn.addEventListener('click', () => { currentPage += 1; render(); });
+    document.getElementById('refreshBtn').addEventListener('click', loadCourses);
+
+    loadCourses();
+  </script>
+</body>
+
+</html>

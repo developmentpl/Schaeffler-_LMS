@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{courseName}} Quiz</title>
+    <link rel="stylesheet" href="/styles/trainingAss_Template.css">
+    <script defer src="/js/trainingAss_Template.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>{{courseName}} (Course ID: {{courseID}})</h1>
+
+        <section id="training-section">
+            <h2>Training</h2>
+            <div class="video-container">
+                {{trainingMedia}}
+                <button id="next-session">Proceed to Posttest</button>
+                </div>
+        </section>
+
+        <section id="posttest-section" style="display: none;">
+            <h2>Posttest</h2>
+            <form id="quiz-form-posttest" data-course-id="{{courseID}}">
+                {{quizQuestions}}
+                <button type="submit">Submit Posttest</button>
+            </form>
+        </section>
+
+        <section id="thank-you" style="display: none;">
+            <h2>Posttest Completed</h2>
+            <p>Thank you for completing the training and assessment.</p>
+        </section>
+    </div>
+
+</body>
+
+</html>

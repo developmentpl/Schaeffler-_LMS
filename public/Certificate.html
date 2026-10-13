@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>LMS Certificate - Battery Pack Line</title>
+  <style>
+    /* Screen styles */
+    body { 
+      margin: 90px 0px 100px 0px;
+      font-family: Arial, sans-serif;
+      background: url("/images/userlogin/bg4.png") fixed;
+      background-size: 100% auto;
+      color: #000000;
+    }
+
+    .header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      display: flex;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 10px 40px;
+      background-color: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(8px);
+      z-index: 10;
+      column-gap: 1cm;
+      height: 1.50cm;
+    }
+
+    .navbar {
+      display: flex;
+      gap: 70px;
+    }
+
+    .navbar a {
+      text-decoration: none;
+      color: white;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+    }
+
+    .navbar a:hover {
+      color: #ffcc00;
+    }
+
+    .right-image {
+      display: flex;
+      align-items: center;
+    }
+
+    /* Certificate Card */
+    .card {
+      width: 800px;
+      height: 450px;
+      padding: 20px;
+      background-image: url('/images/home/Certificates-01.jpg');
+      background-repeat: no-repeat;
+      background-size: cover;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      margin: 80px auto;
+      position: relative;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Photo positioning - LEFT SIDE */
+    .user-photo-container {
+      position: absolute;
+      left: 60px;
+      top: 80px;
+    }
+
+    .user-photo {
+      width: 200px;
+      height: 200px;
+      object-fit: cover;
+      margin: 0;
+    }
+
+    /* Username display */
+    #username {
+      position: absolute;
+      left: 450px;
+      top: 70px;
+      font-size: 35px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    #employeeID {
+      position: absolute;
+      left: 70px;
+      top: 330px;
+      font-weight: bold;
+      font-size: 20px;
+      color: #000000;
+    }
+
+    /* License Issue Date */
+    #LisenceIssueDate {
+      position: absolute;
+      left: 380px;
+      top: 430px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    /* Certificate Valid Until Date */
+    #certificateValidUntil {
+      position: absolute;
+      left: 540px;
+      top: 430px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    /* Department field positioning */
+    #department {
+      position: absolute;
+      left: 550px;
+      top: 130px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    #label {
+      position: absolute;
+      left: 400px;
+      top: 130px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #000000;
+    }
+
+    /* Circle styles */
+    .tag-circles {
+      position: absolute;
+      right: 99px;
+      top: 200px;
+      display: flex;
+      gap: 35px;
+    }
+
+    .tag-circle {
+      width: 50px;
+      height: 50px;
+      border: 3px solid #333;
+      border-radius: 50%;
+      background-color: white;
+      transition: all 0.3s ease;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    /* Filled circle colors for Battery Pack Line */
+    .tag-circle.tightening-filled {
+      background-color: #3498db;
+      border-color: #000000;
+    }
+
+    .tag-circle.dispensing-filled {
+      background-color: #9b59b6;
+      border-color: #000000;
+    }
+
+    .tag-circle.loop1-filled {
+      background-color: #f1c40f;
+      border-color: #000000;
+    }
+
+    .tag-circle.loop2-filled {
+      background-color: #e67e22;
+      border-color: #000000;
+    }
+
+    /* Print button */
+    .print_btn_div {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .print-button {
+      display: block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-image: linear-gradient(to right, #0b0e1c, #040611);
+      color: #ffffff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .print-button:hover {
+      background-color: #45a049;
+    }
+
+    /* ===== PRINT STYLES ===== */
+    @media print {
+      /* Hide everything except the certificate card */
+      body * {
+        visibility: hidden;
+      }
+
+      /* Remove body margins and background */
+      body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+      }
+
+      /* Hide header and print button */
+      .header,
+      .print_btn_div,
+      .navbar {
+        display: none !important;
+      }
+
+      /* Make only the certificate card visible */
+      #printable-area,
+      #printable-area * {
+        visibility: visible;
+      }
+
+      /* Position certificate card at top-left for printing */
+      #printable-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        padding: 0;
+      }
+
+      .card {
+        margin: 0 !important;
+        page-break-inside: avoid;
+        box-shadow: none;
+      }
+
+      /* Force colors to print */
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        
+      }
+
+      /* Ensure background image prints */
+      .card {
+        background-image: url('/images/home/Certificates-01.jpg') !important;
+        background-repeat: no-repeat !important;
+        background-size: cover !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      /* Ensure circles print with colors */
+      .tag-circle {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .tag-circle.tightening-filled {
+        background-color: #3498db !important;
+        border-color: #000000 !important;
+      }
+
+      .tag-circle.dispensing-filled {
+        background-color: #9b59b6 !important;
+        border-color: #000000 !important;
+      }
+
+      .tag-circle.loop1-filled {
+        background-color: #f1c40f !important;
+        border-color: #000000 !important;
+      }
+
+      .tag-circle.loop2-filled {
+        background-color: #e67e22 !important;
+        border-color: #000000 !important;
+      }
+
+      /* Ensure photo prints */
+      .user-photo {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+    </div>
+    <div class="navbar">
+      <a href="/gradesManagement.html">Grades Management</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <div id="printable-area">
+    <div class="card">
+      <!-- Photo on LEFT -->
+      <div class="user-photo-container">
+        <img src="" alt="User Photo" class="user-photo" id="photo">
+      </div>
+
+      <!-- All text elements with absolute positioning -->
+      <div id="username"></div>
+      <div id="employeeID"></div>
+      <div id="LisenceIssueDate"></div>
+      <div id="certificateValidUntil"></div>
+      <span id="label">Area:</span>
+      <span id="department"></span>
+
+      <!-- Circles -->
+      <div class="tag-circles">
+        <div class="tag-circle" id="circle-tightening" title="Tightening Operation"></div>
+        <div class="tag-circle" id="circle-dispensing" title="Dispensing Operation"></div>
+        <div class="tag-circle" id="circle-loop1" title="Loop 1"></div>
+        <div class="tag-circle" id="circle-loop2" title="Loop 2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="print_btn_div">
+    <button onclick="printCertificate()" class="print-button">Print</button>
+  </div>
+
+  <script>
+    function getQueryParams(name) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(name);
+    }
+
+    const uid = getQueryParams("uid");
+    console.log("Certificate UID:", uid);
+
+    // Fetch user data
+    fetch(`/getCertificate?id=${uid}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.log(data.error);
+        } else {
+          console.log("User data:", data);
+          document.getElementById("username").textContent = data.name;
+          document.getElementById("employeeID").textContent = "Employee ID: " + data.employeeID;
+          document.getElementById("LisenceIssueDate").textContent = data.LisenceIssueDate;
+          document.getElementById("department").textContent = data.department;
+
+          // Calculate certificate valid until date (dateOfJoining + 365 days)
+          if (data.LisenceIssueDate) {
+            const joiningDate = new Date(data.LisenceIssueDate);
+            const validUntilDate = new Date(joiningDate);
+            validUntilDate.setDate(validUntilDate.getDate() + 365);
+            const year = validUntilDate.getFullYear();
+            const month = String(validUntilDate.getMonth() + 1).padStart(2, '0');
+            const day = String(validUntilDate.getDate()).padStart(2, '0');
+            document.getElementById("certificateValidUntil").textContent = `${year}-${month}-${day}`;
+          }
+          document.getElementById("photo").src = "/photos/" + data.photo;
+        }
+      })
+      .catch(error => console.error("Error fetching user data:", error));
+
+    // Fetch completed tags and fill circles
+    fetch(`/getUserCompletedTags?uniqueID=${uid}`)
+      .then(response => response.json())
+      .then(data => {
+        if (data.success && data.completedTagsByMainCourse) {
+          console.log("Completed tags:", data.completedTagsByMainCourse);
+
+          const batteryPackTags = data.completedTagsByMainCourse['Battery Pack'] || [];
+          console.log("Battery Pack Line completed tags:", batteryPackTags);
+
+          // Tag name to circle mapping for Battery Pack Line
+          const tagMapping = {
+            'Tightening Operation': { id: 'circle-tightening', class: 'tightening-filled' },
+            'Dispensing Operation': { id: 'circle-dispensing', class: 'dispensing-filled' },
+            'Loop 1': { id: 'circle-loop1', class: 'loop1-filled' },
+            'Loop 2': { id: 'circle-loop2', class: 'loop2-filled' }
+          };
+
+          // Fill circles based on completed tags
+          batteryPackTags.forEach(tag => {
+            if (tagMapping[tag]) {
+              const circle = document.getElementById(tagMapping[tag].id);
+              if (circle) {
+                circle.classList.add(tagMapping[tag].class);
+                console.log(`✓ Filled circle for: ${tag}`);
+              }
+            }
+          });
+        } else {
+          console.warn("No completed tags found");
+        }
+      })
+      .catch(error => console.error("Error fetching completed tags:", error));
+
+    // SIMPLIFIED PRINT FUNCTION - Just use browser's native print
+    function printCertificate() {
+      window.print();
+    }
+  </script>
+</body>
+</html>

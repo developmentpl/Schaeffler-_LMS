@@ -1,0 +1,4 @@
+cd "C:\Users\Parallel-Admin\Desktop\JSapp\Tetrapak LMS and ARS\R1_Tetrapak LMS (16-10-2024 3.26)"
+nvm exec 18.17.1
+start cmd /k node index.js
+start "" "http://localhost:3230/home.html"

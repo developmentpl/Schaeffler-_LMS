@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Refresher Courses</title>
+  <style>
+    :root {
+      --brand: #2f9b57;
+      --brand-dark: #124b2b;
+      --brand-mid: #1f7d3f;
+      --ink: #031634;
+      --muted: #4f6281;
+      --line: #d8e2ef;
+      --soft: #edf6f1;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { min-height: 100%; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at 10% 8%, rgba(47, 155, 87, 0.12), transparent 26%),
+        radial-gradient(circle at 91% 18%, rgba(47, 155, 87, 0.10), transparent 22%),
+        linear-gradient(120deg, #eff7f3 0%, #f6f8fb 55%, #edf5f0 100%);
+      color: var(--ink);
+    }
+
+    .header {
+      height: 74px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px 0 46px;
+      background: #fff;
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 3px 14px rgba(16, 48, 35, 0.10);
+    }
+
+    .brand {
+      color: #3aaa6f;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 34px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .navbar { display: flex; align-items: center; gap: 28px; }
+    .navbar a { color: var(--ink); text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: var(--brand); }
+
+    main {
+      flex: 1;
+      width: min(1280px, calc(100% - 48px));
+      margin: 30px auto 0;
+      padding: 0 0 96px;
+    }
+
+    h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: 0; }
+    .breadcrumb { color: var(--muted); font-size: 13px; margin-bottom: 18px; }
+    .breadcrumb a { color: #078836; text-decoration: none; font-weight: 700; }
+    .page-intro { margin-bottom: 18px; }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 18px;
+      box-shadow: 0 8px 22px rgba(11, 44, 25, 0.06);
+    }
+
+    .toolbar input[type="text"] {
+      flex: 1 1 260px;
+      border: 1px solid #b9c9d8;
+      border-radius: 6px;
+      padding: 11px 12px;
+      font: inherit;
+      background: #fff;
+    }
+
+    .toolbar select {
+      border: 1px solid #b9c9d8;
+      border-radius: 6px;
+      padding: 11px 12px;
+      font: inherit;
+      background: #fff;
+    }
+
+    .spacer { flex: 1 1 auto; }
+    .addBtns { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+
+    button, .btn {
+      border: 0;
+      border-radius: 6px;
+      padding: 11px 16px;
+      background: linear-gradient(135deg, var(--brand-dark), var(--brand));
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: 0 8px 16px rgba(31, 125, 63, 0.18);
+    }
+
+    button:hover, .btn:hover { filter: brightness(1.04); }
+    button.secondary, .btn.secondary { background: #e9f0ed; color: var(--ink); box-shadow: none; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+
+    .status { min-height: 20px; margin-bottom: 10px; font-weight: 700; color: #078836; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 16px; }
+    .card { background: rgba(255, 255, 255, 0.96); border: 1px solid var(--line); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 9px; box-shadow: 0 8px 18px rgba(20, 50, 35, 0.08); }
+    .card .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .card .id { color: #6b7a90; font-size: 12px; font-weight: 700; }
+    .card .name { font-size: 16px; font-weight: 700; margin: 0; }
+    .card .desc { color: #44526b; font-size: 13px; line-height: 1.4; min-height: 36px; }
+    .badge { display: inline-block; border-radius: 12px; padding: 3px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .badge.training { background: #e0f3e8; color: #078836; }
+    .badge.assessment { background: #fff1d6; color: #a15c00; }
+    .badge.scorm { background: #fde8e6; color: #b42318; }
+    .pill { display: inline-block; background: #e0f3e8; color: #078836; border-radius: 12px; padding: 3px 10px; font-size: 12px; font-weight: 700; align-self: flex-start; }
+    .meta { color: var(--muted); font-size: 12px; }
+    .card .actions { margin-top: auto; display: flex; gap: 8px; }
+    .empty { color: var(--muted); font-style: italic; padding: 30px 0; text-align: center; }
+    .pager { display: flex; align-items: center; gap: 10px; margin-top: 18px; justify-content: center; }
+
+    footer {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      border-top: 1px solid var(--line);
+      box-shadow: 0 -4px 14px rgba(16, 48, 35, 0.08);
+      color: #111;
+    }
+
+    @media (max-width: 720px) {
+      .header { padding: 0 18px; }
+      .brand { font-size: 27px; }
+      .navbar { gap: 14px; }
+      main { width: min(100% - 28px, 1280px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <a class="brand" href="/adminHomePage.html">SCHAEFFLER</a>
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseMasterSetup.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <div class="breadcrumb"><a href="/courseMasterSetup.html">Course Management</a> &rsaquo; Refresher Courses</div>
+    <h1>Refresher Courses</h1>
+    <p class="meta page-intro">Refresher courses are stored separately from Induction and OJT courses.</p>
+
+    <div class="addBtns">
+      <a class="btn" href="/trainingTemplate.html?refresher=1">+ Training content</a>
+      <a class="btn" href="/assessmentTemplate.html?refresher=1">+ Assessment</a>
+    </div>
+
+    <div class="toolbar">
+      <input type="text" id="searchBox" placeholder="Search by name or description...">
+      <select id="pageSizeSelect">
+        <option value="9">9 / page</option>
+        <option value="18" selected>18 / page</option>
+        <option value="36">36 / page</option>
+      </select>
+      <div class="spacer"></div>
+      <button class="secondary" id="refreshBtn">Refresh</button>
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="grid" id="grid"><div class="empty">Loading courses...</div></div>
+    <div class="pager">
+      <button class="secondary" id="prevPage" disabled>Prev</button>
+      <span id="pageLabel">Page 1</span>
+      <button class="secondary" id="nextPage" disabled>Next</button>
+    </div>
+  </main>
+
+  <footer>&copy; Solution By Parallel Learning</footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const gridEl = document.getElementById('grid');
+    const searchBox = document.getElementById('searchBox');
+    const pageSizeSelect = document.getElementById('pageSizeSelect');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageLabel = document.getElementById('pageLabel');
+
+    let allCourses = [];
+    let filtered = [];
+    let currentPage = 1;
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#078836';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function badgeClass(courseType) {
+      return ['training', 'assessment', 'scorm'].includes(courseType) ? courseType : 'training';
+    }
+
+    function viewCourse(course) {
+      // Refresher courses live in a separate refresher_subcourses table (own
+      // ID space), so flag the source explicitly rather than letting
+      // courseView.html guess - same admin Course Details/File/Question-bank
+      // page used for Induction/OJT courses (see l1Courses.html/l2Courses.html).
+      window.open('/courseView.html?id=' + encodeURIComponent(course.courseID) + '&source=refresher', '_blank');
+    }
+
+    async function deleteCourse(course) {
+      if (!confirm(`Delete "${course.courseName || 'this course'}"? This cannot be undone.`)) return;
+      try {
+        // ?source=refresher tells DELETE /api/admin/courseDetails/:id to
+        // target refresher_subcourses instead of subcourses (same flag
+        // used by courseView.html above).
+        await requestJson(`/api/admin/courseDetails/${course.courseID}?source=refresher`, { method: 'DELETE' });
+        allCourses = allCourses.filter(c => c.courseID !== course.courseID);
+        applySearch();
+        setStatus('Course deleted.');
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    }
+
+    function render() {
+      const pageSize = Number(pageSizeSelect.value) || 18;
+      const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      const start = (currentPage - 1) * pageSize;
+      const pageCourses = filtered.slice(start, start + pageSize);
+
+      gridEl.innerHTML = '';
+      if (!pageCourses.length) {
+        gridEl.innerHTML = '<div class="empty">No Refresher courses found yet. Use the buttons above to add one.</div>';
+      } else {
+        pageCourses.forEach(course => {
+          const type = badgeClass(course.courseType);
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML = `
+            <div class="top">
+              <span class="id">#${course.courseID}</span>
+              <span class="badge ${type}">${type.replace('_', ' ')}</span>
+            </div>
+            <p class="name">${course.courseName || 'Untitled course'}</p>
+            <div class="desc">${course.courseDescription || ''}</div>
+            <span class="pill">${course.level || 'Refresher'}</span>
+            <div class="meta">Created: ${course.courseDate || '-'}</div>
+            <div class="actions">
+              <button class="viewBtn" data-course-id="${course.courseID}">View</button>
+              <button class="secondary deleteBtn" style="background:#fde8e6; color:#b42318;">Delete</button>
+            </div>
+          `;
+          card.querySelector('.viewBtn').addEventListener('click', () => viewCourse(course));
+          card.querySelector('.deleteBtn').addEventListener('click', () => deleteCourse(course));
+          gridEl.appendChild(card);
+        });
+      }
+
+      pageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    function applySearch() {
+      const term = searchBox.value.trim().toLowerCase();
+      filtered = !term
+        ? allCourses
+        : allCourses.filter(c =>
+            String(c.courseName || '').toLowerCase().includes(term) ||
+            String(c.courseDescription || '').toLowerCase().includes(term)
+          );
+      currentPage = 1;
+      render();
+    }
+
+    async function loadCourses() {
+      setStatus('Loading...');
+      gridEl.innerHTML = '<div class="empty">Loading courses...</div>';
+      try {
+        const data = await requestJson('/api/admin/refresherCourseListing');
+        allCourses = data.courses || [];
+        filtered = allCourses;
+        currentPage = 1;
+        render();
+        setStatus(`${allCourses.length} Refresher course(s) found.`);
+      } catch (error) {
+        setStatus(error.message, true);
+        gridEl.innerHTML = '<div class="empty">Could not load courses.</div>';
+      }
+    }
+
+    searchBox.addEventListener('input', applySearch);
+    pageSizeSelect.addEventListener('change', () => { currentPage = 1; render(); });
+    prevPageBtn.addEventListener('click', () => { currentPage -= 1; render(); });
+    nextPageBtn.addEventListener('click', () => { currentPage += 1; render(); });
+    document.getElementById('refreshBtn').addEventListener('click', loadCourses);
+
+    loadCourses();
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,301 @@
+<head>
+    <title>Add User form</title>
+    <link rel="stylesheet" href="/styles/addUser.css">
+    <script src="js/jquery-3.7.1.min.js"></script>
+
+</head>
+
+<body>
+
+
+    <div class="bg_img_div"></div>
+
+    <div class="header">
+        <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/userManagement.html">Users</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+
+    </div>
+    <div class="container">
+        <div class="FormClass">
+            <div>
+                <h1 style="text-align: center; ">Register contract employee</h1><br>
+            </div>
+            <div>
+                <div>
+                    <h2>Upload Bulk Users</h2>
+                </div>
+                <div>
+                    <form id="bulkUserListUploadForm" class="userForm" method="POST" enctype="multipart/form-data">
+                        <input type="file" id="bulkUsersFile" name="bulkUsersFile" accept=".xlsx, .xls">
+                        <button type="button" id="previewBtn">Preview Bulk Users</button>
+                    </form>
+
+                </div><br><br>
+
+
+                <div>
+                    <h2>Add new contract employee</h2>
+                </div>
+
+                <form class="userForm" id=".userForm" action="/save-details" method="POST">
+                    <div>
+                        <div>
+                            <label class="labels">Full Name</label>
+                        </div>
+                        <input type="text" name="name" id="name" placeholder="Name" required><br><br>
+                    </div>
+
+                    <div>
+
+                        <div>
+                            <button type="button" id="verifyBtn">Verify</button><br><br><br><br>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div>
+                            <label class="labels">Date of joining</label>
+                        </div>
+                        <input type="date" name="dateOfJoining" placeholder="Date of joining"><br><br>
+                    </div>
+
+
+                    <div>
+                        <div>
+                            <label class="labels">Mobile Number</label>
+                        </div>
+                        <input type="tel" name="mobileNo" placeholder="Mobile Number"><br><br>
+                    </div>
+
+
+                    <div>
+                        <div>
+                            <label class="labels">Contract</label>
+                        </div>
+                        <input type="text" name="Contract" placeholder="Contract"><br><br>
+                    </div>
+
+                    <div class="userMedia">
+                        <div class="media-container">
+                            <video id="video" class="webCamStream"></video>
+                            <canvas id="canvas" style="width: 8cm; height: 7cm;"></canvas>
+                            <img id="photoPreview" src="" alt="Captured Photo" style="width: 8cm; height: 7cm;">
+                        </div><br><br>
+                        <div class="click_btn">
+                            <button type="button" onclick="takePhoto()">Click photo</button><br><br>
+
+                            <button type="button" onclick="retakePhoto()">Retake Photo</button><br><br>
+                        </div>
+                        <div class="submit_btn">
+                            <button type="submit" id="addUserSubmit" class="submit_btn_class">Submit</button>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+    <!-- </div> -->
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        let uploadedFileName = '';
+        let stream;
+
+        // ---------------------------------------------
+        // Start webcam feed
+        // ---------------------------------------------
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(str => {
+                stream = str;
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(err => console.error('Webcam error:', err));
+
+        // ---------------------------------------------
+        // Capture photo
+        // ---------------------------------------------
+        function takePhoto() {
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const photoPreview = document.getElementById('photoPreview');
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(blob => {
+                const name = document.getElementById('name').value.trim() || 'user';
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const fileName = `${name}_${timestamp}.png`;
+
+                const formData = new FormData();
+                formData.append('photo', blob, fileName);
+
+                // Display preview
+                photoPreview.src = URL.createObjectURL(blob);
+                photoPreview.style.display = 'block';
+                video.style.display = 'none';
+
+                fetch('/save-photo', { method: 'POST', body: formData })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            uploadedFileName = data.filename;
+                            if (video.srcObject) {
+                                video.srcObject.getTracks().forEach(track => track.stop());
+                                video.srcObject = null;
+                            }
+                            alert('Photo saved successfully!');
+                        } else {
+                            throw new Error('Photo save failed');
+                        }
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Error saving photo');
+                        photoPreview.style.display = 'none';
+                        video.style.display = 'block';
+                        uploadedFileName = '';
+                    });
+            }, 'image/png');
+        }
+
+        // ---------------------------------------------
+        // Retake photo
+        // ---------------------------------------------
+        function retakePhoto() {
+            const video = document.getElementById('video');
+            const photoPreview = document.getElementById('photoPreview');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            photoPreview.style.display = 'none';
+            video.style.display = 'block';
+
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(str => {
+                    stream = str;
+                    video.srcObject = stream;
+                    video.play();
+                    uploadedFileName = '';
+                })
+                .catch(err => console.error('Webcam retake error:', err));
+        }
+
+        // ---------------------------------------------
+        // Verify name
+        // ---------------------------------------------
+        $(document).ready(function () {
+            $('#verifyBtn').click(function () {
+                const name = $('#name').val().trim();
+                if (!name) return alert('Please enter a Full Name');
+
+                $('#verifyBtn').prop('disabled', true);
+
+                $.ajax({
+                    url: '/verify-name',
+                    method: 'POST',
+                    data: { name: name },
+                    success: function (res) {
+                        if (res.exists) {
+                            alert('Name already exists in database!');
+                            $('#name').val('');
+                        } else {
+                            alert('Name is available!');
+                        }
+                    },
+                    error: function () { alert('Error verifying name'); },
+                    complete: function () { $('#verifyBtn').prop('disabled', false); }
+                });
+            });
+        });
+
+        // ---------------------------------------------
+        // Bulk upload confirmation
+        // ---------------------------------------------
+        function confirmUpload() {
+            if (confirm('Are you sure you want to upload bulk users?')) {
+                document.getElementById("bulkUserListUploadForm").submit();
+            } else {
+                document.getElementsByName("bulkUsersFile")[0].value = "";
+            }
+        }
+
+        // ---------------------------------------------
+        // Handle single contract user submission
+        // ---------------------------------------------
+        const singleUserForm = document.querySelector('form[action="/save-details"]');
+        if (singleUserForm) {
+            singleUserForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                if (uploadedFileName === '') {
+                    return alert('Please take and save the photo before submitting.');
+                }
+
+                if (!confirm('Are you sure you want to upload this user?')) return;
+
+                const formData = new FormData(singleUserForm);
+                formData.append('photoFileName', uploadedFileName);
+
+                const formBody = new URLSearchParams(formData);
+
+                fetch('/save-contract-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formBody
+                })
+                    .then(res => {
+                        if (res.ok) return res.json();
+                        return res.json().then(err => { throw new Error(err.error || 'Unknown error'); });
+                    })
+                    .then(data => {
+                        alert(data.message);
+                        setTimeout(() => location.reload(), 1000);
+                    })
+                    .catch(err => alert('Error submitting user: ' + err.message));
+            });
+        }
+
+
+
+        document.getElementById('previewBtn').addEventListener('click', () => {
+            const fileInput = document.getElementById('bulkUsersFile');
+            if (!fileInput.files.length) return alert('Select an Excel file');
+
+            const file = fileInput.files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64 = btoa(
+                    new Uint8Array(e.target.result)
+                        .reduce((data, byte) => data + String.fromCharCode(byte), '')
+                );
+                sessionStorage.setItem('bulkContractUsersFile', base64);
+                // Navigate to preview page for contract users
+                window.location.href = '/bulkPreview.html';
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+
+    </script>
+
+</body>

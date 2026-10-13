@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>View SCORM Data</title>
+</head>
+<link rel="stylesheet" href="/styles/viewscorm.css">
+
+
+<body>
+
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+    </div>
+    <div class="navbar">
+      <a href="/lmshomepage.html">Home</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+
+  </div>
+  <h1 class="h1class">List of Uploaded Training Packages</h1><br><br></r>
+  <div class="grid-container">
+    <div class="card-content">
+      <div id="scormList"></div>
+    </div>
+  </div>
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+
+    // function fetchUploadedScorms() {
+    //   fetch('/getViewscormCourseList',) // Fetch list of uploaded SCORM packages with course names from server
+    //     .then(response => response.json())
+    //     .then(data => {
+    //       const scormListContainer = document.getElementById('scormList');
+    //       data.forEach(course => {
+    //         const courseName = document.createElement('h2');
+    //         courseName.textContent = course.courseName; // Display course name
+    //         courseName.classList.add('row', 'card-heading'); // Assign class to courseName
+
+    //         const courseDetails = document.createElement('p');
+    //         courseDetails.textContent = `Date: ${course.courseDate}, Description: ${course.courseDescription}, Teacher: ${course.courseTeacher}, Course ID: ${course.courseID}`;
+    //         courseDetails.classList.add('row', 'card-body'); // Assign class to courseDetails
+
+    //         const button = document.createElement('button');
+    //         button.textContent = "View SCORM"; // Button text
+    //         button.classList.add('btnclass'); // Assign class to button
+
+    //         button.addEventListener('click', () => {
+    //           viewScorm(course); // Pass the whole course object to viewScorm function
+    //         });
+    //         button.addEventListener('click', () => {
+    //           onViewScormClicked(courseDetails); // Pass the whole course object to yourNewFunction function
+    //         });
+    //         const listItem = document.createElement('div');
+    //         listItem.classList.add('card', 'card-content', 'grid-container'); // Assign class to listItem
+    //         listItem.appendChild(courseName);
+    //         listItem.appendChild(courseDetails);
+    //         listItem.appendChild(button);
+    //         scormListContainer.appendChild(listItem);
+    //       });
+    //     })
+    //     .catch(error => console.error('Error:', error));
+    // }
+
+
+    function fetchUploadedScorms() {
+      fetch('/getViewscormCourseList')
+        .then(response => response.json())
+        .then(data => {
+          const scormListContainer = document.getElementById('scormList');
+          scormListContainer.innerHTML = ''; // Clear previous list
+          const uniqueID = sessionStorage.getItem('uniqueID');
+
+          //New Update-->Sequencially added a code
+
+          data.sort((a, b) => a.courseName.localeCompare(b.courseName));
+
+
+          data.forEach(course => {
+            const courseContainer = document.createElement('div');
+            courseContainer.classList.add('card', 'card-content', 'grid-container');
+
+            const courseName = document.createElement('h2');
+            courseName.textContent = course.courseName;
+            courseName.classList.add('row', 'card-heading');
+
+            // Display status
+            const courseStatus = document.createElement('p');
+            courseStatus.textContent = `Status: ${course.status}`;
+            courseStatus.classList.add('row', 'status-text');
+
+            const courseDetails = document.createElement('p');
+            courseDetails.textContent = `Date: ${course.courseDate}, Description: ${course.courseDescription}, Teacher: ${course.courseTeacher}, Course ID: ${course.courseID}`;
+            courseDetails.classList.add('row', 'card-body');
+
+            const button = document.createElement('button');
+            button.textContent = "View SCORM";
+            button.classList.add('btnclass');
+            button.addEventListener('click', () => {
+              viewScorm(course);
+            });
+
+            courseContainer.appendChild(courseName);
+            courseContainer.appendChild(courseStatus); // Add status below course name
+            courseContainer.appendChild(courseDetails);
+            courseContainer.appendChild(button);
+            scormListContainer.appendChild(courseContainer);
+          });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+
+    window.onload = fetchUploadedScorms;
+    function viewScorm(course) {
+      localStorage.setItem('selectedCourse', JSON.stringify(course));
+      const scorm = encodeURIComponent(course.scormPath); // <-- important
+      const courseID = encodeURIComponent(course.courseID);
+      const courseName = encodeURIComponent(course.courseName);
+      window.location.href = `/scormview.html?scorm=${scorm}&courseID=${courseID}&courseName=${courseName}`;
+    }
+    // Assuming you have a function to handle the "View SCORM" button click event
+    function onViewScormClicked(courseDetails) {
+      // Make a request to the server to view the SCORM package
+      fetch(`/getScorms?courseID=${courseDetails.courseID}&${courseDetails.courseName}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .then(data => {
+          // Handle the response data
+          console.log(data);
+        })
+        .catch(error => {
+          console.error('Error fetching SCORM data:', error);
+        });
+    }
+
+    function BackPage() {
+      window.location.href = '/lmshomepage.html'; // Navigate back to the index page
+    }
+
+
+  </script>
+</body>
+
+</html>

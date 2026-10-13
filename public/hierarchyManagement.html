@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hierarchy Management</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fb;
+      color: #172033;
+    }
+
+    .header {
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      background: #ffffff;
+      border-bottom: 1px solid #d9e1ec;
+    }
+
+    .header img {
+      width: 120px;
+      height: auto;
+    }
+
+    .navbar a {
+      margin-left: 20px;
+      color: #172033;
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 28px auto;
+      padding: 0 20px 40px;
+    }
+
+    h1 {
+      margin: 0 0 20px;
+      font-size: 30px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .panel {
+      background: #ffffff;
+      border: 1px solid #d9e1ec;
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 420px;
+    }
+
+    .panel h2 {
+      font-size: 18px;
+      margin: 0 0 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin: 12px 0 6px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      border: 1px solid #b9c7d8;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #ffffff;
+    }
+
+    textarea {
+      min-height: 76px;
+      resize: vertical;
+    }
+
+    button {
+      width: 100%;
+      margin-top: 14px;
+      border: 0;
+      border-radius: 6px;
+      padding: 11px 14px;
+      background: #0b5cab;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #084983;
+    }
+
+    .list {
+      margin-top: 18px;
+      border-top: 1px solid #e3e9f1;
+      padding-top: 12px;
+    }
+
+    .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #eef2f7;
+    }
+
+    .item strong {
+      display: block;
+      font-size: 14px;
+    }
+
+    .item span {
+      display: block;
+      color: #5d6b7e;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .status {
+      margin: 18px 0;
+      min-height: 20px;
+      color: #0b5cab;
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/finalmahindra.png" alt="Mahindra">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseManagement.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Hierarchy Management</h1>
+    <div class="status" id="status"></div>
+
+    <div class="layout">
+      <section class="panel">
+        <h2>Department</h2>
+        <form id="departmentForm">
+          <label for="deptName">Department Name</label>
+          <input id="deptName" required>
+
+          <label for="deptDescription">Description</label>
+          <textarea id="deptDescription"></textarea>
+
+          <label for="deptDate">Date</label>
+          <input id="deptDate" type="date">
+
+          <button type="submit">Add Department</button>
+        </form>
+        <div class="list" id="departmentList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Segment / Area</h2>
+        <form id="areaForm">
+          <label for="areaDept">Department</label>
+          <select id="areaDept" required></select>
+
+          <label for="areaName">Segment / Area Name</label>
+          <input id="areaName" required>
+
+          <label for="areaDescription">Description</label>
+          <textarea id="areaDescription"></textarea>
+
+          <label for="areaDate">Date</label>
+          <input id="areaDate" type="date">
+
+          <button type="submit">Add Segment / Area</button>
+        </form>
+        <div class="list" id="areaList"></div>
+      </section>
+
+      <section class="panel">
+        <h2>Process / Line</h2>
+        <form id="processForm">
+          <label for="processDept">Department</label>
+          <select id="processDept" required></select>
+
+          <label for="processArea">Segment / Area</label>
+          <select id="processArea" required></select>
+
+          <label for="processName">Process / Line Name</label>
+          <input id="processName" required>
+
+          <label for="processLevel">Required Level</label>
+          <select id="processLevel" required>
+            <option value="">Select level</option>
+            <option value="Level 1">Level 1</option>
+            <option value="Level 2">Level 2</option>
+            <option value="Level 3">Level 3</option>
+            <option value="Level 4">Level 4</option>
+          </select>
+
+          <label for="processDescription">Description</label>
+          <textarea id="processDescription"></textarea>
+
+          <label for="processDate">Date</label>
+          <input id="processDate" type="date">
+
+          <button type="submit">Add Process / Line</button>
+        </form>
+        <div class="list" id="processList"></div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const state = {
+      departments: [],
+      areas: [],
+      processes: []
+    };
+
+    function setStatus(message) {
+      document.getElementById('status').textContent = message || '';
+    }
+
+    function option(label, value) {
+      const element = document.createElement('option');
+      element.textContent = label;
+      element.value = value;
+      return element;
+    }
+
+    function fillSelect(select, rows, labelKey, valueKey, placeholder) {
+      select.innerHTML = '';
+      select.appendChild(option(placeholder, ''));
+      rows.forEach(row => select.appendChild(option(row[labelKey], row[valueKey])));
+    }
+
+    function renderList(id, rows, titleKey, subtitle) {
+      const container = document.getElementById(id);
+      container.innerHTML = rows.length ? '' : '<div class="item"><span>No records yet</span></div>';
+      rows.forEach(row => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `<strong>${row[titleKey] || ''}</strong><span>${subtitle(row)}</span>`;
+        container.appendChild(item);
+      });
+    }
+
+    async function loadDepartments() {
+      const response = await fetch('/api/hierarchy/departments');
+      const data = await response.json();
+      state.departments = data.departments || [];
+      fillSelect(document.getElementById('areaDept'), state.departments, 'deptName', 'deptID', 'Select department');
+      fillSelect(document.getElementById('processDept'), state.departments, 'deptName', 'deptID', 'Select department');
+      renderList('departmentList', state.departments, 'deptName', row => row.deptDescription || '');
+    }
+
+    async function loadAreas(deptID) {
+      const url = deptID ? `/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}` : '/api/hierarchy/areas';
+      const response = await fetch(url);
+      const data = await response.json();
+      state.areas = data.areas || [];
+      fillSelect(document.getElementById('processArea'), state.areas, 'areaName', 'areaID', 'Select segment / area');
+      renderList('areaList', state.areas, 'areaName', row => `Department ID: ${row.deptID}`);
+    }
+
+    async function loadProcesses() {
+      const response = await fetch('/api/hierarchy/processes');
+      const data = await response.json();
+      state.processes = data.processes || [];
+      renderList('processList', state.processes, 'mCourseName', row => `${row.mCourseLevel || 'No level'}, Department ID: ${row.deptID}, Segment ID: ${row.areaID}`);
+    }
+
+    async function postJson(url, body) {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json();
+      if (!response.ok || data.success === false) {
+        throw new Error(data.error || 'Save failed');
+      }
+      return data;
+    }
+
+    document.getElementById('departmentForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await postJson('/api/hierarchy/departments', {
+          deptName: document.getElementById('deptName').value,
+          deptDescription: document.getElementById('deptDescription').value,
+          deptDate: document.getElementById('deptDate').value || null
+        });
+        event.target.reset();
+        await loadDepartments();
+        await loadAreas();
+        await loadProcesses();
+        setStatus('Department added');
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+
+    document.getElementById('areaForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await postJson('/api/hierarchy/areas', {
+          deptID: document.getElementById('areaDept').value,
+          areaName: document.getElementById('areaName').value,
+          areaDescription: document.getElementById('areaDescription').value,
+          areaDate: document.getElementById('areaDate').value || null
+        });
+        event.target.reset();
+        await loadAreas();
+        await loadProcesses();
+        setStatus('Segment / Area added');
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+
+    document.getElementById('processDept').addEventListener('change', event => {
+      loadAreas(event.target.value);
+    });
+
+    document.getElementById('processForm').addEventListener('submit', async event => {
+      event.preventDefault();
+      try {
+        await postJson('/api/hierarchy/processes', {
+          deptID: document.getElementById('processDept').value,
+          areaID: document.getElementById('processArea').value,
+          mCourseName: document.getElementById('processName').value,
+          mCourseLevel: document.getElementById('processLevel').value,
+          mCourseDescription: document.getElementById('processDescription').value,
+          mCourseDate: document.getElementById('processDate').value || null
+        });
+        event.target.reset();
+        await loadProcesses();
+        setStatus('Process / Line added');
+      } catch (error) {
+        setStatus(error.message);
+      }
+    });
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadDepartments();
+      await loadAreas();
+      await loadProcesses();
+    });
+  </script>
+</body>
+
+</html>

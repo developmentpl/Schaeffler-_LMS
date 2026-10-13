@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment Template</title>
+  <link rel="stylesheet" href="/styles/createCourse.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { min-height: 100vh; margin: 0; padding-bottom: 112px; font-family: Arial, sans-serif; background: radial-gradient(circle at 8% 20%, rgba(29, 136, 80, 0.12), transparent 28%), radial-gradient(circle at 88% 18%, rgba(48, 166, 106, 0.11), transparent 26%), linear-gradient(115deg, #eef7f3 0%, #f6f9fc 46%, #eef5f1 100%); color: #071936; }
+    .header { position: fixed; top: 0; left: 0; z-index: 10; width: 100%; min-height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 50px; background: #fff; border-bottom: 1px solid #dce6df; box-shadow: 0 4px 14px rgba(7, 25, 54, 0.12); }
+    .right-image img { width: 280px; max-width: 34vw; height: auto; }
+    .navbar { display: flex; align-items: center; gap: 28px; }
+    .navbar a { color: #071936; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #2f9b57; }
+    main { max-width: 1020px; margin: 136px auto 40px; padding: 0 20px; }
+    h1 { text-align: center; margin-bottom: 28px; font-size: 32px; }
+    .container { display: flex; gap: 20px; flex-wrap: wrap; justify-content: center; }
+    .card { width: 230px; min-height: 160px; background: linear-gradient(135deg, #114b28, #269246); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 20px; text-align: center; cursor: pointer; font-size: 22px; font-weight: 800; color: #ffffff; display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 26px rgba(7, 25, 54, 0.15); transition: transform 0.2s ease, box-shadow 0.2s ease; }
+    .card:hover { transform: translateY(-3px); box-shadow: 0 18px 34px rgba(7, 25, 54, 0.20); }
+    footer { position: fixed; left: 0; bottom: 0; z-index: 5; width: 100%; background: #ffffff; color: #111111; text-align: center; padding: 20px 0; border-top: 1px solid #dce6df; box-shadow: 0 -3px 14px rgba(7, 25, 54, 0.10); }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <div class="right-image">
+      <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    </div>
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseMasterSetup.html">Course Management</a>
+      <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Select Assessment Type</h1>
+    <div class="container">
+      <div class="card" onclick="goAssessment('excel')">Excel Based</div>
+      <div class="card" onclick="goAssessment('video_with_excel')">Excel With Video</div>
+      <div class="card" onclick="goAssessment('excel_with_ppt')">Excel With PPT</div>
+      <div class="card" onclick="goScorm()">SCORM ZIP</div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    function goAssessment(contentType) {
+      const params = new URLSearchParams(window.location.search);
+      params.set('courseType', 'assessment');
+      params.set('contentType', contentType);
+      window.location.href = `/uploadExcelAssessment.html?${params.toString()}`;
+    }
+
+    function goScorm() {
+      const params = new URLSearchParams(window.location.search);
+      params.set('courseType', 'scorm');
+      params.set('contentType', 'scorm_zip');
+      window.location.href = `/index.html?${params.toString()}`;
+    }
+  </script>
+</body>
+
+</html>

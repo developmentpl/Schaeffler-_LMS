@@ -1,0 +1,7 @@
+//To view Authentication plugin
+SELECT user, host, plugin FROM mysql.user WHERE user = 'root';
+
+//To change the authentication Plugin
+ALTER USER 'your-username'@'localhost' IDENTIFIED WITH mysql_native_password BY 'your-password';
+
+

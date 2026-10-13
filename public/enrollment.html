@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enrollment</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background-color: #f4f7fb; background-image: radial-gradient(circle at 10% 15%, rgba(8,149,76,.10), transparent 45%), radial-gradient(circle at 88% 90%, rgba(8,149,76,.08), transparent 40%); background-attachment: fixed; color: #172033; }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { max-width: 1200px; margin: 28px auto; padding: 0 20px 112px; }
+    h1 { margin: 0 0 16px; font-size: 30px; }
+    h2 { margin: 0 0 14px; font-size: 18px; }
+    .status { min-height: 22px; margin-bottom: 12px; font-weight: 700; color: #08954c; }
+    .filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 18px; margin-bottom: 18px; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 6px; }
+    select, input { width: 100%; box-sizing: border-box; border: 1px solid #b9c7d8; border-radius: 6px; padding: 10px 12px; font: inherit; }
+    .layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .panel { background: #fff; border: 1px solid #d9e1ec; border-radius: 8px; padding: 18px; }
+    .panel-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 8px; border-bottom: 1px solid #e6edf5; vertical-align: middle; font-size: 13px; }
+    th { background: #f7f9fc; }
+    button { border: 0; border-radius: 6px; padding: 10px 14px; background: linear-gradient(135deg, #0b3320, #08954c); color: #fff; font-weight: 700; cursor: pointer; }
+    button.secondary { background: #e8eef6; color: #172033; }
+    button.delete { background: #b42318; padding: 6px 10px; font-size: 12px; }
+    button.assign-station { padding: 6px 10px; font-size: 12px; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    td select.station-select { width: auto; min-width: 140px; display: inline-block; padding: 6px 8px; font-size: 12px; }
+    .pager { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .pill { display: inline-block; background: #e8eef6; border-radius: 12px; padding: 2px 10px; font-size: 12px; font-weight: 700; }
+    .empty { color: #6b7a90; font-style: italic; padding: 10px 0; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 20px 0; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0,0,0,.06); }
+    footer p { margin: 0; }
+    @media (max-width: 900px) { .filters { grid-template-columns: 1fr; } .layout { grid-template-columns: 1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/courseManagement.html">Course Management</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Enrollment</h1>
+    <p>Assign users to a Department &rarr; Segment/Area &rarr; Process/Line. Once enrolled, a user can attend every Level 2+ course under that process/line. Level 1 courses are always visible to everyone and need no enrollment.</p>
+    <div class="status" id="status"></div>
+
+    <div class="filters">
+      <div>
+        <label for="deptSelect">Department</label>
+        <select id="deptSelect"><option value="">Select department</option></select>
+      </div>
+      <div>
+        <label for="areaSelect">Segment / Area</label>
+        <select id="areaSelect" disabled><option value="">Select department first</option></select>
+      </div>
+      <div>
+        <label for="processSelect">Process / Line</label>
+        <select id="processSelect" disabled><option value="">Select segment/area first</option></select>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Select Users</h2>
+          <span class="pill" id="selectedCount">0 selected</span>
+        </div>
+        <input id="userSearch" placeholder="Search users by name, employee ID, username...">
+        <br><br>
+        <table>
+          <thead>
+            <tr><th></th><th>Name</th><th>Employee ID</th><th>Username</th></tr>
+          </thead>
+          <tbody id="userRows"><tr><td colspan="4" class="empty">Loading users...</td></tr></tbody>
+        </table>
+        <div class="pager">
+          <button class="secondary" id="prevPage" disabled>Prev</button>
+          <span id="pageLabel">Page 1</span>
+          <button class="secondary" id="nextPage" disabled>Next</button>
+        </div>
+        <br>
+        <button id="enrollBtn" disabled>Enroll Selected Users</button>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Currently Enrolled (selected process/line)</h2>
+          <button class="secondary" id="refreshEnrolled">Refresh</button>
+        </div>
+        <p style="margin:0 0 10px;font-size:12px;color:#6b7a90;">Pin a user to one Station on this line. This is what gets carried on their Level 1 certificate barcode to the correct Segment PC.</p>
+        <table>
+          <thead>
+            <tr><th>Name</th><th>Employee ID</th><th>Username</th><th>Enrolled</th><th>Station</th><th></th></tr>
+          </thead>
+          <tbody id="enrolledRows"><tr><td colspan="6" class="empty">Select a department, segment/area and process/line above.</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const deptSelect = document.getElementById('deptSelect');
+    const areaSelect = document.getElementById('areaSelect');
+    const processSelect = document.getElementById('processSelect');
+    const userSearch = document.getElementById('userSearch');
+    const userRows = document.getElementById('userRows');
+    const enrolledRows = document.getElementById('enrolledRows');
+    const enrollBtn = document.getElementById('enrollBtn');
+    const selectedCountEl = document.getElementById('selectedCount');
+    const prevPageBtn = document.getElementById('prevPage');
+    const nextPageBtn = document.getElementById('nextPage');
+    const pageLabel = document.getElementById('pageLabel');
+
+    let allUsers = [];
+    let filteredUsers = [];
+    let currentPage = 1;
+    const pageSize = 10;
+    const selectedUsers = new Map(); // uniqueID -> {uniqueID, name, employeeID, uName}
+    let currentStations = []; // stations belonging to the currently selected process/line
+
+    function setStatus(message, isError) {
+      statusEl.textContent = message || '';
+      statusEl.style.color = isError ? '#b42318' : '#08954c';
+    }
+
+    async function requestJson(url, options) {
+      const response = await fetch(url, options);
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.success === false) throw new Error(data.error || data.message || 'Request failed');
+      return data;
+    }
+
+    function currentSelection() {
+      return {
+        deptID: deptSelect.value || '',
+        areaID: areaSelect.value || '',
+        mCourseID: processSelect.value || ''
+      };
+    }
+
+    function refreshEnrollButtonState() {
+      const sel = currentSelection();
+      enrollBtn.disabled = !(sel.deptID && sel.areaID && sel.mCourseID && selectedUsers.size > 0);
+      selectedCountEl.textContent = `${selectedUsers.size} selected`;
+    }
+
+    // ---------------- Hierarchy dropdowns ----------------
+
+    async function loadDepartments() {
+      const data = await requestJson('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>';
+      (data.departments || []).forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.deptID;
+        opt.textContent = d.deptName;
+        deptSelect.appendChild(opt);
+      });
+    }
+
+    async function loadAreas(deptID) {
+      areaSelect.innerHTML = '<option value="">Select segment/area</option>';
+      areaSelect.disabled = true;
+      processSelect.innerHTML = '<option value="">Select segment/area first</option>';
+      processSelect.disabled = true;
+      if (!deptID) return;
+      const data = await requestJson(`/api/hierarchy/areas?deptID=${encodeURIComponent(deptID)}`);
+      (data.areas || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.areaID;
+        opt.textContent = a.areaName;
+        areaSelect.appendChild(opt);
+      });
+      areaSelect.disabled = false;
+    }
+
+    async function loadProcesses(deptID, areaID) {
+      processSelect.innerHTML = '<option value="">Select process/line</option>';
+      processSelect.disabled = true;
+      if (!deptID || !areaID) return;
+      const data = await requestJson(`/api/hierarchy/processes?deptID=${encodeURIComponent(deptID)}&areaID=${encodeURIComponent(areaID)}`);
+      (data.processes || []).forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.mCourseID;
+        opt.textContent = p.mCourseName;
+        processSelect.appendChild(opt);
+      });
+      processSelect.disabled = false;
+    }
+
+    deptSelect.addEventListener('change', async () => {
+      try {
+        await loadAreas(deptSelect.value);
+        renderEnrolled();
+        refreshEnrollButtonState();
+      } catch (error) { setStatus(error.message, true); }
+    });
+
+    areaSelect.addEventListener('change', async () => {
+      try {
+        await loadProcesses(deptSelect.value, areaSelect.value);
+        renderEnrolled();
+        refreshEnrollButtonState();
+      } catch (error) { setStatus(error.message, true); }
+    });
+
+    processSelect.addEventListener('change', () => {
+      loadStations(processSelect.value)
+        .then(() => loadEnrolled())
+        .catch(error => setStatus(error.message, true));
+      refreshEnrollButtonState();
+    });
+
+    async function loadStations(mCourseID) {
+      currentStations = [];
+      if (!mCourseID) return;
+      const data = await requestJson(`/api/hierarchy/stations?mCourseID=${encodeURIComponent(mCourseID)}`);
+      currentStations = data.stations || [];
+    }
+
+    function stationSelectHtml(selectedStationID) {
+      const sel = Number(selectedStationID) || 0;
+      const options = ['<option value="0">Whole line (no station)</option>']
+        .concat(currentStations.map(st => `<option value="${st.stationID}"${Number(st.stationID) === sel ? ' selected' : ''}>${st.stationName}</option>`));
+      return `<select class="station-select">${options.join('')}</select>`;
+    }
+
+    function stationNameByID(stationID) {
+      const id = Number(stationID) || 0;
+      if (!id) return 'Whole line (no specific station)';
+      const st = currentStations.find(s => Number(s.stationID) === id);
+      return st ? st.stationName : `Station #${id}`;
+    }
+
+    // Human-readable "Assigned to" line shown under each user's station
+    // dropdown, e.g. "Assigned to: Chassis Dept / Segment A / Line 1 / Machine 1".
+    // Rebuilt from the current filter selection (dept/area/line labels) plus
+    // the user's own station, so it's always visible - not just implied by
+    // whichever filter happens to be selected.
+    function assignedSummaryHtml(u) {
+      const deptLabel = deptSelect.options[deptSelect.selectedIndex]?.textContent || '';
+      const areaLabel = areaSelect.options[areaSelect.selectedIndex]?.textContent || '';
+      const lineLabel = processSelect.options[processSelect.selectedIndex]?.textContent || '';
+      const stationLabel = stationNameByID(u.stationID);
+      return `<div style="font-size:11px;color:#6b7a90;margin-top:4px;">Assigned to: ${deptLabel} / ${areaLabel} / ${lineLabel} / ${stationLabel}</div>`;
+    }
+
+    // ---------------- User picker ----------------
+
+    async function loadUsers() {
+      const data = await requestJson('/userData?page=1&limit=1000');
+      allUsers = data.users || [];
+      filteredUsers = allUsers;
+      currentPage = 1;
+      renderUsers();
+    }
+
+    function applySearch() {
+      const term = userSearch.value.trim().toLowerCase();
+      filteredUsers = !term
+        ? allUsers
+        : allUsers.filter(u =>
+            String(u.name || '').toLowerCase().includes(term) ||
+            String(u.employeeID || '').toLowerCase().includes(term) ||
+            String(u.uName || '').toLowerCase().includes(term)
+          );
+      currentPage = 1;
+      renderUsers();
+    }
+
+    function renderUsers() {
+      const totalPages = Math.max(1, Math.ceil(filteredUsers.length / pageSize));
+      currentPage = Math.min(currentPage, totalPages);
+      const start = (currentPage - 1) * pageSize;
+      const pageUsers = filteredUsers.slice(start, start + pageSize);
+
+      userRows.innerHTML = '';
+      if (!pageUsers.length) {
+        userRows.innerHTML = '<tr><td colspan="4" class="empty">No users found.</td></tr>';
+      } else {
+        pageUsers.forEach(u => {
+          const tr = document.createElement('tr');
+          const checked = selectedUsers.has(String(u.uniqueID)) ? 'checked' : '';
+          tr.innerHTML = `
+            <td><input type="checkbox" data-id="${u.uniqueID}" ${checked}></td>
+            <td>${u.name || ''}</td>
+            <td>${u.employeeID || ''}</td>
+            <td>${u.uName || ''}</td>
+          `;
+          userRows.appendChild(tr);
+        });
+      }
+
+      pageLabel.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevPageBtn.disabled = currentPage <= 1;
+      nextPageBtn.disabled = currentPage >= totalPages;
+    }
+
+    userRows.addEventListener('change', event => {
+      if (!event.target.matches('input[type="checkbox"]')) return;
+      const id = event.target.dataset.id;
+      const user = allUsers.find(u => String(u.uniqueID) === String(id));
+      if (event.target.checked) {
+        selectedUsers.set(String(id), user);
+      } else {
+        selectedUsers.delete(String(id));
+      }
+      refreshEnrollButtonState();
+    });
+
+    userSearch.addEventListener('input', applySearch);
+    prevPageBtn.addEventListener('click', () => { currentPage -= 1; renderUsers(); });
+    nextPageBtn.addEventListener('click', () => { currentPage += 1; renderUsers(); });
+
+    // ---------------- Enroll / currently enrolled ----------------
+
+    async function loadEnrolled() {
+      const sel = currentSelection();
+      if (!sel.deptID || !sel.areaID || !sel.mCourseID) {
+        enrolledRows.innerHTML = '<tr><td colspan="5" class="empty">Select a department, segment/area and process/line above.</td></tr>';
+        return;
+      }
+      enrolledRows.innerHTML = '<tr><td colspan="5" class="empty">Loading...</td></tr>';
+      const data = await requestJson(`/api/enrollstatus/listByProcess?deptID=${encodeURIComponent(sel.deptID)}&areaID=${encodeURIComponent(sel.areaID)}&mCourseID=${encodeURIComponent(sel.mCourseID)}`);
+      renderEnrolled(data.users || []);
+    }
+
+    function renderEnrolled(users) {
+      if (!users) { enrolledRows.innerHTML = '<tr><td colspan="6" class="empty">Select a department, segment/area and process/line above.</td></tr>'; return; }
+      enrolledRows.innerHTML = '';
+      if (!users.length) {
+        enrolledRows.innerHTML = '<tr><td colspan="6" class="empty">No users enrolled in this process/line yet.</td></tr>';
+        return;
+      }
+      users.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.dataset.id = u.uniqueID;
+        tr.innerHTML = `
+          <td>${u.name || ''}</td>
+          <td>${u.employeeID || ''}</td>
+          <td>${u.uName || ''}</td>
+          <td>${u.startDate ? String(u.startDate).slice(0, 10) : (u.enrollDate || '')}</td>
+          <td>${stationSelectHtml(u.stationID)}<button class="secondary assign-station" data-id="${u.uniqueID}" style="margin-left:6px;">Assign</button>${assignedSummaryHtml(u)}</td>
+          <td><button class="delete" data-id="${u.uniqueID}">Unenroll</button></td>
+        `;
+        enrolledRows.appendChild(tr);
+      });
+    }
+
+    enrolledRows.addEventListener('click', async event => {
+      const sel = currentSelection();
+
+      if (event.target.matches('button.delete')) {
+        const uniqueID = event.target.dataset.id;
+        if (!confirm('Remove this user from the process/line?')) return;
+        try {
+          await requestJson('/api/enrollstatus/removeProcessAssignment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deptID: sel.deptID, areaID: sel.areaID, mCourseID: sel.mCourseID, uniqueID })
+          });
+          setStatus('User unenrolled.');
+          await loadEnrolled();
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+        return;
+      }
+
+      if (event.target.matches('button.assign-station')) {
+        const uniqueID = event.target.dataset.id;
+        const row = event.target.closest('tr');
+        const stationID = row.querySelector('select.station-select').value;
+        const userName = row.children[0]?.textContent || uniqueID;
+        const deptLabel = deptSelect.options[deptSelect.selectedIndex]?.textContent || '';
+        const areaLabel = areaSelect.options[areaSelect.selectedIndex]?.textContent || '';
+        const lineLabel = processSelect.options[processSelect.selectedIndex]?.textContent || '';
+        const stationLabel = stationNameByID(stationID);
+        try {
+          await requestJson('/api/enrollstatus/assignStation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ deptID: sel.deptID, areaID: sel.areaID, mCourseID: sel.mCourseID, stationID, uniqueID })
+          });
+          setStatus(`${userName} assigned to: ${deptLabel} / ${areaLabel} / ${lineLabel} / ${stationLabel}`);
+          // Update this row's "Assigned to" readout in place without a full
+          // reload, and remember the new stationID on the row's user object
+          // so a subsequent renderEnrolled() (e.g. from a search/pager
+          // refresh) keeps showing the right thing.
+          const summaryEl = row.querySelector(':scope > td:nth-child(5) > div');
+          if (summaryEl) summaryEl.textContent = `Assigned to: ${deptLabel} / ${areaLabel} / ${lineLabel} / ${stationLabel}`;
+        } catch (error) {
+          setStatus(error.message, true);
+        }
+        return;
+      }
+    });
+
+    document.getElementById('refreshEnrolled').addEventListener('click', () => {
+      loadEnrolled().catch(error => setStatus(error.message, true));
+    });
+
+    enrollBtn.addEventListener('click', async () => {
+      const sel = currentSelection();
+      const usersList = Array.from(selectedUsers.values()).filter(Boolean).map(u => ({ uniqueID: u.uniqueID }));
+      if (!sel.deptID || !sel.areaID || !sel.mCourseID || !usersList.length) return;
+      const processLabel = processSelect.options[processSelect.selectedIndex]?.textContent || '';
+      if (!confirm(`Enroll ${usersList.length} user(s) into "${processLabel}"?`)) return;
+
+      try {
+        const data = await requestJson('/api/enrollstatus/assignProcess', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ deptID: sel.deptID, areaID: sel.areaID, mCourseID: sel.mCourseID, users: usersList })
+        });
+        setStatus(`Enrolled: ${data.inserted || 0}. Already enrolled / skipped: ${data.skipped || 0}.`);
+        selectedUsers.clear();
+        renderUsers();
+        refreshEnrollButtonState();
+        await loadEnrolled();
+      } catch (error) {
+        setStatus(error.message, true);
+      }
+    });
+
+    // ---------------- Init ----------------
+
+    Promise.all([loadDepartments(), loadUsers()])
+      .then(() => renderEnrolled(null))
+      .catch(error => setStatus(error.message, true));
+  </script>
+</body>
+
+</html>

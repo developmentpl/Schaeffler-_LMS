@@ -1,0 +1,276 @@
+body {
+    margin: 90px 0px 100px 0px;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    background:url("/images/home/Bg_2.jpg") no-repeat center center fixed;
+    background-size: 100% auto;
+    /* background-image: linear-gradient(to right, #111214, #282a30, #363941); */
+    color: #000000
+}
+
+.header {
+    background-color: #f8f9fa;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0px 20px;
+    box-shadow: 0 4px 6px rgba(99, 98, 98, 0.1);
+    position: fixed;
+    width: 100%;
+    top: 0;
+}
+
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+}
+
+.navbar {
+    display: flex;
+    gap: 20px; /* Space between links */
+    /* justify-content: center; */
+    flex-grow: 1;
+    text-align: center;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #646464;
+    /* font-weight: bold; */
+    padding: 0px 15px;
+    font-size: 1.1rem;
+}
+
+.navbar a:hover {
+    color: #000000;
+    /* font-weight: bold; */
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+.right-image img {
+   
+    margin-right: 50px;
+}
+
+button {
+    background-image: linear-gradient(to right, #00893d, #00893d);
+    border-radius: 10px;
+    border:none;
+    color: #fffcfc;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 5px rgba(209, 205, 205, 0.897);
+    /* Add box shadow */
+}
+
+.idTag {
+    background-image: linear-gradient(to right, #00893d, #00893d);
+    border-radius: 10px;
+    color: #000000;
+    font-weight: 800;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 5px rgba(209, 205, 205, 0.897);
+    /* Add box shadow */
+}
+
+.FormClass {
+    background-color:#ffffff;
+    justify-content: center;
+    border-radius: 10px;
+    box-shadow: 0 5px 6px #8b8b8a;
+    padding: 20px;
+    border-radius: 8px;
+    width: 500px;
+    margin: auto;
+    /* Set a maximum width to control the card size */
+    height: auto;
+    color: #686a6b;
+    font-weight: bold;
+
+    /* animation: formAnimation 10s linear infinite; */
+    /* Adjust the duration to change image every 7 seconds (7s * 3 images) */
+}
+
+@keyframes formAnimation {
+
+    0%,
+    33.33% {
+        box-shadow: 0 8px 6px #d905f5;
+    }
+
+    33.33%,
+    66.66% {
+        box-shadow: 0 6px 6px #06f7ff;
+    }
+
+    66.66%,
+    100% {
+        box-shadow: 0 8px 6px #f3d00b;
+    }
+}
+
+.loginFormClass {
+    margin-top: 60px;
+}
+
+.labelClass {
+    margin-bottom: 10px;
+
+}
+
+.allLabels {
+    text-align: left;
+}
+
+.labelDiv {
+    align-items: center;
+}
+
+input[type="text"] {
+    background-image: white;
+    color: #4a4a4a;
+    /* Set text color to black */
+    border: 1px solid white;
+    /* Set border color */
+    border-radius: 8px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    width: 300px;
+}
+
+input[type="password"] {
+    background-image: linear-gradient(to top, #0f1011, #111214);
+    color: white;
+    /* Set text color to black */
+    border: 1px solid #111111;
+    /* Set border color */
+    border-radius: 19px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    width: 300px;
+}
+
+.FormLoginbtn {
+    background-image: linear-gradient(to top, #414549, #303336, #27292e);
+    color: white;
+    /* Set text color to black */
+    border: 1px solid #111111;
+    /* Set border color */
+    border-radius: 19px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    margin-top: 30px;
+    width: 100px;
+
+}
+
+.FormLoginbtn:hover {
+    background-image: linear-gradient(to top, #656c72, #4f5458, #2f3238);
+}
+
+.Form-logo {
+    max-height: 100px;
+    margin-bottom: 5px;
+}
+
+.h1class {
+    color: white;
+}
+
+footer {
+    background-color: #f8f9fa;
+    color: #757575;
+    text-align: center;
+     padding: 10px 0;
+     width: 100%;
+     bottom: 0;
+     position: fixed;
+ }
+
+.Floatclass {
+    text-align: center;
+    align-items: center;
+}
+
+textarea {
+    background-image: white;
+    color: #4a4a4a;
+    /* Set text color to black */
+    border: 1px solid white;
+    /* Set border color */
+    border-radius: 8px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    /* width: 500px; */
+    /* Add a subtle shadow effect */
+    width: 300px;
+}
+
+input[type="date"] {
+    background-image: white;
+    /* background-image: linear-gradient(to top, #0f1011, #111214); */
+    color: rgb(43, 41, 41);
+    /* Set text color to black */
+    border: 1px solid #111111;
+    /* Set border color */
+    border-radius: 19px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    width: 300px;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+    /* background-color: black; */
+    color: black;
+    /* filter: invert(1); */
+    /* Invert the color of the icon */
+}
+
+input[type="file"] {
+    background-image: white;
+    /* background-image: linear-gradient(to top, #0f1011, #111214); */
+    color: rgb(46, 46, 46);
+    /* Set text color to black */
+    border: 1px solid #111111;
+    /* Set border color */
+    border-radius: 19px;
+    /* Set border-radius for rounded corners */
+    padding: 8px;
+    /* Add some padding for better appearance */
+    box-shadow: 0 2px 4px rgba(97, 97, 97, 0.774);
+    /* Add a subtle shadow effect */
+    width: 300px;
+}
+
+input[type="file"]::file-selector-button {
+    border: 2px solid rgb(58, 65, 71);
+    padding: 0.2em 0.4em;
+    border-radius: 0.2em;
+    background-image: linear-gradient(to top, rgb(39, 44, 49), rgb(70, 78, 87), rgb(66, 74, 83));
+    transition: 1s;
+    color: honeydew;
+}

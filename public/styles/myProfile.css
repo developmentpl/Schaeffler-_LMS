@@ -1,0 +1,270 @@
+/* Global Styling and Reset */
+body {
+    margin: 90px 0px 100px 0px;
+    font-family: Arial, sans-serif;
+    /* Using your specified background */
+    background: linear-gradient(rgba(15, 15, 15, 0.6), rgba(15, 15, 15, 0.6)), url("/images/userlogin/header-schaeffler-india-industrial-02_rwd_1200.jpg") fixed;
+    background-size: 100% auto;
+    color: #ffffff; /* Default text color set to white for dark background */
+}
+
+/* --- Header Styling (Fixed, Dark, Blurred) --- */
+.header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    z-index: 10;
+    height: 1.50cm;
+    box-sizing: border-box;
+}
+
+.navbar {
+    display: flex;
+    gap: 28px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-size: 1.1rem;
+    font-weight: 700;
+    transition: color 0.3s ease;
+}
+
+.navbar a:hover {
+    color: #08954c;
+}
+
+.navbar a:hover {
+    color: #ffcc00; /* Yellow hover for contrast */
+}
+
+.right-image {
+    display: flex;
+    align-items: center;
+}
+
+/* --- Main Container --- */
+
+.container {
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(16, 24, 40, 0.12);
+    border: 1px solid #e4e7ec;
+    max-width: 800px;
+    width: 90%;
+    height: auto;
+    margin: 120px auto 100px auto;
+    padding: 40px;
+    color: #172033;
+    display: flex;
+    flex-direction: column;
+}
+
+h1 {
+    color: #101828;
+    text-align: center;
+    margin-bottom: 6px;
+    padding-bottom: 15px;
+    font-size: 2.2rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #e6f5ec;
+}
+
+.page-subtitle {
+    text-align: center;
+    color: #6b7a90;
+    font-size: 0.9rem;
+    margin: 0 0 30px;
+}
+
+/* --- User Details Display --- */
+
+#userDetails {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+    padding: 10px 0;
+    margin-bottom: 20px;
+}
+
+.loading-text, .empty-text {
+    grid-column: 1 / span 2;
+    text-align: center;
+    color: #6b7a90;
+    font-style: italic;
+}
+
+/* Read-only label/value field card */
+.profile-field {
+    background-color: #f7f9fc;
+    padding: 14px 18px;
+    border-radius: 8px;
+    border: 1px solid #e6edf5;
+    display: flex;
+    flex-direction: column;
+    line-height: 1.4;
+}
+
+.field-label {
+    font-weight: 700;
+    color: #08954c;
+    display: block;
+    margin-bottom: 4px;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.field-value {
+    color: #101828;
+    font-size: 1.02rem;
+    font-weight: 500;
+    word-break: break-word;
+}
+
+/* Profile photo */
+.profile-photo-wrap {
+    grid-column: 1 / span 2;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.profile-photo-wrap img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 4px solid #08954c;
+    box-shadow: 0 6px 18px rgba(8, 149, 76, 0.25);
+}
+
+/* Shown instead of the photo when the user has none on file yet, or the
+   file is missing - initials on a green circle, rather than leaving a
+   blank/broken gap where the photo should be. */
+.profile-photo-fallback {
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 4px solid #08954c;
+    box-shadow: 0 6px 18px rgba(8, 149, 76, 0.25);
+    background: linear-gradient(135deg, #0b3320, #08954c);
+    color: #ffffff;
+    font-size: 3rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- Back Button Styling (Improved) --- */
+.goback {
+    /* Reposition and restyle for better visibility outside the container */
+    position: absolute; /* Allows for precise positioning relative to body/viewport */
+    top: 100px; /* Position below the fixed header */
+    left: 5%; /* Align with the container's left edge on large screens */
+    margin: 0; /* Clear previous margin */
+    padding: 10px 25px;
+    background-image: linear-gradient(to right, #0b0e1c, #040611); /* Blue gradient */
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    transition: all 0.2s ease-in-out;
+    z-index: 9; /* Above the main content */
+}
+
+.goback:hover {
+    background-image: linear-gradient(to right, #3d79d7, #58a6ff);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+}
+
+/* --- Mobile Responsiveness Adjustments --- */
+@media (max-width: 850px) {
+    .container {
+        /* Reduce max-width for smaller screens */
+        max-width: 95%;
+        padding: 30px 20px;
+    }
+
+    #userDetails {
+        /* Switch to a single-column layout on smaller screens */
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .profile-photo-wrap {
+        grid-column: span 1;
+    }
+
+    .goback {
+        top: 90px;
+        left: 20px; /* Adjust position for mobile viewport */
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 20px 15px;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .profile-photo-wrap img {
+        width: 150px;
+        height: 150px;
+    }
+}
+
+/* Footer & Back Button (Existing Styles) */
+
+footer {
+    background-color: #ffffff;
+    color: #000000;
+    text-align: center;
+    padding: 10px 0;
+    width: 100%;
+    bottom: 0;
+    position: fixed;
+    z-index: 5;
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.12);
+}
+ 
+.goback {
+    background-image: linear-gradient(to right, #0b0e1c, #040611);
+    border: none;
+    border-radius: 2px;
+    color: #dadada;
+    font-weight: bold;
+    padding: 8px 20px;
+    margin-bottom: 5px;
+    margin-right: 5px;
+    box-shadow: 0 2px 3px rgba(209, 205, 205, 0.897);
+}
+
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 600px) {
+    .container {
+        margin: 80px 10px 80px 10px;
+        width: auto;
+        padding: 20px;
+    }
+    .header {
+        padding: 10px 15px;
+    }
+}

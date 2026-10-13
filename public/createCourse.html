@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Course</title>
+    <link rel="stylesheet" href="/styles/createCourse.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 980px;
+            padding: 20px;
+        }
+
+        .card {
+            min-width: 190px;
+            min-height: 185px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        
+    </style>
+</head>
+
+<body>
+
+    <div class="header"> 
+
+         <div class="right-image">
+            <img src="/Images/logo/finalmahindra.png" alt="Right Side Image" width="130" height="80">
+        </div>
+        <div class="navbar">
+            <a href="/courseMasterSetup.html">Course Management</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+    </div>
+
+
+
+    <div>
+        <div class="container">
+            <div class="card" onclick="goCourse('trainingTemplate.html', 'training')">
+                <img src="/Images/createCourse/exwithvi.png" alt="Training and assessment" width="80%">
+                Training
+            </div>
+            <div class="card" onclick="goCourse('assessmentTemplate.html', 'assessment')">
+                <img src="/Images/createCourse/exexam.png" alt="Quick assessment" width="80%">
+                Assessment
+            </div>
+            <div class="card" onclick="alert('Practical course template page will be added next.')">
+                <img src="/Images/createCourse/exwithvi.png" alt="Practical" width="80%">
+                Practical
+            </div>
+            <div class="card" onclick="alert('OJT observation sheet template page will be added next.')">
+                <img src="/Images/createCourse/exwithvi.png" alt="OJT Observation" width="80%">
+                OJT Observation
+            </div>
+        </div>
+    </div>
+
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+    <script>
+        function goCourse(page, courseType) {
+            const current = new URLSearchParams(window.location.search);
+            current.set('courseType', courseType);
+            window.location.href = `/${page}?${current.toString()}`;
+        }
+
+        function BackPage() {
+            window.location.href = '/adminhomepage.html'; // Navigate back to the index page
+        }
+    </script>
+</body>
+
+</html>

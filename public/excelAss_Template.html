@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{courseName}} Quiz</title>
+    <link rel="stylesheet" href="/styles/excelAss_Template.css">
+    <script defer src="/js/excelAss_Template.js"></script>
+</head>
+
+<body>
+    <h1>{{courseName}} (Course ID: {{courseID}})</h1>
+
+    <section id="posttest-section" style="display: none;">
+        <h2>Posttest</h2>
+        <form id="quiz-form-posttest">
+            {{quizQuestions}}
+            <button type="submit">Submit</button>
+        </form>
+    </section>
+
+    <section id="thank-you" style="display: none;">
+        <h2>Thank You</h2>
+    </section>
+
+
+    <script>
+
+    </script>
+</body>
+
+</html>

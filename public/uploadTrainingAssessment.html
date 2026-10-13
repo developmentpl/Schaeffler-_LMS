@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload MCQ File</title>
+    <link rel="stylesheet" href="/styles/uploadTrainingAssessment.css">
+</head>
+
+<body>
+    <div class="header">
+
+         <div class="right-image">
+            <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+        </div>
+        <div class="navbar">
+            <a href="/adminHomePage.html">Home</a>
+            <a href="/courseMasterSetup.html">Course Management</a>
+            <a href="/logout" class="logout login-btn">Log Out</a>
+        </div>
+        
+        
+    </div>
+  
+
+    <h1 class="h1class" style="text-align: center;">Upload Training Course File</h1>
+
+    <div class="container">
+        <div class="FormClass">
+            <form action="/uploadTraining" class="Floatclass" method="POST" enctype="multipart/form-data">
+                <label class="allLabels">Process / Line:</label><br>
+                <select id="mCourseID" class="idTag" name="mCourseID" required>
+                </select><br><br>
+
+                <div class="labelDiv">
+                    <label class="allLabels" for="courseName">Course Name:</label><br>
+                </div>
+
+                <input type="text" id="courseName" name="courseName" required><br><br>
+
+                <label class="allLabels" for="courseDescription">Course Description:</label><br>
+                <textarea id="courseDescription" name="courseDescription" required></textarea><br><br>
+
+                <!-- <label for="courseIcon">Course Icon:</label><br>
+                  <input type="file" id="courseIcon" name="courseIcon"><br> -->
+
+                <label class="allLabels" for="courseDate">Course Date:</label><br>
+                <input type="date" id="courseDate" name="courseDate" required><br><br>
+
+                <label class="allLabels" for="level">Level / Tag:</label><br>
+                <input type="text" id="level" name="level"
+                    placeholder="Example: Level 1"><br><br><br>
+
+                <label for="mcqFile">Select Excel File:</label>
+                <input type="file" name="mcqFile" id="mcqFile" accept=".xlsx" required><br><br>
+
+                <label for="videoFile">Upload Video:</label>
+                <input type="file" name="videoFile" id="videoFile" accept="video/*"><br><br>
+
+
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+    </div>
+
+
+
+    <footer>
+        <p>&copy; Solution By Parallel Learning</p>
+    </footer>
+
+
+
+
+    <script>
+        const pageParams = new URLSearchParams(window.location.search);
+        const selectedDeptID = pageParams.get('deptID');
+        const selectedAreaID = pageParams.get('areaID');
+        const selectedMCourseID = pageParams.get('mCourseID');
+
+        async function loadProcesses() {
+            const query = new URLSearchParams();
+            if (selectedDeptID) query.set('deptID', selectedDeptID);
+            if (selectedAreaID) query.set('areaID', selectedAreaID);
+
+            const url = query.toString() ? `/api/hierarchy/processes?${query}` : '/api/hierarchy/processes';
+            const response = await fetch(url);
+            const data = await response.json();
+            const processes = data.processes || [];
+            const dropdown = document.getElementById('mCourseID');
+            dropdown.innerHTML = '';
+
+            if (!processes.length) {
+                const option = document.createElement('option');
+                option.value = '';
+                option.textContent = 'Create Process / Line first';
+                dropdown.appendChild(option);
+                return;
+            }
+
+            processes.forEach(row => {
+                const option = document.createElement('option');
+                option.value = row.mCourseID;
+                option.textContent = row.mCourseName;
+                dropdown.appendChild(option);
+            });
+            if (selectedMCourseID) {
+                dropdown.value = selectedMCourseID;
+            }
+        }
+
+        window.onload = loadProcesses;
+
+        function BackPage() {
+            const query = pageParams.toString();
+            window.location.href = query ? `/createCourse.html?${query}` : '/createCourse.html';
+        }
+    </script>
+</body>
+
+</html>

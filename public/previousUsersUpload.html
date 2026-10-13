@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Previous Data Upload</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; color: #172033; background: #f4f7fb; }
+    header { padding: 18px 28px; background: #fff; border-bottom: 1px solid #d9e1ec; display: flex; justify-content: space-between; }
+    header a { margin-left: 18px; color: #172033; font-weight: 700; text-decoration: none; }
+    main { max-width: 1200px; margin: 28px auto; padding: 0 20px 60px; }
+    .card { background: #fff; border: 1px solid #d9e1ec; border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+    .hint { color: #44526b; line-height: 1.5; }
+    button { border: 0; border-radius: 6px; padding: 10px 16px; background: #08954c; color: #fff; font-weight: 700; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    #message { min-height: 24px; margin: 14px 0; font-weight: 700; }
+    .tableWrap { overflow-x: auto; } table { width: 100%; border-collapse: collapse; } th, td { padding: 9px; border-bottom: 1px solid #e6edf5; text-align: left; white-space: nowrap; } th { background: #f7f9fc; }
+    .bad { color: #b42318; font-weight: 700; } .ok { color: #087443; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <header><strong>Previous Data Upload</strong><nav><a href="/learnersManagement.html">Learners Management</a><a href="/adminHomePage.html">Home</a></nav></header>
+  <main>
+    <h1>Import Offline Training History</h1>
+    <div class="card">
+      <p class="hint">Required columns: Name and Employee No/Employee ID. Username and Password are optional; if missing, the system creates a temporary username from the employee number and assigns <code>Previous@123</code>. Every other column can be a current course name, course ID, or Course ID header. A non-empty skill-matrix cell means the learner completed that course and will receive 100 marks.</p>
+      <input id="file" type="file" accept=".xlsx,.xls,.csv">
+      <button id="preview" type="button">Preview</button>
+      <button id="confirm" type="button" disabled>Import Previewed Rows</button>
+      <div id="message"></div>
+    </div>
+    <div class="card"><div class="tableWrap"><table><thead><tr><th>Sheet Row</th><th>Name</th><th>Employee ID</th><th>Username</th><th>Matched Courses</th><th>Status</th></tr></thead><tbody id="rows"><tr><td colspan="6">Upload a file to preview it.</td></tr></tbody></table></div></div>
+  </main>
+  <script>
+    const fileEl = document.getElementById('file');
+    const previewBtn = document.getElementById('preview');
+    const confirmBtn = document.getElementById('confirm');
+    const messageEl = document.getElementById('message');
+    const rowsEl = document.getElementById('rows');
+    let previewRows = [];
+    const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    function render(rows) {
+      rowsEl.innerHTML = rows.length ? rows.map(r => `<tr><td>${r.row}</td><td>${esc(r.name)}</td><td>${esc(r.employeeID)}</td><td>${esc(r.uName)}</td><td>${r.matchedCourseIDs.length}</td><td class="${r.invalid ? 'bad' : 'ok'}">${r.invalid ? esc(r.blockReason || 'Invalid') : 'Ready: 100 marks for matched courses'}</td></tr>`).join('') : '<tr><td colspan="6">No rows found.</td></tr>';
+    }
+    previewBtn.onclick = async () => {
+      if (!fileEl.files[0]) { messageEl.textContent = 'Choose an Excel file first.'; return; }
+      const form = new FormData(); form.append('previousUsersFile', fileEl.files[0]);
+      previewBtn.disabled = true; messageEl.textContent = 'Reading and matching courses...';
+      try { const res = await fetch('/upload-previous-users', { method: 'POST', body: form }); const data = await res.json(); if (!res.ok || data.success === false) throw new Error(data.message || 'Preview failed'); previewRows = data.rows || []; render(previewRows); confirmBtn.disabled = !previewRows.some(r => !r.invalid); messageEl.textContent = `${previewRows.length} row(s) previewed. Review before importing.`; } catch (e) { messageEl.textContent = e.message; } finally { previewBtn.disabled = false; }
+    };
+    confirmBtn.onclick = async () => {
+      const rows = previewRows.filter(r => !r.invalid); if (!rows.length) return;
+      if (!confirm(`Import ${rows.length} previous user(s)?`)) return;
+      confirmBtn.disabled = true; messageEl.textContent = 'Importing...';
+      try { const res = await fetch('/confirm-previous-users', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ rows }) }); const data = await res.json(); if (!res.ok || data.success === false) throw new Error(data.message || 'Import failed'); messageEl.textContent = `Imported ${data.inserted || 0} previous user(s).`; } catch (e) { messageEl.textContent = e.message; confirmBtn.disabled = false; }
+    };
+  </script>
+</body>
+</html>

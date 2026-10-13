@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acknowledgements</title>
+  <style>
+    html, body { min-height: 100%; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f4f7fb;
+      background-image:
+        radial-gradient(circle at 10% 15%, rgba(8, 149, 76, 0.12), transparent 45%),
+        radial-gradient(circle at 90% 25%, rgba(8, 149, 76, 0.08), transparent 40%),
+        radial-gradient(circle at 15% 85%, rgba(8, 149, 76, 0.10), transparent 45%),
+        radial-gradient(circle at 88% 90%, rgba(8, 149, 76, 0.08), transparent 40%);
+      background-attachment: fixed;
+      color: #172033;
+      display: flex;
+      flex-direction: column;
+    }
+    .header { height: 72px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; background: #fff; border-bottom: 1px solid #d9e1ec; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); }
+    .header img { width: 280px; max-width: 38vw; height: auto; display: block; }
+    .navbar a { margin-left: 20px; color: #172033; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #08954c; }
+    main { flex: 1 0 auto; width: 100%; max-width: 1280px; margin: 28px auto; padding: 0 20px 92px; box-sizing: border-box; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    p.lead { color: #44526b; margin: 0 0 18px; line-height: 1.5; max-width: 980px; }
+    .tabs { display: flex; gap: 8px; border-bottom: 1px solid #cfe0d7; margin-bottom: 0; flex-wrap: wrap; }
+    .tab { padding: 12px 22px; cursor: pointer; font-weight: 800; color: #315443; background: rgba(255, 255, 255, 0.88); border: 1px solid #cfe0d7; border-bottom: none; border-radius: 8px 8px 0 0; position: relative; top: 1px; }
+    .tab.active { color: #fff; background: linear-gradient(135deg, #0b3320, #08954c); border-color: #08954c; }
+    .tab:hover { color: #08954c; }
+    .tab.active:hover { color: #fff; }
+    .panelWrap { background: rgba(255, 255, 255, 0.94); border: 1px solid #cfe0d7; border-top: none; border-radius: 0 0 8px 8px; min-height: 66vh; box-shadow: 0 12px 28px rgba(8, 149, 76, 0.10); }
+    iframe { width: 100%; height: calc(100vh - 300px); min-height: 520px; border: 0; display: block; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    footer { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; text-align: center; padding: 24px; background: #fff; color: #000; border-top: 1px solid #e4e7ec; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04); }
+    footer p { margin: 0; }
+    @media (max-width: 720px) {
+      .header { height: auto; min-height: 72px; align-items: flex-start; gap: 12px; padding: 14px 18px; flex-direction: column; }
+      .header img { width: 220px; max-width: 82vw; }
+      .navbar a { margin-left: 0; margin-right: 16px; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main>
+    <h1>Acknowledgements</h1>
+    <p class="lead">Acknowledge users at each level once they've completed every course at that level. Assignment /
+      enrollment happens once (see L1 -&gt; Level 2 Assignment); these tabs only handle the acknowledgement gate for
+      each level.</p>
+
+    <div class="tabs">
+      <div class="tab active" data-level="1">Level 1 Acknowledgement</div>
+      <div class="tab" data-level="2">Level 2 Acknowledgement</div>
+      <div class="tab" data-level="3">Level 3 Acknowledgement</div>
+      <div class="tab" data-level="4">Level 4 Acknowledgement</div>
+    </div>
+    <div class="panelWrap">
+      <div class="panel active" data-level="1"><iframe data-src="/l1CompletedUsers.html" title="Level 1 Acknowledgement"></iframe></div>
+      <div class="panel" data-level="2"><iframe data-src="/l2CompletedUsers.html" title="Level 2 Acknowledgement"></iframe></div>
+      <div class="panel" data-level="3"><iframe data-src="/l3CompletedUsers.html" title="Level 3 Acknowledgement"></iframe></div>
+      <div class="panel" data-level="4"><iframe data-src="/l4CompletedUsers.html" title="Level 4 Acknowledgement"></iframe></div>
+    </div>
+  </main>
+
+  <footer>
+    <p>&copy; Solution By Parallel Learning</p>
+  </footer>
+
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('.panel');
+
+    function loadPanelIframe(panel) {
+      const iframe = panel.querySelector('iframe');
+      if (iframe && !iframe.src && iframe.dataset.src) {
+        iframe.src = iframe.dataset.src;
+      }
+    }
+
+    function activateLevel(level) {
+      tabs.forEach(t => t.classList.toggle('active', t.dataset.level === level));
+      panels.forEach(p => {
+        const isActive = p.dataset.level === level;
+        p.classList.toggle('active', isActive);
+        if (isActive) loadPanelIframe(p);
+      });
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => activateLevel(tab.dataset.level));
+    });
+
+    // Lazy-load only the first (active) tab's iframe on page load.
+    loadPanelIframe(document.querySelector('.panel.active'));
+  </script>
+</body>
+
+</html>

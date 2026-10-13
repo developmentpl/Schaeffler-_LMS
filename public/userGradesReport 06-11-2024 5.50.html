@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Grades Report</title>
+    <link rel="stylesheet" href="/styles/userGraderReport.css">
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/chart.js"></script>
+
+    <style>
+        /* Table styles */
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        /* Page styles */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .radar-chart-container {
+            text-align: center;
+            margin-top: 20px;
+            max-width: 600px;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<div class="header">
+     
+    <div class="navbar">
+        <a href="/adminhomepage.html">Home</a>
+        <a href="/gradesManagement.html">Grades</a>
+        <a href="/logout" class="logout login-btn">Log Out</a>
+    </div>
+    
+    <div class="right-image">
+        <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Right Side Image" width="270" height="auto">
+    </div>
+</div>
+
+<body>
+    <div class="container">
+
+    </div>
+    <div class="container">
+        <!-- <div class="col">
+            <div id="userDetails"></div>
+        </div>
+        <div class="user-details" id="userDetails"></div> -->
+        <br><br><br>
+        <h1>User Grades Report</h1>
+        <div id="userDetails" class="userDetailsClass"></div>
+        <div id="gradesTable"></div>
+        <div class="radar-chart-container">
+            <canvas id="radarChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Function to fetch and display user data and radar chart
+        async function fetchUserData() {
+            try {
+                // Extract employeeID from the URL query string
+                const urlParams = new URLSearchParams(window.location.search);
+                const employeeID = urlParams.get('employeeID');
+
+                // Fetch user data based on the employeeID
+                const response = await fetch(`/getUserGrades?employeeID=${employeeID}`);
+                const userData = await response.json();
+                console.log(userData);
+
+                // Display user details
+                displayUserDetails(userData.userDetails);
+
+                // Display user grades in table
+                displayGrades(userData.grades);
+
+                // Display radar chart
+                displayRadarChart(userData.grades);
+            } catch (error) {
+                console.error('Error fetching user data:', error);
+            }
+        }
+
+        // // Function to display user details
+        // function displayUserDetails(userDetails) {
+        //     const userDetailsDiv = document.getElementById('userDetails');
+        //     userDetailsDiv.innerHTML = `<p>Name: ${userDetails.name}</p><p>Username: ${userDetails.uName}</p>`;
+        // }
+
+        // Function to display user details
+        function displayUserDetails(userDetails) {
+            console.log("These are display details log. " + userDetails);
+            const userDetailsDiv = document.getElementById('userDetails');
+            userDetailsDiv.innerHTML = `<h3>Employee ID: ${userDetails.employeeID}</h3><h3>Name: ${userDetails.name}</h3>`;
+        }
+
+        // Function to display user grades in table
+        function displayGrades(grades) {
+            const gradesTableDiv = document.getElementById('gradesTable');
+
+            // Construct HTML for the table
+            let html = '<table>';
+            html += '<tr><th>Course Name</th><th>Pretest</th><th>Posttest</th></tr>';
+            let totalPretest = 0;
+            let totalPosttest = 0;
+            let validCount = 0;
+
+            grades.forEach(grade => {
+                if (grade.courseName !== 'N/A' && grade.pretest !== 'N/A' && grade.posttest !== 'N/A') {
+                    html += `<tr><td>${grade.courseName}</td><td>${grade.pretest}</td><td>${grade.posttest}</td></tr>`;
+
+                    // Calculate total grades
+                    totalPretest += parseInt(grade.pretest);
+                    totalPosttest += parseInt(grade.posttest);
+                    validCount++;
+                }
+                //html += `<tr><td>${grade.courseName}</td><td>${grade.pretest}</td><td>${grade.posttest}</td></tr>`;
+            });
+            // Calculate mean percentages
+            const meanPretest = validCount > 0 ? (totalPretest / validCount).toFixed(2) : 0;
+            const meanPosttest = validCount > 0 ? (totalPosttest / validCount).toFixed(2) : 0;
+
+            // Calculate level based on mean percentage
+            let level = '';
+            if (meanPosttest <= 59) {
+                level = 'FAIL';
+            } else if (meanPosttest >= 60 && meanPosttest <= 69) {
+                level = 'L1';
+            } else if (meanPosttest >= 70 && meanPosttest <= 79) {
+                level = 'L2';
+            } else if (meanPosttest >= 80 && meanPosttest <= 89) {
+                level = 'L3';
+            } else {
+                level = 'L4';
+            }
+
+            // Add the total row
+            html += `<tr><td>Total</td><td>${totalPretest}</td><td>${totalPosttest}</td></tr>`;
+
+            // Add the mean percentage row
+            html += `<tr><td>Mean Percentage</td><td>${meanPretest}%</td><td>${meanPosttest}%</td></tr>`;
+
+            // Add the level row
+            html += `<tr><td>Level</td><td colspan="2">${level}</td></tr>`;
+
+            html += '</table>';
+
+            // Display the table in the gradesTable div
+            gradesTableDiv.innerHTML = html;
+        }
+
+        // Function to display radar chart
+        function displayRadarChart(grades) {
+            const ctx = document.getElementById('radarChart').getContext('2d');
+
+            // Filter out courses with N/A values
+            const filteredGrades = grades.filter(grade => grade.pretest !== 'N/A' && grade.posttest !== 'N/A');
+            const courseNames = filteredGrades.map(grade => grade.courseName);
+            const pretestScores = filteredGrades.map(grade => grade.pretest);
+            const posttestScores = filteredGrades.map(grade => grade.posttest);
+
+            const data = {
+                labels: courseNames,
+                datasets: [{
+                    label: 'Pretest',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    data: pretestScores
+                },
+                {
+                    label: 'Posttest',
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    data: posttestScores
+                }
+                ]
+            };
+
+            const options = {
+                scales: {
+                    r: {
+                        type: 'radialLinear',
+                        min: 0,
+                        max: 100,
+                        ticks: {
+                            beginAtZero: true,
+                            stepSize: 10
+                        },
+                        angleLines: {
+                            display: true
+                        },
+                        grid: {
+                            //circular: true
+                        },
+                        pointLabels: {
+                            display: true,
+                            font: {
+                                size: 15
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'top'
+                    }
+                }
+            };
+
+            console.log("Chart options being used:", options);
+            const radarChart = new Chart(ctx, {
+                type: 'radar',
+                options: options,
+                data: data,
+            });
+        }
+
+        // Call fetchUserData when the page loads
+        window.addEventListener('DOMContentLoaded', fetchUserData);
+
+        // Function to download data in .xlsx format
+        function downloadData() {
+            const gradesTable = document.getElementById('gradesTable');
+            const tableData = [];
+
+            // Loop through table rows and cells to get data
+            for (let i = 0; i < gradesTable.rows.length; i++) {
+                const rowData = [];
+                const row = gradesTable.rows[i];
+                for (let j = 0; j < row.cells.length; j++) {
+                    rowData.push(row.cells[j].innerText);
+                }
+                tableData.push(rowData);
+            }
+
+            // Convert data to CSV format
+            const csvContent = tableData.map(row => row.join(',')).join('\n');
+
+            // Create a Blob object containing the CSV data
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8' });
+
+            // Create a temporary anchor element
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+
+            // Set the filename for the download
+            link.download = 'grades_data.csv';
+
+            // Trigger the download
+            link.click();
+        }
+        // Add event listener to the download button
+        document.getElementById('downloadButton').addEventListener('click', downloadData);
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Skill Matrix</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      min-height: 100vh;
+      margin: 0;
+      padding: 98px 22px 96px;
+      font-family: Arial, sans-serif;
+      background:
+        radial-gradient(circle at 8% 16%, rgba(47, 155, 87, .13), transparent 28%),
+        radial-gradient(circle at 92% 18%, rgba(47, 155, 87, .12), transparent 24%),
+        linear-gradient(115deg, #eef7f3 0%, #f6f9fc 46%, #eef5f1 100%);
+      color: #051733;
+    }
+    .header {
+      position: fixed;
+      inset: 0 0 auto 0;
+      height: 74px;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 50px;
+      background: #fff;
+      border-bottom: 1px solid #dce6df;
+      box-shadow: 0 4px 14px rgba(7, 25, 54, .12);
+    }
+    .header img { width: 280px; max-width: 34vw; height: auto; display: block; }
+    .navbar { display: flex; gap: 28px; align-items: center; }
+    .navbar a { color: #071936; text-decoration: none; font-weight: 700; }
+    .navbar a:hover { color: #2f9b57; }
+    .wrap { width: min(100%, 1420px); margin: 0 auto; }
+    h1 { margin: 0 0 6px; font-size: 30px; }
+    .lead { margin: 0 0 20px; color: #4f6281; line-height: 1.45; }
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 18px;
+      padding: 18px;
+      background: rgba(255, 255, 255, .94);
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+      box-shadow: 0 8px 22px rgba(11, 44, 25, .06);
+    }
+    label { display: block; margin-bottom: 7px; font-size: 13px; font-weight: 700; }
+    select, button {
+      width: 100%;
+      min-height: 42px;
+      border-radius: 6px;
+      border: 1px solid #b9c9d8;
+      padding: 9px 11px;
+      font: inherit;
+      background: #fff;
+    }
+    button {
+      border: 0;
+      background: linear-gradient(135deg, #124b2b, #2f9b57);
+      color: #fff;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 16px rgba(31, 125, 63, .18);
+    }
+    button:disabled { opacity: .55; cursor: not-allowed; }
+    .status { min-height: 22px; margin: 0 0 10px; font-weight: 700; color: #078836; }
+    .editing-toolbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:0 0 14px; padding:13px 16px; background:#fff; border:1px solid #d8e2ef; border-radius:8px; }
+    .editing-copy strong { display:block; margin-bottom:3px; }.editing-copy span{font-size:12px;color:#667085}
+    .toggle-wrap{display:flex;align-items:center;gap:10px;font-weight:700}.toggle{position:relative;width:54px;height:29px;display:inline-block}.toggle input{opacity:0;width:0;height:0}.toggle-slider{position:absolute;inset:0;background:#aeb8c5;border-radius:30px;cursor:pointer;transition:.2s}.toggle-slider::before{content:'';position:absolute;width:21px;height:21px;left:4px;top:4px;background:#fff;border-radius:50%;transition:.2s}.toggle input:checked+.toggle-slider{background:#2f9b57}.toggle input:checked+.toggle-slider::before{transform:translateX(25px)}.toggle input:disabled+.toggle-slider{opacity:.45;cursor:not-allowed}.matrix-readonly .station-skill{cursor:not-allowed;opacity:.86}.matrix-readonly .station-skill:hover{box-shadow:none}
+    .matrix-shell {
+      overflow: auto;
+      background: #fff;
+      border: 2px solid #0d2a7a;
+      box-shadow: 0 8px 24px rgba(7, 25, 54, .12);
+    }
+    table { border-collapse: collapse; min-width: 1100px; width: max-content; background: #fff; }
+    th, td {
+      border: 1px dotted #222;
+      padding: 0;
+      text-align: center;
+      vertical-align: middle;
+      font-size: 11px;
+    }
+    .title-row th {
+      height: 44px;
+      border: 2px solid #000;
+      font-size: 22px;
+      text-align: left;
+      padding: 0 10px;
+      white-space: nowrap;
+    }
+    .brand-cell {
+      color: #198754;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-align: center !important;
+    }
+    .meta-row th {
+      height: 24px;
+      border: 2px solid #000;
+      padding: 4px 6px;
+      text-align: left;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .section-row th {
+      height: 32px;
+      border: 2px solid #000;
+      font-weight: 800;
+      background: #fff;
+    }
+    .sticky-id { min-width: 34px; }
+    .name-col { min-width: 150px; }
+    .date-col { min-width: 86px; }
+    .course-head {
+      width: 44px;
+      min-width: 44px;
+      height: 196px;
+      padding: 4px 2px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      line-height: 1.1;
+      font-size: 10px;
+      border: 2px solid #000;
+    }
+    .yellow { background: #ffff00; }
+    .orange { background: #ffc000; }
+    .soft-orange { background: #f8cbad; }
+    .schedule-head { background: #fff; }
+    .month-head, .remarks-head {
+      width: 30px;
+      min-width: 30px;
+      height: 196px;
+      padding: 4px 2px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      line-height: 1.1;
+      font-size: 10px;
+      border: 2px solid #000;
+      background: #fff;
+    }
+    .remarks-head {
+      width: 48px;
+      min-width: 48px;
+      font-weight: 800;
+    }
+    tbody td { height: 66px; min-width: 44px; border-color: #222; }
+    tbody td.user-info { padding: 6px 8px; min-width: 150px; font-weight: 700; text-align: left; }
+    tbody td.date-info { min-width: 86px; font-weight: 700; }
+    .skill-cell {
+      position: relative;
+      width: 38px;
+      height: 54px;
+      margin: 4px auto;
+      border: 2px solid #000;
+      background: linear-gradient(135deg, #ffff00 0 49%, #111 50%, #57ff35 51% 100%);
+      overflow: hidden;
+    }
+    .skill-cell.station-skill { cursor: pointer; }
+    .skill-cell.station-skill:hover { box-shadow: 0 0 0 3px rgba(47, 155, 87, .22); }
+    .skill-cell.blank {
+      background: #fff;
+      border: 1px dotted #333;
+    }
+    .skill-cell.station-unassigned {
+      cursor: pointer;
+      border: 2px dashed #2f9b57;
+      background: #f4fbf6;
+      color: #176b38;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      line-height: 1.05;
+      text-align: center;
+    }
+    .skill-cell.station-unassigned::after { content: "+ Add L2"; }
+    .skill-cell.station-unassigned:hover { box-shadow: 0 0 0 3px rgba(47, 155, 87, .22); }
+    .matrix-readonly .station-unassigned { cursor: not-allowed; opacity: .65; }
+    .skill-cell.refresher-locked {
+      background: #ffc000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #000;
+    }
+    .skill-cell.refresher-locked select { display: none; }
+    .skill-cell.refresher-locked::after { content: "R"; font-size: 16px; }
+    .skill-cell select {
+      position: absolute;
+      width: 24px;
+      min-height: 20px;
+      height: 20px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      font-weight: 800;
+      font-size: 11px;
+      appearance: none;
+      text-align: center;
+      color: #000;
+    }
+    /* Yellow (upper-left) shows the employee's current skill level.
+       Green (lower-right) shows the required skill level (KR). */
+    .skill-cell .current-level { top: 2px; left: 2px; }
+    .skill-cell .required-level { right: 2px; bottom: 2px; }
+    .plan-cell { width: 30px; min-width: 30px; background: #fff; }
+    .plan-cell.training-planned {
+      background: #ffc000;
+      border: 2px solid #000;
+      font-weight: 900;
+      color: #000;
+      cursor: pointer;
+    }
+    .matrix-readonly .plan-cell.training-planned { cursor: not-allowed; opacity: .78; }
+    .remarks-cell { width: 48px; min-width: 48px; background: #fff; }
+    .legend { border-top: 2px solid #000; }
+    .legend td { height: 24px; padding: 3px 7px; text-align: left; border: 1px solid #bbb; }
+    .legend .legend-title {
+      text-align: center;
+      font-weight: 800;
+      border: 2px solid #000;
+      background: #fff;
+    }
+    .legend .code-cell {
+      width: 38px;
+      min-width: 38px;
+      text-align: center;
+      border: 1px solid #000;
+      font-weight: 700;
+    }
+    .mini-diagram {
+      position: relative;
+      width: 86px;
+      height: 102px;
+      margin: 6px auto;
+      border: 2px solid #000;
+      background: linear-gradient(135deg, #ffff00 0 49%, #111 50%, #57ff35 51% 100%);
+      font-size: 9px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .mini-diagram .current { position: absolute; top: 12px; left: 8px; width: 35px; text-align: center; }
+    .mini-diagram .required { position: absolute; right: 5px; bottom: 14px; width: 35px; text-align: center; }
+    .approval-title { text-align: center !important; font-weight: 800; border: 2px solid #000 !important; }
+    .approval-mark { display: inline-block; width: 28px; min-width: 28px; padding: 2px 0; text-align: center !important; font-weight: 800; border: 2px solid #000 !important; }
+    .planned-mark { background: #ffc000; }
+    .complete-mark { background: #00b050; color: #000; }
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(5, 23, 51, .38);
+      padding: 18px;
+    }
+    .modal-backdrop.is-open { display: flex; }
+    .skill-modal {
+      width: min(100%, 360px);
+      background: #fff;
+      border: 1px solid #d8e2ef;
+      border-radius: 8px;
+      box-shadow: 0 16px 45px rgba(7, 25, 54, .24);
+      padding: 18px;
+    }
+    .skill-modal h2 { margin: 0 0 14px; font-size: 20px; }
+    .skill-modal .field { margin-bottom: 13px; }
+    .skill-modal select { width: 100%; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-actions button { width: auto; min-width: 96px; }
+    .modal-actions .secondary {
+      background: #eef3f8;
+      color: #071936;
+      box-shadow: none;
+    }
+    footer {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      z-index: 10;
+      width: 100%;
+      padding: 20px 0;
+      text-align: center;
+      background: #fff;
+      border-top: 1px solid #dce6df;
+      box-shadow: 0 -3px 14px rgba(7, 25, 54, .10);
+    }
+    @media (max-width: 900px) {
+      body { padding-left: 12px; padding-right: 12px; }
+      .header { padding: 0 18px; }
+      .header img { width: 210px; }
+      .navbar { gap: 14px; }
+      .filters { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="header">
+    <img src="/Images/logo/Schaeffler_green_HKS_57N-01.png" alt="Schaeffler Logo">
+    <div class="navbar">
+      <a href="/adminHomePage.html">Home</a>
+      <!-- <a href="/courseMasterSetup.html">Course Management</a> -->
+      <a href="/logout">Log Out</a>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <h1>Skill Matrix</h1>
+    <p class="lead">Select a Department, Segment/Area, and Process/Line to view Level 1 general skills, Level 2 common courses, and station-wise assignments.</p>
+
+    <section class="filters">
+      <div>
+        <label for="deptSelect">Department</label>
+        <select id="deptSelect"><option value="">Select department</option></select>
+      </div>
+      <div>
+        <label for="areaSelect">Area</label>
+        <select id="areaSelect" disabled><option value="">Select department first</option></select>
+      </div>
+      <div>
+        <label for="lineSelect">Line</label>
+        <select id="lineSelect" disabled><option value="">Select area first</option></select>
+      </div>
+      <button id="loadBtn" disabled>Load Matrix</button>
+    </section>
+
+    <div class="status" id="status">Select filters to build the matrix.</div>
+    <section class="editing-toolbar" id="editingToolbar" style="display:none;">
+      <div class="editing-copy"><strong>Planning Editing</strong><span id="editingMessage">Checking permission...</span></div>
+      <div class="toggle-wrap"><span>Enable Editing</span><label class="toggle"><input type="checkbox" id="editingToggle" disabled><span class="toggle-slider"></span></label></div>
+    </section>
+    <div style="margin-bottom:14px;">
+      <button id="downloadMatrixBtn" disabled style="width:auto;min-width:280px;">&#8681; Download Complete Skill Matrix (Offline HTML)</button>
+    </div>
+    <section class="matrix-shell" id="matrixShell" style="display:none;">
+      <table id="matrixTable"></table>
+    </section>
+  </main>
+
+  <footer>&copy; Solution By Parallel Learning</footer>
+
+  <div class="modal-backdrop" id="skillModal" aria-hidden="true">
+    <div class="skill-modal" role="dialog" aria-modal="true" aria-labelledby="skillModalTitle">
+      <h2 id="skillModalTitle">Update Station Skill</h2>
+      <div class="field">
+        <label for="skillChoice">Skill / Plan</label>
+        <select id="skillChoice">
+          <option value="L1">L1</option>
+          <option value="L2">L2</option>
+          <option value="L3">L3</option>
+          <option value="L4">L4</option>
+          <option value="REFRESHER">Refresher</option>
+        </select>
+      </div>
+      <div class="field" id="monthField" style="display:none;">
+        <label for="monthChoice">Training planned month</label>
+        <select id="monthChoice"></select>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="secondary" id="cancelSkillModal">Cancel</button>
+        <button type="button" id="saveSkillModal">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    var deptSelect = document.getElementById('deptSelect');
+    var areaSelect = document.getElementById('areaSelect');
+    var lineSelect = document.getElementById('lineSelect');
+    var loadBtn = document.getElementById('loadBtn');
+    var statusEl = document.getElementById('status');
+    var matrixShell = document.getElementById('matrixShell');
+    var matrixTable = document.getElementById('matrixTable');
+    var skillModal = document.getElementById('skillModal');
+    var skillChoice = document.getElementById('skillChoice');
+    var monthField = document.getElementById('monthField');
+    var monthChoice = document.getElementById('monthChoice');
+    var cancelSkillModal = document.getElementById('cancelSkillModal');
+    var saveSkillModal = document.getElementById('saveSkillModal');
+    var activeStationSkillCell = null;
+    var activePlanEdit = null;
+    var matrixMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    var downloadMatrixBtn = document.getElementById('downloadMatrixBtn');
+    var lastMatrixData = null;
+    var isSkillMatrix2 = /skillMatrix2\.html$/i.test(window.location.pathname);
+    var editingEnabled = !isSkillMatrix2;
+    var editingToggle = document.getElementById('editingToggle');
+    var editingToolbar = document.getElementById('editingToolbar');
+    var editingMessage = document.getElementById('editingMessage');
+
+    function applyEditingState() {
+      if (!isSkillMatrix2) return;
+      matrixShell.classList.toggle('matrix-readonly', !editingEnabled);
+      matrixTable.querySelectorAll('.station-skill .required-level').forEach(function (select) {
+        select.disabled = !editingEnabled;
+      });
+      if (editingToggle) editingToggle.checked = editingEnabled;
+    }
+
+    async function loadEditingPermission() {
+      if (!isSkillMatrix2) return;
+      editingToolbar.style.display = 'flex';
+      editingEnabled = false;
+      try {
+        var permission = await fetchJSON('/api/skill-matrix/edit-permission');
+        editingToggle.disabled = !permission.canEnable;
+        editingMessage.textContent = permission.isSuperAdmin
+          ? 'Super Admin: editing can be enabled at any time.'
+          : permission.canEnable
+            ? 'Editing window is open for ' + matrixMonths[permission.currentMonth - 1] + '.'
+            : 'Read-only. Admin editing is available only in July and December.';
+      } catch (error) {
+        editingToggle.disabled = true;
+        editingMessage.textContent = error.message;
+      }
+      applyEditingState();
+    }
+
+    function esc(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, function (ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+      });
+    }
+
+    async function fetchJSON(url) {
+      var response = await fetch(url);
+      var data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Request failed');
+      return data;
+    }
+
+    function optionHtml(value, label) {
+      return '<option value="' + esc(value) + '">' + esc(label) + '</option>';
+    }
+
+    function levelSelect(cls, value, disabled) {
+      var levels = ['L1', 'L2', 'L3', 'L4'];
+      return '<select class="' + cls + '"' + (disabled ? ' disabled' : '') + '>' + levels.map(function (level) {
+        return '<option value="' + level + '"' + (level === value ? ' selected' : '') + '>' + level + '</option>';
+      }).join('') + '</select>';
+    }
+
+    function attrsHtml(attrs) {
+      return Object.keys(attrs || {}).map(function (key) {
+        return ' data-' + key + '="' + esc(attrs[key]) + '"';
+      }).join('');
+    }
+
+    // Green (lower-right) is the editable Required Level (KR), and is only
+    // editable on station-assignment cells where an admin sets a per-user
+    // requirement. Yellow (upper-left) is the read-only Current Level and
+    // reflects actual L2/L3/L4 acknowledgement.
+    function skillCell(required, current, extraClass, attrs, requiredDisabled) {
+      return '<div class="skill-cell ' + esc(extraClass || '') + '"' + attrsHtml(attrs) + '>' + levelSelect('required-level', required, !!requiredDisabled) + levelSelect('current-level', current, true) + '</div>';
+    }
+
+    function blankCell() {
+      return '<div class="skill-cell blank"></div>';
+    }
+
+    function dateText(value) {
+      if (!value) return '-';
+      if (typeof value === 'number' || /^\d{5}$/.test(String(value).trim())) {
+        var serial = Number(value);
+        if (serial > 20000 && serial < 80000) {
+          var excelDate = new Date(Date.UTC(1899, 11, 30) + serial * 86400000);
+          return [
+            String(excelDate.getUTCDate()).padStart(2, '0'),
+            String(excelDate.getUTCMonth() + 1).padStart(2, '0'),
+            excelDate.getUTCFullYear()
+          ].join('-');
+        }
+      }
+      var text = String(value);
+      var isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (isoMatch) return isoMatch[3] + '-' + isoMatch[2] + '-' + isoMatch[1];
+      var slashMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (slashMatch) return slashMatch[1].padStart(2, '0') + '-' + slashMatch[2].padStart(2, '0') + '-' + slashMatch[3];
+      return text.slice(0, 10);
+    }
+
+    function levelNumber(level) {
+      var text = String(level || '').toUpperCase();
+      var match = text.match(/[1-4]/);
+      return match ? 'L' + match[0] : 'L1';
+    }
+
+    function planCodeForChoice(choice) {
+      var selected = String(choice || '').toUpperCase();
+      if (selected === 'REFRESHER') return 'RT';
+      if (selected === 'L2') return 'L2';
+      if (selected === 'L3') return 'L3';
+      if (selected === 'L4') return 'L4';
+      return 'RT';
+    }
+
+    function displayPlanCode(planCode) {
+      var code = String(planCode || 'RT').toUpperCase();
+      return code === 'L2T' ? 'L2' : code === 'L3T' ? 'L3' : code === 'L4T' ? 'L4' : code === 'RT' ? 'RT' : code;
+    }
+
+    async function loadDepartments() {
+      var data = await fetchJSON('/api/hierarchy/departments');
+      deptSelect.innerHTML = '<option value="">Select department</option>' + (data.departments || []).map(function (d) {
+        return optionHtml(d.deptID, d.deptName);
+      }).join('');
+    }
+
+    async function loadAreas() {
+      var deptID = deptSelect.value;
+      areaSelect.disabled = !deptID;
+      lineSelect.disabled = true;
+      loadBtn.disabled = true;
+      areaSelect.innerHTML = '<option value="">Select area</option>';
+      lineSelect.innerHTML = '<option value="">Select area first</option>';
+      if (!deptID) return;
+      var data = await fetchJSON('/api/hierarchy/areas?deptID=' + encodeURIComponent(deptID));
+      areaSelect.innerHTML = '<option value="">Select area</option>' + (data.areas || []).map(function (a) {
+        return optionHtml(a.areaID, a.areaName);
+      }).join('');
+    }
+
+    async function loadLines() {
+      var deptID = deptSelect.value;
+      var areaID = areaSelect.value;
+      lineSelect.disabled = !areaID;
+      loadBtn.disabled = true;
+      lineSelect.innerHTML = '<option value="">Select line</option>';
+      if (!deptID || !areaID) return;
+      var data = await fetchJSON('/api/hierarchy/processes?deptID=' + encodeURIComponent(deptID) + '&areaID=' + encodeURIComponent(areaID));
+      lineSelect.innerHTML = '<option value="">Select line</option>' + (data.processes || []).map(function (p) {
+        return optionHtml(p.mCourseID, p.mCourseName);
+      }).join('');
+    }
+
+    function updateLoadState() {
+      loadBtn.disabled = !(deptSelect.value && areaSelect.value && lineSelect.value);
+    }
+
+    function courseHeader(course, cls) {
+      return '<th class="course-head ' + cls + '">' + esc(course.subCourseName || 'Course') + '</th>';
+    }
+
+    function monthHeader(month) {
+      return '<th class="month-head">' + esc(month) + '</th>';
+    }
+
+    function openSkillModal(cell) {
+      activeStationSkillCell = cell;
+      activePlanEdit = null;
+      document.getElementById('skillModalTitle').textContent = 'Update Station Skill';
+      var required = cell.querySelector('.required-level');
+      skillChoice.value = required ? required.value : 'L2';
+      monthChoice.value = '0';
+      monthField.style.display = '';
+      skillModal.classList.add('is-open');
+      skillModal.setAttribute('aria-hidden', 'false');
+      skillChoice.focus();
+    }
+
+    function closeSkillModal() {
+      skillModal.classList.remove('is-open');
+      skillModal.setAttribute('aria-hidden', 'true');
+      activeStationSkillCell = null;
+      activePlanEdit = null;
+    }
+
+    function setTrainingPlan(cell, monthIndex, planCode) {
+      var row = cell.closest('tr');
+      if (!row) return;
+      var plannedCell = row.querySelector('.plan-cell[data-month-index="' + monthIndex + '"]');
+      if (!plannedCell) return;
+      plannedCell.textContent = displayPlanCode(planCode);
+      plannedCell.classList.add('training-planned');
+      plannedCell.dataset.uniqueid = cell.dataset.uniqueid;
+      plannedCell.dataset.stationid = cell.dataset.stationid;
+      plannedCell.dataset.planmonth = String(monthIndex + 1);
+      plannedCell.dataset.planyear = String(new Date().getFullYear());
+      plannedCell.dataset.plancode = planCode || 'RT';
+      cell.title = displayPlanCode(planCode) + ' training planned for ' + matrixMonths[monthIndex];
+    }
+
+    function planChoiceFromCode(planCode) {
+      var code = String(planCode || 'RT').toUpperCase();
+      return code === 'L2T' || code === 'L2' ? 'L2' : code === 'L3T' || code === 'L3' ? 'L3' : code === 'L4T' || code === 'L4' ? 'L4' : 'REFRESHER';
+    }
+
+    function clearTrainingPlan(plannedCell) {
+      plannedCell.textContent = '';
+      plannedCell.classList.remove('training-planned');
+      plannedCell.title = '';
+      ['uniqueid', 'stationid', 'planmonth', 'planyear', 'plancode'].forEach(function (key) { delete plannedCell.dataset[key]; });
+    }
+
+    function openExistingPlanModal(plannedCell) {
+      activeStationSkillCell = null;
+      activePlanEdit = {
+        cell: plannedCell,
+        uniqueID: plannedCell.dataset.uniqueid,
+        stationID: plannedCell.dataset.stationid,
+        originalPlanMonth: Number(plannedCell.dataset.planmonth),
+        originalPlanYear: Number(plannedCell.dataset.planyear),
+        planCode: plannedCell.dataset.plancode || plannedCell.textContent.trim() || 'RT'
+      };
+      document.getElementById('skillModalTitle').textContent = 'Change Assigned Training Month';
+      skillChoice.value = planChoiceFromCode(activePlanEdit.planCode);
+      monthChoice.value = String(Math.max(0, activePlanEdit.originalPlanMonth - 1));
+      monthField.style.display = '';
+      skillModal.classList.add('is-open');
+      skillModal.setAttribute('aria-hidden', 'false');
+      monthChoice.focus();
+    }
+
+    async function postJSON(url, body) {
+      var response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      var data = await response.json().catch(function () { return {}; });
+      if (!response.ok || data.success === false) throw new Error(data.error || 'Save failed');
+      return data;
+    }
+
+    async function saveSkillSelection() {
+      if (!activeStationSkillCell && !activePlanEdit) return;
+      if (isSkillMatrix2 && !editingEnabled) {
+        statusEl.textContent = 'Switch on Enable Editing before assigning a training plan.';
+        return;
+      }
+      var selected = skillChoice.value;
+      if (activePlanEdit) {
+        var editedPlan = activePlanEdit;
+        var editPayload = {
+          uniqueID: editedPlan.uniqueID,
+          deptID: deptSelect.value,
+          areaID: areaSelect.value,
+          mCourseID: lineSelect.value,
+          stationID: editedPlan.stationID,
+          planMonth: Number(monthChoice.value) + 1,
+          planYear: new Date().getFullYear(),
+          planCode: planCodeForChoice(selected),
+          originalPlanMonth: editedPlan.originalPlanMonth,
+          originalPlanYear: editedPlan.originalPlanYear
+        };
+        if (isSkillMatrix2) {
+          editPayload.matrixPage = 2;
+          editPayload.editingEnabled = editingEnabled;
+        }
+        try {
+          saveSkillModal.disabled = true;
+          await postJSON('/api/skill-matrix/refresher-plan', editPayload);
+          clearTrainingPlan(editedPlan.cell);
+          setTrainingPlan({
+            dataset: { uniqueid: editedPlan.uniqueID, stationid: editedPlan.stationID },
+            closest: function () { return editedPlan.cell.closest('tr'); }
+          }, Number(monthChoice.value), editPayload.planCode);
+          statusEl.textContent = 'Training plan month updated.';
+          closeSkillModal();
+        } catch (error) {
+          statusEl.textContent = error.message;
+        } finally {
+          saveSkillModal.disabled = false;
+        }
+        return;
+      }
+      var payload = {
+        uniqueID: activeStationSkillCell.dataset.uniqueid,
+        deptID: deptSelect.value,
+        areaID: areaSelect.value,
+        mCourseID: lineSelect.value,
+        stationID: activeStationSkillCell.dataset.stationid
+      };
+      if (isSkillMatrix2) {
+        payload.matrixPage = 2;
+        payload.editingEnabled = editingEnabled;
+      }
+      try {
+        saveSkillModal.disabled = true;
+        var monthIndex = Number(monthChoice.value) || 0;
+        var planCode = planCodeForChoice(selected);
+        if (selected !== 'REFRESHER') {
+          await postJSON('/api/skill-matrix/station-skill', Object.assign({}, payload, {
+            requiredLevel: selected.replace('L', '')
+          }));
+          var required = activeStationSkillCell.querySelector('.required-level');
+          if (required) required.value = selected;
+        }
+        await postJSON('/api/skill-matrix/refresher-plan', Object.assign({}, payload, {
+          planMonth: monthIndex + 1,
+          planYear: new Date().getFullYear(),
+          planCode: planCode
+        }));
+        setTrainingPlan(activeStationSkillCell, monthIndex, planCode);
+        closeSkillModal();
+      } catch (error) {
+        statusEl.textContent = error.message;
+      } finally {
+        saveSkillModal.disabled = false;
+      }
+    }
+
+    function skillKey(uniqueID, stationID) {
+      return Number(uniqueID) + ':' + Number(stationID);
+    }
+
+    function applyPlansForUser(user, stationIDs, plans) {
+      stationIDs.forEach(function (stationID) {
+        (plans[skillKey(user.uniqueID, stationID)] || []).forEach(function (plan) {
+          var monthIndex = Number(plan.planMonth) - 1;
+          var row = matrixTable.querySelector('tr[data-uniqueid="' + esc(user.uniqueID) + '"]');
+          if (!row || monthIndex < 0) return;
+          var plannedCell = row.querySelector('.plan-cell[data-month-index="' + monthIndex + '"]');
+          if (plannedCell) {
+            plannedCell.textContent = displayPlanCode(plan.planCode);
+            plannedCell.classList.add('training-planned');
+            plannedCell.dataset.uniqueid = user.uniqueID;
+            plannedCell.dataset.stationid = stationID;
+            plannedCell.dataset.planmonth = Number(plan.planMonth);
+            plannedCell.dataset.planyear = Number(plan.planYear);
+            plannedCell.dataset.plancode = plan.planCode || 'RT';
+            plannedCell.title = displayPlanCode(plan.planCode) + ' training planned for ' + matrixMonths[monthIndex] + '. Click to change.';
+          }
+        });
+      });
+    }
+
+    function renderMatrix(data) {
+      var l1 = data.level1Courses || [];
+      var common = data.commonCourses || data.commonLevel2Courses || [];
+      var stations = data.stations || [];
+      var users = data.users || [];
+      var stationSkills = data.stationSkills || {};
+      var refresherPlans = data.refresherPlans || {};
+      var months = matrixMonths;
+      var totalSkillCols = l1.length + common.length + stations.length;
+      var scheduleCols = months.length;
+      var remarksCols = 1;
+      var totalCols = 3 + totalSkillCols + scheduleCols + remarksCols;
+
+      var html = '';
+      html += '<thead>';
+      html += '<tr class="title-row"><th colspan="' + Math.max(3, totalCols - 1) + '">QUALIFICATION MATRIX / SKILL MATRIX & TRAINING PLAN INLINE</th><th class="brand-cell">SCHAEFFLER</th></tr>';
+      html += '<tr class="meta-row"><th colspan="3">Department : ' + esc(data.line.deptName || '-') + ' / Segment : ' + esc(data.line.areaName || '-') + '</th><th colspan="' + Math.max(1, totalSkillCols) + '">Line : ' + esc(data.line.mCourseName || '-') + '</th><th colspan="' + scheduleCols + '">Training Plan Schedule</th><th>Remarks</th></tr>';
+      html += '<tr class="section-row"><th colspan="3"></th>';
+      if (l1.length) html += '<th colspan="' + l1.length + '">General skills</th>';
+      if (common.length) html += '<th colspan="' + common.length + '">Common Courses</th>';
+      if (stations.length) html += '<th colspan="' + stations.length + '">Work Stations</th>';
+      html += '<th colspan="' + scheduleCols + '">Training Plan Schedule</th><th rowspan="2" class="remarks-head">Remarks</th>';
+      html += '</tr>';
+      html += '<tr><th class="sticky-id">Sr.<br>No.</th><th class="name-col">Name</th><th class="date-col">Date of Start Working @ Work Station</th>';
+      html += l1.map(function (c) { return courseHeader(c, 'yellow'); }).join('');
+      html += common.map(function (c) { return courseHeader(c, 'orange'); }).join('');
+      html += stations.map(function (s) { return '<th class="course-head soft-orange">' + esc(s.stationName) + '</th>'; }).join('');
+      html += months.map(monthHeader).join('');
+      html += '</tr></thead>';
+      html += '<tbody>';
+
+      if (!users.length) {
+        html += '<tr><td colspan="' + totalCols + '" style="height:70px;font-weight:700;">No Level 1 acknowledged users are assigned to this line yet.</td></tr>';
+      } else {
+        users.forEach(function (user, index) {
+          var stationIDs = (user.stationIDs || []).map(Number);
+          html += '<tr data-uniqueid="' + esc(user.uniqueID) + '">';
+          html += '<td>' + (index + 1) + '</td>';
+          html += '<td class="user-info">' + esc(user.name || '-') + '</td>';
+          html += '<td class="date-info">' + esc(dateText(user.startDate || user.l2TempStartDate || user.enrollDate || user.acknowledgeDate || user.dateOfJoining)) + '</td>';
+          html += l1.map(function () {
+            return '<td>' + skillCell('L1', 'L1', '', {}, true) + '</td>';
+          }).join('');
+          html += common.map(function (course) {
+            return '<td>' + skillCell('L2', 'L2', '', {}, true) + '</td>';
+          }).join('');
+          html += stations.map(function (station) {
+            var stationID = Number(station.stationID);
+            if (!stationIDs.includes(stationID)) {
+              return '<td><div class="skill-cell blank station-unassigned" data-uniqueid="' + esc(user.uniqueID) + '" data-stationid="' + stationID + '" data-stationname="' + esc(station.stationName || '') + '" title="Add ' + esc(user.name || 'learner') + ' to this station for Level 2 multiskilling"></div></td>';
+            }
+            var required = 'L' + (stationSkills[skillKey(user.uniqueID, stationID)] || 2);
+            var current = 'L' + ((user.currentLevelByStation || {})[stationID] || 1);
+            return '<td>' + skillCell(required, current, 'station-skill', {
+              uniqueid: user.uniqueID,
+              stationid: stationID
+            }, false) + '</td>';
+          }).join('');
+          html += months.map(function (month, monthIndex) { return '<td class="plan-cell" data-month-index="' + monthIndex + '"></td>'; }).join('');
+          html += '<td class="remarks-cell"></td>';
+          html += '</tr>';
+        });
+      }
+
+      html += '</tbody>';
+      var legendTextSpan = Math.max(1, totalCols - 8);
+      var legendApprovalSpan = Math.max(1, totalCols - 6 - legendTextSpan);
+      html += '<tbody class="legend">';
+      html += '<tr>';
+      html += '<td colspan="3" rowspan="5" class="legend-title"><div>Training Legend</div><div class="mini-diagram"><span class="current">Current<br>Skill<br>Level</span><span class="required">Required<br>Skill<br>Level<br>(KR)</span></div></td>';
+      html += '<td colspan="2" class="legend-title">Skills matrix Level (L1-L4) as per local guideline</td>';
+      html += '<td colspan="' + (1 + legendTextSpan) + '" class="legend-title">Skill Matrix Code as per Appendix 5, P175000</td>';
+      html += '<td colspan="' + legendApprovalSpan + '"></td>';
+      html += '</tr>';
+      html += '<tr><td class="code-cell">L1</td><td><strong>Learner</strong> - In the process of Learning - Getting guidance for start of activity.</td><td class="code-cell">TR</td><td colspan="' + legendTextSpan + '">Realized training/actions</td><td colspan="' + legendApprovalSpan + '"></td></tr>';
+      html += '<tr><td class="code-cell">L2</td><td><strong>Practitioner</strong> - Can perform the activity as per Standard Quality, Productivity & related job requirements.</td><td class="code-cell">TV</td><td colspan="' + legendTextSpan + '">Efficiency of the realized training/actions verified</td><td colspan="' + legendApprovalSpan + '"></td></tr>';
+      html += '<tr><td class="code-cell">L3</td><td><strong>Proficient</strong> - Can set, perform abnormality judgement & can extend guide others.</td><td class="code-cell">KA</td><td colspan="' + legendTextSpan + '">Skills available (training/action not necessary)</td><td class="approval-title" colspan="' + Math.max(1, Math.floor(legendApprovalSpan / 2)) + '">Reviewed By :</td><td class="approval-title" colspan="' + Math.max(1, Math.ceil(legendApprovalSpan / 2)) + '">Approved By :</td></tr>';
+      html += '<tr><td class="code-cell">L4</td><td><strong>Expert</strong> - Can provide operational guidance in respective job; can do problem solving.</td><td class="code-cell">IT</td><td colspan="' + legendTextSpan + '">Is able to pass on knowledge (training/action not necessary)</td><td colspan="' + legendApprovalSpan + '"><span class="approval-mark planned-mark">RT</span> Refresher &nbsp; <span class="approval-mark planned-mark">L2</span> Level 2 Training &nbsp; <span class="approval-mark planned-mark">L3</span> Level 3 Training &nbsp; <span class="approval-mark planned-mark">L4</span> Level 4 Training</td></tr>';
+      html += '</tbody>';
+      matrixTable.innerHTML = html;
+      users.forEach(function (user) {
+        applyPlansForUser(user, (user.stationIDs || []).map(Number), refresherPlans);
+      });
+      matrixShell.style.display = '';
+      statusEl.textContent = users.length + ' user(s), ' + l1.length + ' Level 1 course(s), ' + common.length + ' common Level 2 course(s), ' + stations.length + ' station(s).';
+      lastMatrixData = data;
+      downloadMatrixBtn.disabled = !users.length;
+      applyEditingState();
+    }
+
+    // Builds a flat CSV mirroring the on-screen matrix: one row per user,
+    // one column per L1 general skill / common course / station (each shown
+    // as "Current/Required", e.g. "L1/L2"), then one column per month
+    // showing RT/L2/L3/L4 if training was planned for that user that month.
+    // Uses the same JSON already fetched for the on-screen table - no extra
+    // request, works fully offline.
+    function csvCell(value) {
+      var text = String(value == null ? '' : value);
+      if (/[",\n]/.test(text)) {
+        text = '"' + text.replace(/"/g, '""') + '"';
+      }
+      return text;
+    }
+
+    function downloadMatrixCSV() {
+      if (!lastMatrixData || !(lastMatrixData.users || []).length) return;
+      var data = lastMatrixData;
+      var l1 = data.level1Courses || [];
+      var common = data.commonCourses || data.commonLevel2Courses || [];
+      var stations = data.stations || [];
+      var users = data.users || [];
+      var stationSkills = data.stationSkills || {};
+      var refresherPlans = data.refresherPlans || {};
+      var months = matrixMonths;
+
+      var header = ['Sr No', 'Name', 'Date of Start Working @ Work Station']
+        .concat(l1.map(function (c) { return 'L1: ' + (c.subCourseName || 'Course'); }))
+        .concat(common.map(function (c) { return levelNumber(c.subCourseLevel || 'L2') + ': ' + (c.subCourseName || 'Course'); }))
+        .concat(stations.map(function (s) { return 'Station: ' + s.stationName; }))
+        .concat(months.map(function (m) { return m + ' (Refresher Planned)'; }))
+        .concat(['Remarks']);
+
+      var rows = [header];
+
+      users.forEach(function (user, index) {
+        var stationIDs = (user.stationIDs || []).map(Number);
+        var currentForGeneral = Math.max.apply(null, [1].concat(Object.keys(user.currentLevelByStation || {}).map(function (id) { return Number(user.currentLevelByStation[id]) || 1; })));
+
+        var plannedMonths = {};
+        stationIDs.forEach(function (stationID) {
+          (refresherPlans[skillKey(user.uniqueID, stationID)] || []).forEach(function (plan) {
+            plannedMonths[Number(plan.planMonth) - 1] = displayPlanCode(plan.planCode);
+          });
+        });
+
+        var row = [index + 1, user.name || '-', dateText(user.startDate || user.l2TempStartDate || user.enrollDate || user.acknowledgeDate || user.dateOfJoining)];
+
+        l1.forEach(function () {
+          row.push('L1/L1');
+        });
+
+        common.forEach(function () {
+          row.push('L2/L2');
+        });
+
+        stations.forEach(function (station) {
+          var stationID = Number(station.stationID);
+          if (!stationIDs.includes(stationID)) {
+            row.push('');
+            return;
+          }
+          var required = 'L' + (stationSkills[skillKey(user.uniqueID, stationID)] || 2);
+          var current = 'L' + ((user.currentLevelByStation || {})[stationID] || 1);
+          row.push(current + '/' + required);
+        });
+
+        months.forEach(function (month, monthIndex) {
+          row.push(plannedMonths[monthIndex] || '');
+        });
+
+        row.push('');
+        rows.push(row);
+      });
+
+      var csvContent = rows.map(function (row) { return row.map(csvCell).join(','); }).join('\r\n');
+      var blob = new Blob(['﻿' + csvContent], { type: 'text/csv;charset=utf-8;' });
+      var url = window.URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      var lineName = (data.line && data.line.mCourseName) ? data.line.mCourseName.replace(/[^a-z0-9]+/gi, '_') : 'line';
+      a.download = 'skill_matrix_' + lineName + '.csv';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    }
+
+    function downloadBlob(blob, fileName) {
+      var url = window.URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.setTimeout(function () { window.URL.revokeObjectURL(url); }, 1000);
+    }
+
+    // Downloads the complete rendered diagram rather than flattening it into
+    // CSV columns. The table is cloned at its full scroll size, so columns
+    // outside the currently visible viewport and the complete legend are all
+    // included. A self-contained HTML document uses the same native table
+    // layout engine as this page, avoiding the sizing/font differences of an
+    // SVG foreignObject and the security restrictions of canvas conversion.
+    // It contains no online resources and opens fully offline in the browser.
+    async function downloadCompleteMatrix() {
+      if (!lastMatrixData || !(lastMatrixData.users || []).length || !matrixTable.scrollWidth) return;
+      var originalText = downloadMatrixBtn.textContent;
+      downloadMatrixBtn.disabled = true;
+      downloadMatrixBtn.textContent = 'Preparing complete matrix...';
+      statusEl.textContent = 'Preparing the complete skill matrix diagram...';
+      try {
+        var tableClone = matrixTable.cloneNode(true);
+        var sourceSelects = matrixTable.querySelectorAll('select');
+        var clonedSelects = tableClone.querySelectorAll('select');
+        clonedSelects.forEach(function (select, index) {
+          var source = sourceSelects[index];
+          var value = source && source.options[source.selectedIndex] ? source.options[source.selectedIndex].text : select.value;
+          var label = document.createElement('span');
+          label.className = (select.className ? select.className + ' ' : '') + 'exported-select-value';
+          label.textContent = value || '';
+          select.replaceWith(label);
+        });
+
+        var width = Math.ceil(matrixTable.scrollWidth);
+        tableClone.style.width = width + 'px';
+        tableClone.style.minWidth = width + 'px';
+        tableClone.style.margin = '0';
+
+        var css = Array.from(document.querySelectorAll('style')).map(function (style) {
+          return style.textContent || '';
+        }).join('\n');
+        css += '\nhtml,body{min-height:0!important;margin:0!important;padding:0!important;background:#fff!important;font-family:Arial,sans-serif!important;color:#051733!important;}' +
+          '.offline-matrix-page{box-sizing:border-box;background:#fff;padding:12px;width:' + (width + 28) + 'px;}' +
+          '.offline-matrix-page .matrix-shell{display:block!important;overflow:visible!important;width:max-content;box-shadow:none;}' +
+          '.exported-select-value{display:block;font-size:11px;font-weight:800;line-height:1;text-align:center;color:#000;}' +
+          '@page{size:landscape;margin:6mm;}@media print{.offline-matrix-page{padding:0;}}';
+
+        var shellClass = matrixShell.className || 'matrix-shell';
+        var title = 'Skill Matrix - ' + ((lastMatrixData.line && lastMatrixData.line.mCourseName) || 'Line');
+        var html = '<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">' +
+          '<meta name="viewport" content="width=device-width,initial-scale=1"><title>' + esc(title) + '</title><style>' + css + '</style></head>' +
+          '<body><main class="offline-matrix-page"><section class="' + esc(shellClass) + '">' + tableClone.outerHTML + '</section></main></body></html>';
+        var htmlBlob = new Blob(['\ufeff', html], { type: 'text/html;charset=utf-8' });
+        var lineName = (lastMatrixData.line && lastMatrixData.line.mCourseName) ? lastMatrixData.line.mCourseName.replace(/[^a-z0-9]+/gi, '_') : 'line';
+        downloadBlob(htmlBlob, 'skill_matrix_' + lineName + '.html');
+        statusEl.textContent = 'Complete offline skill matrix page downloaded successfully.';
+      } catch (error) {
+        statusEl.textContent = 'Download failed: ' + error.message;
+      } finally {
+        downloadMatrixBtn.disabled = false;
+        downloadMatrixBtn.textContent = originalText;
+      }
+    }
+
+    downloadMatrixBtn.addEventListener('click', downloadCompleteMatrix);
+
+    async function loadMatrix() {
+      statusEl.textContent = 'Loading matrix...';
+      matrixShell.style.display = 'none';
+      var url = '/api/skill-matrix?deptID=' + encodeURIComponent(deptSelect.value) + '&areaID=' + encodeURIComponent(areaSelect.value) + '&mCourseID=' + encodeURIComponent(lineSelect.value);
+      try {
+        renderMatrix(await fetchJSON(url));
+      } catch (error) {
+        statusEl.textContent = error.message;
+        matrixTable.innerHTML = '';
+        lastMatrixData = null;
+        downloadMatrixBtn.disabled = true;
+      }
+    }
+
+    deptSelect.addEventListener('change', function () { loadAreas().catch(function (e) { statusEl.textContent = e.message; }); });
+    areaSelect.addEventListener('change', function () { loadLines().catch(function (e) { statusEl.textContent = e.message; }); });
+    lineSelect.addEventListener('change', updateLoadState);
+    loadBtn.addEventListener('click', loadMatrix);
+    matrixTable.addEventListener('click', function (event) {
+      var plannedCell = event.target.closest('.plan-cell.training-planned');
+      if (plannedCell) {
+        if (isSkillMatrix2 && !editingEnabled) {
+          statusEl.textContent = 'Switch on Enable Editing before changing an assigned training month.';
+          return;
+        }
+        openExistingPlanModal(plannedCell);
+        return;
+      }
+      var unassignedCell = event.target.closest('.station-unassigned');
+      if (unassignedCell) {
+        if (isSkillMatrix2 && !editingEnabled) {
+          statusEl.textContent = 'Skill Matrix 2 is read-only. Switch on Enable Editing when permitted.';
+          return;
+        }
+        var learnerName = unassignedCell.closest('tr')?.querySelector('.user-info')?.textContent || 'this learner';
+        var stationName = unassignedCell.dataset.stationname || 'this station';
+        if (!window.confirm('Add ' + learnerName.trim() + ' to ' + stationName + ' for Level 2 multiskilling? The learner must pass this station training before another multiskill station can be added.')) return;
+        postJSON('/api/skill-matrix/multiskill-assignment', {
+          uniqueID: unassignedCell.dataset.uniqueid,
+          deptID: deptSelect.value,
+          areaID: areaSelect.value,
+          mCourseID: lineSelect.value,
+          stationID: unassignedCell.dataset.stationid,
+          startDate: new Date().toISOString().slice(0, 10),
+          matrixPage: isSkillMatrix2 ? 2 : 1,
+          editingEnabled: editingEnabled
+        }).then(function (result) {
+          statusEl.textContent = result.message || 'Multiskill station assigned. Level 2 training is now available.';
+          return loadMatrix();
+        }).catch(function (error) {
+          statusEl.textContent = error.message;
+        });
+        return;
+      }
+      var cell = event.target.closest('.station-skill');
+      if (!cell) return;
+      if (isSkillMatrix2 && !editingEnabled) {
+        statusEl.textContent = 'Skill Matrix 2 is read-only. Switch on Enable Editing when permitted.';
+        return;
+      }
+      if (event.target.classList.contains('required-level')) return;
+      openSkillModal(cell);
+    });
+    matrixTable.addEventListener('change', function (event) {
+      if (!event.target.classList.contains('required-level')) return;
+      var cell = event.target.closest('.station-skill');
+      if (!cell) return;
+      if (isSkillMatrix2 && !editingEnabled) {
+        event.target.value = event.target.dataset.previousValue || event.target.value;
+        statusEl.textContent = 'Switch on Enable Editing before changing a required level.';
+        return;
+      }
+      postJSON('/api/skill-matrix/station-skill', {
+        uniqueID: cell.dataset.uniqueid,
+        deptID: deptSelect.value,
+        areaID: areaSelect.value,
+        mCourseID: lineSelect.value,
+        stationID: cell.dataset.stationid,
+        requiredLevel: event.target.value.replace('L', ''),
+        matrixPage: isSkillMatrix2 ? 2 : 1,
+        editingEnabled: editingEnabled
+      }).catch(function (error) {
+        statusEl.textContent = error.message;
+      });
+    });
+    skillChoice.addEventListener('change', function () {
+      monthField.style.display = '';
+    });
+    cancelSkillModal.addEventListener('click', closeSkillModal);
+    saveSkillModal.addEventListener('click', saveSkillSelection);
+    skillModal.addEventListener('click', function (event) {
+      if (event.target === skillModal) closeSkillModal();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && skillModal.classList.contains('is-open')) closeSkillModal();
+    });
+    monthChoice.innerHTML = matrixMonths.map(function (month, index) {
+      return '<option value="' + index + '">' + esc(month) + '</option>';
+    }).join('');
+
+    if (editingToggle) editingToggle.addEventListener('change', function () {
+      editingEnabled = editingToggle.checked;
+      applyEditingState();
+      statusEl.textContent = editingEnabled
+        ? 'Editing enabled. Station skills and training plans are now clickable.'
+        : 'Editing disabled. Skill Matrix 2 is read-only.';
+    });
+
+    loadDepartments().catch(function (error) {
+      statusEl.textContent = error.message;
+    });
+    loadEditingPermission();
+  </script>
+</body>
+
+</html>
+
